@@ -1,0 +1,6 @@
+{
+  "name": "스마트 생활비 플래너",
+  "description": "주기별 생활비 예산과 이체 및 지출을 우아하게 관리할 수 있는 가계부 플래너",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

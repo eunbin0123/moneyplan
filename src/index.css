@@ -1,0 +1,49 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700;800&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Space Grotesk", "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #F0F0F0; /* crisp, clean geometric canvas gray */
+  color: #000000; /* pure solid heavy carbon black */
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom geo flat shadow styling */
+.geo-shadow {
+  box-shadow: 4px 4px 0px 0px #000000;
+}
+
+.geo-shadow-lg {
+  box-shadow: 8px 8px 0px 0px #000000;
+}
+
+.geo-shadow-sm {
+  box-shadow: 2px 2px 0px 0px #000000;
+}
+
+.accent-bg {
+  background-color: #E63946;
+}
+
+/* Custom geometric minimal scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #F0F0F0;
+  border-left: 2px solid #000000;
+}
+::-webkit-scrollbar-thumb {
+  background: #000000;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #E63946;
+}
+
+
