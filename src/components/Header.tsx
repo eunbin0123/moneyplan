@@ -37,7 +37,7 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
               <div>
                 <h1 className="text-xl font-extrabold text-black flex items-center gap-2 select-none">
-                  스마트 가계부
+                  ☆EB's Money Plan☆
                 </h1>
               </div>
             </div>
