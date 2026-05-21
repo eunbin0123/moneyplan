@@ -11,8 +11,8 @@ import { ExpenseModal, FixedModal, MonthModal, CycleModal, EventModal } from "./
 import { calculateBudgetWithCarryOver } from "./utils/budgetCalculator";
 import { initAuth, googleSignIn, logout } from "./utils/firebaseAuth";
 import { getSavedSpreadsheetId, createGoogleSheet, syncToGoogleSheet, removeSpreadsheetId, saveSpreadsheetId } from "./utils/googleSheets";
+import { saveToFirestore, loadFromFirestore, subscribeToFirestore } from "./utils/firestore";
 
-// Tab types
 type TabType = "overview" | "expenses" | "savings" | "memo";
 
 export default function App() {
@@ -38,8 +38,20 @@ export default function App() {
     }
   });
 
-  const [currentMonth, setCurrentMonth] = useState<string>("2025-05");
+  const [currentMonth, setCurrentMonth] = useState<string>(() => {
+    const saved = localStorage.getItem("smart_budget_months_v2");
+    if (saved) {
+      const arr = JSON.parse(saved);
+      return arr[arr.length - 1] || "2025-05";
+    }
+    return "2025-05";
+  });
   const [activeTab, setActiveTab] = useState<TabType>("overview");
+
+  // Firestore 실시간 리스너 제어용 (로그인 후 구독)
+  const firestoreUnsub = useRef<(() => void) | null>(null);
+  // Firestore에서 받은 업데이트인지 구분 (무한루프 방지)
+  const isRemoteUpdate = useRef(false);
 
   // Google Sheets Auto-Sync States
   const [googleUser, setGoogleUser] = useState<any>(null);
@@ -49,7 +61,7 @@ export default function App() {
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
   const [syncError, setSyncError] = useState<string | null>(null);
 
-  // Save states inside localstorage whenever they change
+  // localStorage 백업 (오프라인 대비)
   useEffect(() => {
     localStorage.setItem("smart_budget_state_v2", JSON.stringify(budgetState));
   }, [budgetState]);
@@ -58,23 +70,67 @@ export default function App() {
     localStorage.setItem("smart_budget_months_v2", JSON.stringify(months));
   }, [months]);
 
+  // Firestore 저장 (원격 업데이트는 저장 안 함 - 무한루프 방지)
+  useEffect(() => {
+    if (isRemoteUpdate.current) {
+      isRemoteUpdate.current = false;
+      return;
+    }
+    if (!googleUser) return;
+
+    const timer = setTimeout(() => {
+      saveToFirestore(months, budgetState).catch(console.error);
+    }, 1000); // 1초 디바운스
+
+    return () => clearTimeout(timer);
+  }, [budgetState, months, googleUser]);
+
   // Google Auth Listener
   useEffect(() => {
     const unsubscribe = initAuth(
-      (user, token) => {
-        setGoogleUser(user);
-        setGoogleToken(token);
-        setSyncError(null);
-      },
-      () => {
-        setGoogleUser(null);
-        setGoogleToken(null);
-      }
+        async (user, token) => {
+          setGoogleUser(user);
+          setGoogleToken(token);
+          setSyncError(null);
+
+          // 로그인 직후 Firestore에서 데이터 불러오기
+          try {
+            const remote = await loadFromFirestore();
+            if (remote && remote.months.length > 0) {
+              isRemoteUpdate.current = true;
+              setMonths(remote.months);
+              setBudgetState(remote.budgetState);
+              setCurrentMonth(remote.months[remote.months.length - 1]);
+            }
+          } catch (e) {
+            console.error("Firestore 초기 로드 실패:", e);
+          }
+
+          // 실시간 리스너 등록
+          if (firestoreUnsub.current) firestoreUnsub.current();
+          firestoreUnsub.current = subscribeToFirestore((remoteMonths, remoteBudget) => {
+            isRemoteUpdate.current = true;
+            setMonths(remoteMonths);
+            setBudgetState(remoteBudget);
+          });
+        },
+        () => {
+          setGoogleUser(null);
+          setGoogleToken(null);
+          // 리스너 해제
+          if (firestoreUnsub.current) {
+            firestoreUnsub.current();
+            firestoreUnsub.current = null;
+          }
+        }
     );
-    return () => unsubscribe();
+    return () => {
+      unsubscribe();
+      if (firestoreUnsub.current) firestoreUnsub.current();
+    };
   }, []);
 
-  // Real-time Automated Background Sync to Google Sheets
+  // Google Sheets 자동 동기화 (데이터 변경 시)
   useEffect(() => {
     if (googleUser && googleToken && spreadsheetId) {
       const runSync = async () => {
@@ -91,7 +147,7 @@ export default function App() {
         }
       };
 
-      const timer = setTimeout(runSync, 1500); // 1.5s debounce to keep API rates efficient
+      const timer = setTimeout(runSync, 1500);
       return () => clearTimeout(timer);
     }
   }, [budgetState, months, googleUser, googleToken, spreadsheetId]);
@@ -117,6 +173,10 @@ export default function App() {
       setGoogleUser(null);
       setGoogleToken(null);
       setSyncError(null);
+      if (firestoreUnsub.current) {
+        firestoreUnsub.current();
+        firestoreUnsub.current = null;
+      }
     } catch (err: any) {
       console.error("Sign out failed:", err);
     }
@@ -148,14 +208,14 @@ export default function App() {
       setLastSyncTime(new Date());
     } catch (err: any) {
       console.error("Manual sync failed:", err);
-      setSyncError(err.message || "동기화에 실패했습니다. 유효하지 않은 시트 ID이거나 권한이 부족할 수 있습니다.");
+      setSyncError(err.message || "동기화에 실패했습니다.");
     } finally {
       setIsSyncing(false);
     }
   };
 
   const handleDisconnectSheet = () => {
-    if (window.confirm("구글 스프레드시트 실시간 연동을 해제하시겠습니까? (드라이브의 시트 파일은 유지되며 로컬 브라우저 기기 연결만 끊깁니다.)")) {
+    if (window.confirm("구글 스프레드시트 실시간 연동을 해제하시겠습니까?")) {
       removeSpreadsheetId();
       setSpreadsheetId(null);
       setLastSyncTime(null);
@@ -174,8 +234,7 @@ export default function App() {
       setLastSyncTime(new Date());
     } catch (err: any) {
       console.error("Connect existing sheet failed:", err);
-      setSyncError(err.message || "기존 스프레드시트 연결에 실패했습니다. 입력한 ID가 올바르고 권한이 있는지 확인하세요.");
-      // rollback state
+      setSyncError(err.message || "기존 스프레드시트 연결에 실패했습니다.");
       removeSpreadsheetId();
       setSpreadsheetId(null);
     } finally {
@@ -183,72 +242,58 @@ export default function App() {
     }
   };
 
-  // Current month's actual state calculated with dynamic carry-overs sequentially
   const computedState = calculateBudgetWithCarryOver(months, budgetState);
   const activeData: MonthData = computedState[currentMonth] || (budgetState[currentMonth] || makeDefaultMonth(2025, 5));
 
   // ----------------------------------------
-  // 2. MODAL DIALOG CONTROLS & SELECTIONS
+  // 2. MODAL DIALOG CONTROLS
   // ----------------------------------------
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [editingExpenseIdx, setEditingExpenseIdx] = useState<number | null>(null);
-
   const [isFixedModalOpen, setIsFixedModalOpen] = useState(false);
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const [isMonthModalOpen, setIsMonthModalOpen] = useState(false);
-
   const [isCycleModalOpen, setIsCycleModalOpen] = useState(false);
   const [editingCycleIdx, setEditingCycleIdx] = useState<number | null>(null);
-
-  // Memo saving status feedback indicator
   const [memoSavingFeedback, setMemoSavingFeedback] = useState(false);
   const memoFeedbackTimer = useRef<NodeJS.Timeout | null>(null);
 
-  // Get memo indicator states for all loaded months
   const memoStates: Record<string, boolean> = {};
   months.forEach((m) => {
     const d = budgetState[m];
     memoStates[m] = !!(d && d.memo && d.memo.trim());
   });
 
-  // Short labels (e.g. "5월")
   const getShortMonthLabel = (key: string) => {
     const [, month] = key.split("-");
     return `${parseInt(month, 10)}월`;
   };
 
   // ----------------------------------------
-  // 3. SERVICE INTERACTION CALLBACKS
+  // 3. CALLBACKS
   // ----------------------------------------
-
-  // Accounts toggle checklist checker
   const handleToggleAccount = (idx: number) => {
     setBudgetState((prev) => {
       const copy = { ...prev };
       const mD = { ...copy[currentMonth] };
       mD.accounts = mD.accounts.map((acc, i) =>
-        i === idx ? { ...acc, checked: !acc.checked } : acc
+          i === idx ? { ...acc, checked: !acc.checked } : acc
       );
       copy[currentMonth] = mD;
       return copy;
     });
   };
 
-  // Expense ADD / EDIT commit
   const handleSaveExpense = (item: ExpenseItem) => {
     setBudgetState((prev) => {
       const copy = { ...prev };
       const mD = { ...copy[currentMonth] };
       const currentExps = [...mD.expenses];
-
       if (editingExpenseIdx !== null && editingExpenseIdx >= 0) {
-        // Edit flow
         currentExps[editingExpenseIdx] = item;
       } else {
-        // Add flow
         currentExps.push(item);
       }
-
       mD.expenses = currentExps;
       copy[currentMonth] = mD;
       return copy;
@@ -256,7 +301,6 @@ export default function App() {
     setEditingExpenseIdx(null);
   };
 
-  // Expense delete trigger
   const handleDeleteExpense = (idx: number) => {
     setBudgetState((prev) => {
       const copy = { ...prev };
@@ -269,22 +313,19 @@ export default function App() {
     });
   };
 
-  // Toggle individual expense check status
   const handleToggleExpense = (idx: number) => {
     setBudgetState((prev) => {
       const copy = { ...prev };
       const mD = { ...copy[currentMonth] };
       const currentExps = [...mD.expenses];
       const target = currentExps[idx];
-      const isChecked = target.checked !== false;
-      currentExps[idx] = { ...target, checked: !isChecked };
+      currentExps[idx] = { ...target, checked: target.checked === false ? true : false };
       mD.expenses = currentExps;
       copy[currentMonth] = mD;
       return copy;
     });
   };
 
-  // Fixed Expense add
   const handleSaveFixed = (item: FixedExpense) => {
     setBudgetState((prev) => {
       const copy = { ...prev };
@@ -295,7 +336,6 @@ export default function App() {
     });
   };
 
-  // Fixed Expense delete
   const handleDeleteFixed = (idx: number) => {
     setBudgetState((prev) => {
       const copy = { ...prev };
@@ -308,7 +348,6 @@ export default function App() {
     });
   };
 
-  // Special Event Expense add
   const handleSaveEvent = (item: EventExpense) => {
     setBudgetState((prev) => {
       const copy = { ...prev };
@@ -319,7 +358,6 @@ export default function App() {
     });
   };
 
-  // Special Event Expense delete
   const handleDeleteEvent = (idx: number) => {
     setBudgetState((prev) => {
       const copy = { ...prev };
@@ -332,7 +370,6 @@ export default function App() {
     });
   };
 
-  // Update budget allocations
   const handleUpdateAllocations = (budget: number, fixedBudget: number, eventBudget: number) => {
     setBudgetState((prev) => {
       const copy = { ...prev };
@@ -345,7 +382,6 @@ export default function App() {
     });
   };
 
-  // Memo auto-saving update
   const handleUpdateMemo = (newMemo: string) => {
     setBudgetState((prev) => {
       const copy = { ...prev };
@@ -354,8 +390,6 @@ export default function App() {
       copy[currentMonth] = mD;
       return copy;
     });
-
-    // Provide modern fade save indicator feedback
     setMemoSavingFeedback(true);
     if (memoFeedbackTimer.current) clearTimeout(memoFeedbackTimer.current);
     memoFeedbackTimer.current = setTimeout(() => {
@@ -363,56 +397,45 @@ export default function App() {
     }, 1200);
   };
 
-  // Add new Month configuration
   const handleSaveMonth = (year: number, month: number, budget: number) => {
     const key = `${year}-${String(month).padStart(2, "0")}`;
     if (budgetState[key]) {
-      alert("이미 동일한 지출월 데이터가 존재합니다. 해당 월을 먼저 선택해주세요.");
+      alert("이미 동일한 지출월 데이터가 존재합니다.");
       return;
     }
-
     setBudgetState((prev) => ({
       ...prev,
       [key]: makeDefaultMonth(year, month, budget),
     }));
-
     setMonths((prev) => {
       const next = [...prev, key];
       next.sort();
       return next;
     });
-
     setCurrentMonth(key);
     setActiveTab("overview");
   };
 
-  // Delete configured Month
   const handleDeleteMonth = (key: string) => {
     if (months.length <= 1) {
-      alert("플래너를 완연하게 구동하기 위해 최소 1개 이상의 지출월 예산이 필요합니다.");
+      alert("최소 1개 이상의 지출월이 필요합니다.");
       return;
     }
-
-    const confirmMsg = `${getShortMonthLabel(key)} 전체 지출 내역 및 예산 구조를 플래너에서 안전하게 영구 삭제하시겠습니까?`;
-    if (!window.confirm(confirmMsg)) return;
+    if (!window.confirm(`${getShortMonthLabel(key)} 전체 내역을 삭제하시겠습니까?`)) return;
 
     const idx = months.indexOf(key);
     const newMonths = months.filter((m) => m !== key);
     setMonths(newMonths);
-
     setBudgetState((prev) => {
       const copy = { ...prev };
       delete copy[key];
       return copy;
     });
-
-    // Automatically transition safety month focal
     const nextIdx = Math.max(0, Math.min(idx, newMonths.length - 1));
     setCurrentMonth(newMonths[nextIdx]);
     setActiveTab("overview");
   };
 
-  // Cycle modifications
   const handleSaveCycle = (cycle: BudgetCycle) => {
     if (editingCycleIdx === null) return;
     setBudgetState((prev) => {
@@ -428,155 +451,131 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F0F0F0] pb-16">
-      {/* Dynamic Header */}
-      <Header
-        months={months}
-        currentMonth={currentMonth}
-        onSelectMonth={setCurrentMonth}
-        onAddMonth={() => setIsMonthModalOpen(true)}
-        onDeleteMonth={handleDeleteMonth}
-        memoStates={memoStates}
-        spreadsheetId={spreadsheetId}
-      />
+      <div className="min-h-screen bg-[#F0F0F0] pb-16">
+        <Header
+            months={months}
+            currentMonth={currentMonth}
+            onSelectMonth={setCurrentMonth}
+            onAddMonth={() => setIsMonthModalOpen(true)}
+            onDeleteMonth={handleDeleteMonth}
+            memoStates={memoStates}
+            spreadsheetId={spreadsheetId}
+        />
 
-      <main className="max-w-2xl mx-auto px-4 pt-6 space-y-6">
-        {/* Segmented control tab bar controller */}
-        <div className="grid grid-cols-4 border-2 border-black bg-white rounded-none divide-x-2 divide-black relative overflow-hidden geo-shadow-sm">
-          {(["overview", "expenses", "savings", "memo"] as TabType[]).map((tab) => {
-            const isActive = activeTab === tab;
-            const labels: Record<TabType, string> = {
-              overview: "개요",
-              expenses: "지출내역",
-              savings: "저축·적금",
-              memo: "비고",
-            };
+        <main className="max-w-2xl mx-auto px-4 pt-6 space-y-6">
+          <div className="grid grid-cols-4 border-2 border-black bg-white rounded-none divide-x-2 divide-black relative overflow-hidden geo-shadow-sm">
+            {(["overview", "expenses", "savings", "memo"] as TabType[]).map((tab) => {
+              const isActive = activeTab === tab;
+              const labels: Record<TabType, string> = {
+                overview: "개요",
+                expenses: "지출내역",
+                savings: "저축·적금",
+                memo: "비고",
+              };
+              return (
+                  <button
+                      key={tab}
+                      onClick={() => setActiveTab(tab)}
+                      className={`relative py-3.5 text-xs font-black uppercase tracking-wider cursor-pointer transition-colors ${
+                          isActive ? "bg-black text-white" : "bg-white text-black hover:bg-[#E63946] hover:text-white"
+                      }`}
+                  >
+                    <span className="relative z-20">{labels[tab]}</span>
+                  </button>
+              );
+            })}
+          </div>
 
-            return (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`relative py-3.5 text-xs font-black uppercase tracking-wider cursor-pointer transition-colors ${
-                  isActive ? "bg-black text-white" : "bg-white text-black hover:bg-[#E63946] hover:text-white"
-                }`}
-              >
-                <span className="relative z-20">{labels[tab]}</span>
-              </button>
-            );
-          })}
-        </div>
+          <AnimatePresence mode="wait">
+            <motion.div
+                key={activeTab + "-" + currentMonth}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.12, ease: "easeOut" }}
+            >
+              {activeTab === "overview" && (
+                  <OverviewTab
+                      data={activeData}
+                      activeMonth={currentMonth}
+                      onEditCycle={(idx) => {
+                        setEditingCycleIdx(idx);
+                        setIsCycleModalOpen(true);
+                      }}
+                      onSwitchTab={(target) => setActiveTab(target as TabType)}
+                      onUpdateAllocations={handleUpdateAllocations}
+                      googleUser={googleUser}
+                      isSyncing={isSyncing}
+                      lastSyncTime={lastSyncTime}
+                      syncError={syncError}
+                      spreadsheetId={spreadsheetId}
+                      onGoogleSignIn={handleGoogleSignIn}
+                      onGoogleSignOut={handleGoogleSignOut}
+                      onCreateSpreadsheet={handleCreateSpreadsheet}
+                      onManualSync={handleManualSync}
+                      onDisconnectSheet={handleDisconnectSheet}
+                      onConnectExistingSheet={handleConnectExistingSheet}
+                  />
+              )}
+              {activeTab === "expenses" && (
+                  <ExpensesTab
+                      data={activeData}
+                      onAddExpense={() => {
+                        setEditingExpenseIdx(null);
+                        setIsExpenseModalOpen(true);
+                      }}
+                      onEditExpense={(idx) => {
+                        setEditingExpenseIdx(idx);
+                        setIsExpenseModalOpen(true);
+                      }}
+                      onDeleteExpense={handleDeleteExpense}
+                      onToggleExpense={handleToggleExpense}
+                  />
+              )}
+              {activeTab === "savings" && (
+                  <SavingsTab
+                      data={activeData}
+                      onToggleAccount={handleToggleAccount}
+                      onAddFixed={() => setIsFixedModalOpen(true)}
+                      onDeleteFixed={handleDeleteFixed}
+                      onAddEvent={() => setIsEventModalOpen(true)}
+                      onDeleteEvent={handleDeleteEvent}
+                  />
+              )}
+              {activeTab === "memo" && (
+                  <MemoTab
+                      memo={activeData.memo}
+                      onUpdateMemo={handleUpdateMemo}
+                      savingIndicator={memoSavingFeedback}
+                      shortMonthLabel={getShortMonthLabel(currentMonth)}
+                  />
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </main>
 
-        {/* Tab Contents Frame */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeTab + "-" + currentMonth}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.12, ease: "easeOut" }}
-          >
-            {activeTab === "overview" && (
-              <OverviewTab
-                data={activeData}
-                activeMonth={currentMonth}
-                onEditCycle={(idx) => {
-                  setEditingCycleIdx(idx);
-                  setIsCycleModalOpen(true);
-                }}
-                onSwitchTab={(target) => setActiveTab(target as TabType)}
-                onUpdateAllocations={handleUpdateAllocations}
-                googleUser={googleUser}
-                isSyncing={isSyncing}
-                lastSyncTime={lastSyncTime}
-                syncError={syncError}
-                spreadsheetId={spreadsheetId}
-                onGoogleSignIn={handleGoogleSignIn}
-                onGoogleSignOut={handleGoogleSignOut}
-                onCreateSpreadsheet={handleCreateSpreadsheet}
-                onManualSync={handleManualSync}
-                onDisconnectSheet={handleDisconnectSheet}
-                onConnectExistingSheet={handleConnectExistingSheet}
-              />
-            )}
-
-            {activeTab === "expenses" && (
-              <ExpensesTab
-                data={activeData}
-                onAddExpense={() => {
-                  setEditingExpenseIdx(null);
-                  setIsExpenseModalOpen(true);
-                }}
-                onEditExpense={(idx) => {
-                  setEditingExpenseIdx(idx);
-                  setIsExpenseModalOpen(true);
-                }}
-                onDeleteExpense={handleDeleteExpense}
-                onToggleExpense={handleToggleExpense}
-              />
-            )}
-
-            {activeTab === "savings" && (
-              <SavingsTab
-                data={activeData}
-                onToggleAccount={handleToggleAccount}
-                onAddFixed={() => setIsFixedModalOpen(true)}
-                onDeleteFixed={handleDeleteFixed}
-                onAddEvent={() => setIsEventModalOpen(true)}
-                onDeleteEvent={handleDeleteEvent}
-              />
-            )}
-
-            {activeTab === "memo" && (
-              <MemoTab
-                memo={activeData.memo}
-                onUpdateMemo={handleUpdateMemo}
-                savingIndicator={memoSavingFeedback}
-                shortMonthLabel={getShortMonthLabel(currentMonth)}
-              />
-            )}
-          </motion.div>
-        </AnimatePresence>
-      </main>
-
-      {/* Overlaid Modal Panels */}
-      <ExpenseModal
-        isOpen={isExpenseModalOpen}
-        onClose={() => {
-          setIsExpenseModalOpen(false);
-          setEditingExpenseIdx(null);
-        }}
-        onSave={handleSaveExpense}
-        initialItem={editingExpenseIdx !== null ? activeData.expenses[editingExpenseIdx] : null}
-        defaultMonthStr={currentMonth}
-      />
-
-      <FixedModal
-        isOpen={isFixedModalOpen}
-        onClose={() => setIsFixedModalOpen(false)}
-        onSave={handleSaveFixed}
-      />
-
-      <MonthModal
-        isOpen={isMonthModalOpen}
-        onClose={() => setIsMonthModalOpen(false)}
-        onSave={handleSaveMonth}
-      />
-
-      <CycleModal
-        isOpen={isCycleModalOpen}
-        onClose={() => {
-          setIsCycleModalOpen(false);
-          setEditingCycleIdx(null);
-        }}
-        onSave={handleSaveCycle}
-        initialCycle={editingCycleIdx !== null ? activeData.cycles[editingCycleIdx] : null}
-      />
-
-      <EventModal
-        isOpen={isEventModalOpen}
-        onClose={() => setIsEventModalOpen(false)}
-        onSave={handleSaveEvent}
-      />
-    </div>
+        <ExpenseModal
+            isOpen={isExpenseModalOpen}
+            onClose={() => {
+              setIsExpenseModalOpen(false);
+              setEditingExpenseIdx(null);
+            }}
+            onSave={handleSaveExpense}
+            initialItem={editingExpenseIdx !== null ? activeData.expenses[editingExpenseIdx] : null}
+            defaultMonthStr={currentMonth}
+        />
+        <FixedModal isOpen={isFixedModalOpen} onClose={() => setIsFixedModalOpen(false)} onSave={handleSaveFixed} />
+        <MonthModal isOpen={isMonthModalOpen} onClose={() => setIsMonthModalOpen(false)} onSave={handleSaveMonth} />
+        <CycleModal
+            isOpen={isCycleModalOpen}
+            onClose={() => {
+              setIsCycleModalOpen(false);
+              setEditingCycleIdx(null);
+            }}
+            onSave={handleSaveCycle}
+            initialCycle={editingCycleIdx !== null ? activeData.cycles[editingCycleIdx] : null}
+        />
+        <EventModal isOpen={isEventModalOpen} onClose={() => setIsEventModalOpen(false)} onSave={handleSaveEvent} />
+      </div>
   );
 }
