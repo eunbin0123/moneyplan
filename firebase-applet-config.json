@@ -1,10 +1,9 @@
 {
-  "projectId": "annular-altar-607pf",
-  "appId": "1:116515671020:web:8c989b52f58096f45b8ec9",
-  "apiKey": "AIzaSyAcL8chvebMlHx3fnlSStqHsEgUl8Qf9K8",
-  "authDomain": "annular-altar-607pf.firebaseapp.com",
-  "firestoreDatabaseId": "ai-studio-39aa4960-0210-4a65-8010-416c2fb14986",
-  "storageBucket": "annular-altar-607pf.firebasestorage.app",
-  "messagingSenderId": "116515671020",
-  "measurementId": ""
+  "apiKey": "AIzaSyATMG_Q5j9_bm-dMFAd9nC_wpf5X6KtxnI",
+  "authDomain": "ebsmoneyplan.firebaseapp.com",
+  "projectId": "ebsmoneyplan",
+  "storageBucket": "ebsmoneyplan.firebasestorage.app",
+  "messagingSenderId": "948379994054",
+  "appId": "1:948379994054:web:d34df7977225c01c2314c7",
+  "measurementId": "G-SGKSCSBDYL"
 }
