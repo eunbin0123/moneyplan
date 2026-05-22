@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Plane, Hotel, Wifi, Shield, Ticket, Plus, Trash2, Wallet, CreditCard, X, ChevronDown, Calendar } from "lucide-react";
+import { Plane, Hotel, Wifi, Shield, Ticket, Plus, Trash2, Wallet, CreditCard, X, ChevronDown, Calendar, Edit2 } from "lucide-react";
 import { saveTravelData, loadTravelData, subscribeTravelData } from "../utils/travelFirestore";
 
 interface FixedItem {
@@ -60,11 +60,13 @@ export default function TravelPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [activeDate, setActiveDate] = useState<string>(() => {
-    const today = new Date().toISOString().slice(0, 10);
-    return today;
-  });
+  const [activeDate, setActiveDate] = useState<string>("all");
   const [spendOpen, setSpendOpen] = useState(true);
+  const [dragOverIdx, setDragOverIdx] = useState<string | null>(null);
+  const [editingSpendId, setEditingSpendId] = useState<string | null>(null);
+  const [editingSpendData, setEditingSpendData] = useState<{name: string; amount: string; currency: "KRW"|"JPY"; type: "cash"|"card"} | null>(null);
+  const [editingFixedId, setEditingFixedId] = useState<string | null>(null);
+  const [editingFixedData, setEditingFixedData] = useState<{name: string; amount: string} | null>(null);
   const [fixedOpen, setFixedOpen] = useState(false);
 
   const isRemoteUpdate = useRef(false);
@@ -97,14 +99,14 @@ export default function TravelPage() {
           if (remote.settings) {
             setSettings(remote.settings);
             setRateInput(String(remote.settings.exchangeRate));
+            const today = new Date().toISOString().slice(0, 10);
+            const tripDates = getDates(remote.settings.startDate, remote.settings.endDate);
+            setActiveDate(tripDates.includes(today) ? today : "all");
           }
         }
       } catch (e) { console.error(e); }
       finally {
         setIsLoading(false);
-        // 오늘 날짜가 여행 기간에 있으면 자동 선택
-        const today = new Date().toISOString().slice(0, 10);
-        setActiveDate(today);
       }
       firestoreUnsub.current = subscribeTravelData((data) => {
         isRemoteUpdate.current = true;
@@ -175,7 +177,7 @@ export default function TravelPage() {
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <span className="text-xl">✈️</span>
-                <h1 className="text-lg font-extrabold text-black select-none">도쿄 여행 경비</h1>
+                <h1 className="text-lg font-extrabold text-black select-none">東京旅行予算</h1>
               </div>
               <div className="flex items-center gap-2">
                 <button
@@ -281,30 +283,88 @@ export default function TravelPage() {
                   ) : (
                       <div className="space-y-1">
                         {filteredSpend.map((item) => (
-                            <div key={item.id} className="flex items-center justify-between py-2.5 border-b border-black/10 last:border-0">
-                              <div className="flex items-center gap-2 min-w-0">
-                        <span className={`text-[9px] font-black px-1.5 py-0.5 border border-black shrink-0 ${item.type === "cash" ? "bg-black text-white" : "bg-white text-black"}`}>
-                          {item.type === "cash" ? "현금" : "카드"}
-                        </span>
-                                <div className="min-w-0">
-                                  <p className="text-xs font-black truncate">{item.name}</p>
-                                  {activeDate === "all" && <p className="text-[9px] text-slate-400 font-mono">{getDayLabel(item.date)}</p>}
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-2 shrink-0">
-                                <div className="text-right">
-                                  <p className="text-xs font-black font-mono">
-                                    {item.currency === "JPY" ? `¥${fmtYen(item.amount)}` : `${fmt(item.amount)}원`}
-                                  </p>
-                                  {item.currency === "JPY" && (
-                                      <p className="text-[9px] text-slate-400 font-mono">≈{fmt(item.amount * settings.exchangeRate)}원</p>
-                                  )}
-                                </div>
-                                <button onClick={() => setSpendItems((p) => p.filter((i) => i.id !== item.id))}
-                                        className="p-1 hover:bg-[#E63946] hover:text-white border border-black transition-all cursor-pointer">
-                                  <Trash2 className="h-3 w-3" />
-                                </button>
-                              </div>
+                            <div
+                                key={item.id}
+                                draggable
+                                onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", item.id); }}
+                                onDragOver={(e) => { e.preventDefault(); setDragOverIdx(item.id); }}
+                                onDragLeave={() => setDragOverIdx(null)}
+                                onDrop={(e) => { e.preventDefault(); const fromId = e.dataTransfer.getData("text/plain"); if (fromId !== item.id) { setSpendItems((prev) => { const arr = [...prev]; const fi = arr.findIndex((x) => x.id === fromId); const ti = arr.findIndex((x) => x.id === item.id); const [m] = arr.splice(fi, 1); arr.splice(ti, 0, m); return arr; }); } setDragOverIdx(null); }}
+                                onDragEnd={() => setDragOverIdx(null)}
+                                className={`flex items-center justify-between py-2.5 border-b border-black/10 last:border-0 cursor-grab active:cursor-grabbing active:opacity-50 ${dragOverIdx === item.id ? "bg-slate-100 border-l-4 border-[#E63946]" : ""}`}
+                            >
+                              {editingSpendId === item.id && editingSpendData ? (
+                                  /* 수정 모드 */
+                                  <div className="flex flex-col gap-2 w-full py-1">
+                                    <div className="flex gap-2">
+                                      <input type="text" value={editingSpendData.name}
+                                             onChange={(e) => setEditingSpendData((p) => p && ({ ...p, name: e.target.value }))}
+                                             className="flex-1 h-8 border-2 border-black px-2 text-xs font-bold outline-none focus:border-[#E63946]"
+                                             style={{ fontSize: "16px" }} />
+                                      <input type="number" inputMode="numeric" pattern="[0-9]*"
+                                             value={editingSpendData.amount}
+                                             onChange={(e) => setEditingSpendData((p) => p && ({ ...p, amount: e.target.value }))}
+                                             className="w-24 h-8 border-2 border-black px-2 text-xs font-bold font-mono outline-none focus:border-[#E63946] text-right"
+                                             style={{ fontSize: "16px" }} />
+                                    </div>
+                                    <div className="flex gap-2 items-center">
+                                      <div className="flex gap-1">
+                                        {(["JPY", "KRW"] as const).map((c) => (
+                                            <button key={c} onClick={() => setEditingSpendData((p) => p && ({ ...p, currency: c }))}
+                                                    className={`px-2 py-1 text-[9px] font-black border border-black cursor-pointer ${editingSpendData.currency === c ? "bg-black text-white" : "bg-white"}`}>
+                                              {c === "JPY" ? "¥엔" : "₩원"}
+                                            </button>
+                                        ))}
+                                        {editingSpendData.currency === "JPY" && (["cash", "card"] as const).map((t) => (
+                                            <button key={t} onClick={() => setEditingSpendData((p) => p && ({ ...p, type: t }))}
+                                                    className={`px-2 py-1 text-[9px] font-black border border-black cursor-pointer ${editingSpendData.type === t ? "bg-black text-white" : "bg-white"}`}>
+                                              {t === "cash" ? "현금" : "카드"}
+                                            </button>
+                                        ))}
+                                      </div>
+                                      <div className="flex gap-1 ml-auto">
+                                        <button onClick={() => {
+                                          const amt = parseFloat(editingSpendData.amount);
+                                          if (!isNaN(amt) && amt > 0) {
+                                            setSpendItems((p) => p.map((i) => i.id === item.id ? { ...i, name: editingSpendData.name, amount: amt, currency: editingSpendData.currency, type: editingSpendData.type } : i));
+                                          }
+                                          setEditingSpendId(null); setEditingSpendData(null);
+                                        }} className="px-2.5 py-1 bg-black text-white text-[10px] font-black border border-black hover:bg-[#E63946] cursor-pointer">확인</button>
+                                        <button onClick={() => { setEditingSpendId(null); setEditingSpendData(null); }}
+                                                className="px-2.5 py-1 bg-white text-black text-[10px] font-black border border-black hover:bg-slate-100 cursor-pointer">취소</button>
+                                      </div>
+                                    </div>
+                                  </div>
+                              ) : (
+                                  /* 일반 모드 */
+                                  <>
+                                    <div className="flex items-center gap-2 min-w-0">
+                            <span className={`text-[9px] font-black px-1.5 py-0.5 border border-black shrink-0 ${item.type === "cash" ? "bg-black text-white" : "bg-white text-black"}`}>
+                              {item.type === "cash" ? "현금" : "카드"}
+                            </span>
+                                      <div className="min-w-0">
+                                        <p className="text-xs font-black truncate">{item.name}</p>
+                                        {activeDate === "all" && <p className="text-[9px] text-slate-400 font-mono">{getDayLabel(item.date)}</p>}
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center gap-2 shrink-0">
+                                      <div className="text-right">
+                                        <p className="text-xs font-black font-mono">
+                                          {item.currency === "JPY" ? `¥${fmtYen(item.amount)}` : `${fmt(item.amount)}원`}
+                                        </p>
+                                        {item.currency === "JPY" && (
+                                            <p className="text-[9px] text-slate-400 font-mono">≈{fmt(item.amount * settings.exchangeRate)}원</p>
+                                        )}
+                                      </div>
+                                      <button onClick={() => { setEditingSpendId(item.id); setEditingSpendData({ name: item.name, amount: String(item.amount), currency: item.currency, type: item.type }); }}
+                                              className="p-1 hover:bg-black hover:text-white border border-black transition-all cursor-pointer"><Edit2 className="h-3 w-3" /></button>
+                                      <button onClick={() => setSpendItems((p) => p.filter((i) => i.id !== item.id))}
+                                              className="p-1 hover:bg-[#E63946] hover:text-white border border-black transition-all cursor-pointer">
+                                        <Trash2 className="h-3 w-3" />
+                                      </button>
+                                    </div>
+                                  </>
+                              )}
                             </div>
                         ))}
                       </div>
@@ -313,27 +373,55 @@ export default function TravelPage() {
             )}
           </div>
 
-          {/* 고정 지출 토글 - 전체 탭에서만 표시 */}
+          {/* 사전 지출 토글 - 전체 탭에서만 표시 */}
           {activeDate === "all" && <div className="bg-white border-2 border-black geo-shadow">
             <div className="flex items-center justify-between p-4 cursor-pointer select-none hover:bg-slate-50" onClick={() => setFixedOpen(!fixedOpen)}>
               <div className="flex items-center gap-2">
                 <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${fixedOpen ? "rotate-0" : "-rotate-90"}`} />
-                <h2 className="text-sm font-black uppercase tracking-widest">고정 지출</h2>
+                <h2 className="text-sm font-black uppercase tracking-widest">사전 지출</h2>
               </div>
               <span className="text-sm font-black font-mono text-[#E63946]">{fmt(totalFixed)}원</span>
             </div>
             {fixedOpen && (
                 <div className="border-t-2 border-black px-5 pb-5 pt-4 space-y-1">
                   {fixedItems.map((item) => (
-                      <div key={item.id} className="flex items-center justify-between py-2.5 border-b border-black/10 last:border-0">
-                        <span className="text-xs font-black">{item.name}</span>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-black font-mono">{fmt(item.amount)}원</span>
-                          <button onClick={() => setFixedItems((p) => p.filter((i) => i.id !== item.id))}
-                                  className="p-1 hover:bg-[#E63946] hover:text-white border border-black transition-all cursor-pointer">
-                            <Trash2 className="h-3 w-3" />
-                          </button>
-                        </div>
+                      <div key={item.id} className="py-2.5 border-b border-black/10 last:border-0">
+                        {editingFixedId === item.id && editingFixedData ? (
+                            <div className="flex gap-2 items-center">
+                              <input type="text" value={editingFixedData.name}
+                                     onChange={(e) => setEditingFixedData((p) => p && ({ ...p, name: e.target.value }))}
+                                     className="flex-1 h-8 border-2 border-black px-2 text-xs font-bold outline-none focus:border-[#E63946]"
+                                     style={{ fontSize: "16px" }} />
+                              <input type="number" inputMode="numeric" pattern="[0-9]*"
+                                     value={editingFixedData.amount}
+                                     onChange={(e) => setEditingFixedData((p) => p && ({ ...p, amount: e.target.value }))}
+                                     className="w-24 h-8 border-2 border-black px-2 text-xs font-bold font-mono outline-none focus:border-[#E63946] text-right"
+                                     style={{ fontSize: "16px" }} />
+                              <span className="text-xs font-black shrink-0">원</span>
+                              <button onClick={() => {
+                                const amt = parseInt(editingFixedData.amount, 10);
+                                if (!isNaN(amt) && amt > 0) {
+                                  setFixedItems((p) => p.map((i) => i.id === item.id ? { ...i, name: editingFixedData.name, amount: amt } : i));
+                                }
+                                setEditingFixedId(null); setEditingFixedData(null);
+                              }} className="px-2.5 py-1 bg-black text-white text-[10px] font-black border border-black hover:bg-[#E63946] cursor-pointer shrink-0">확인</button>
+                              <button onClick={() => { setEditingFixedId(null); setEditingFixedData(null); }}
+                                      className="px-2.5 py-1 bg-white text-black text-[10px] font-black border border-black hover:bg-slate-100 cursor-pointer shrink-0">취소</button>
+                            </div>
+                        ) : (
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-xs font-black flex-1 min-w-0 truncate">{item.name}</span>
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                <span className="text-xs font-black font-mono">{fmt(item.amount)}원</span>
+                                <button onClick={() => { setEditingFixedId(item.id); setEditingFixedData({ name: item.name, amount: String(item.amount) }); }}
+                                        className="p-1 hover:bg-black hover:text-white border border-black transition-all cursor-pointer"><Edit2 className="h-3 w-3" /></button>
+                                <button onClick={() => setFixedItems((p) => p.filter((i) => i.id !== item.id))}
+                                        className="p-1 hover:bg-[#E63946] hover:text-white border border-black transition-all cursor-pointer">
+                                  <Trash2 className="h-3 w-3" />
+                                </button>
+                              </div>
+                            </div>
+                        )}
                       </div>
                   ))}
                 </div>
