@@ -177,21 +177,24 @@ export default function TravelPage() {
                 <span className="text-xl">✈️</span>
                 <h1 className="text-lg font-extrabold text-black select-none">도쿄 여행 경비</h1>
               </div>
-              <button onClick={() => setIsSettingsOpen(true)}
-                      className="text-[10px] font-black px-2.5 py-1.5 border-2 border-black bg-white hover:bg-black hover:text-white transition-all cursor-pointer">
-                ⚙️ 설정
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                    onClick={() => setActiveDate("all")}
+                    className={`shrink-0 px-3 py-1.5 text-[10px] font-black border-2 border-black transition-all cursor-pointer ${activeDate === "all" ? "bg-black text-white" : "bg-white text-black hover:bg-slate-100"}`}
+                >
+                  전체
+                </button>
+                <button onClick={() => setIsSettingsOpen(true)}
+                        className="text-[10px] font-black px-2.5 py-1.5 border-2 border-black bg-white hover:bg-black hover:text-white transition-all cursor-pointer whitespace-nowrap">
+                  ⚙️ 설정
+                </button>
+              </div>
             </div>
 
             {/* 날짜 탭 */}
             {dates.length > 0 && (
                 <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
-                  <button
-                      onClick={() => setActiveDate("all")}
-                      className={`shrink-0 px-3 py-1.5 text-[10px] font-black border-2 border-black transition-all cursor-pointer ${activeDate === "all" ? "bg-black text-white" : "bg-white text-black hover:bg-slate-100"}`}
-                  >
-                    전체
-                  </button>
+
                   {dates.map((d) => (
                       <button key={d} onClick={() => setActiveDate(d)}
                               className={`shrink-0 px-3 py-1.5 text-[10px] font-black border-2 border-black transition-all cursor-pointer ${activeDate === d ? "bg-black text-white" : "bg-white text-black hover:bg-slate-100"}`}
@@ -440,13 +443,13 @@ export default function TravelPage() {
                     <label className="block text-xs font-black mb-1.5">여행 시작일</label>
                     <input type="date" value={settings.startDate}
                            onChange={(e) => setSettings((p) => ({ ...p, startDate: e.target.value }))}
-                           className="w-full h-11 border-2 border-black px-3 text-sm font-bold outline-none focus:border-[#E63946]" />
+                           className="w-full h-11 border-2 border-black px-3 font-bold outline-none focus:border-[#E63946]" style={{fontSize: "16px"}} />
                   </div>
                   <div>
                     <label className="block text-xs font-black mb-1.5">여행 종료일</label>
                     <input type="date" value={settings.endDate}
                            onChange={(e) => setSettings((p) => ({ ...p, endDate: e.target.value }))}
-                           className="w-full h-11 border-2 border-black px-3 text-sm font-bold outline-none focus:border-[#E63946]" />
+                           className="w-full h-11 border-2 border-black px-3 font-bold outline-none focus:border-[#E63946]" style={{fontSize: "16px"}} />
                   </div>
                   <div>
                     <label className="block text-xs font-black mb-1.5">환율 (¥1 = ?원)</label>
