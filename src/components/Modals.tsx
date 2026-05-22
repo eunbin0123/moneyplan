@@ -110,7 +110,7 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
             <div>
               <label className="block text-xs font-black text-black mb-1.5">금액</label>
               <input
-                  type="number"
+                  type="number" inputMode="numeric" pattern="[0-9]*"
                   required
                   min="1"
                   placeholder="0"
@@ -212,7 +212,7 @@ export const FixedModal: React.FC<FixedModalProps> = ({ isOpen, onClose, onSave,
             <div>
               <label className="block text-xs font-black text-black mb-1.5">금액</label>
               <input
-                  type="number"
+                  type="number" inputMode="numeric" pattern="[0-9]*"
                   required
                   min="1"
                   placeholder="예: 55000"
@@ -225,7 +225,7 @@ export const FixedModal: React.FC<FixedModalProps> = ({ isOpen, onClose, onSave,
             <div>
               <label className="block text-xs font-black text-black mb-1.5">매월 출금일</label>
               <input
-                  type="number"
+                  type="number" inputMode="numeric" pattern="[0-9]*"
                   min="1"
                   max="31"
                   placeholder="예: 25"
@@ -308,7 +308,7 @@ export const MonthModal: React.FC<MonthModalProps> = ({ isOpen, onClose, onSave 
               <div>
                 <label className="block text-xs font-black text-black mb-1.5">연도</label>
                 <input
-                    type="number"
+                    type="number" inputMode="numeric" pattern="[0-9]*"
                     required
                     min="2020"
                     max="2099"
@@ -320,7 +320,7 @@ export const MonthModal: React.FC<MonthModalProps> = ({ isOpen, onClose, onSave 
               <div>
                 <label className="block text-xs font-black text-black mb-1.5">월</label>
                 <input
-                    type="number"
+                    type="number" inputMode="numeric" pattern="[0-9]*"
                     required
                     min="1"
                     max="12"
@@ -334,7 +334,7 @@ export const MonthModal: React.FC<MonthModalProps> = ({ isOpen, onClose, onSave 
             <div>
               <label className="block text-xs font-black text-black mb-1.5">생활비 총예산</label>
               <input
-                  type="number"
+                  type="number" inputMode="numeric" pattern="[0-9]*"
                   required
                   min="0"
                   placeholder="600000"
@@ -463,7 +463,7 @@ export const CycleModal: React.FC<CycleModalProps> = ({
             <div>
               <label className="block text-xs font-black text-black mb-1.5">주기 배정 예산</label>
               <input
-                  type="number"
+                  type="number" inputMode="numeric" pattern="[0-9]*"
                   required
                   min="0"
                   placeholder="0"
@@ -555,7 +555,7 @@ export const EventModal: React.FC<EventModalProps> = ({ isOpen, onClose, onSave 
             <div>
               <label className="block text-xs font-black text-black mb-1.5">금액</label>
               <input
-                  type="number"
+                  type="number" inputMode="numeric" pattern="[0-9]*"
                   required
                   min="1"
                   placeholder="0"

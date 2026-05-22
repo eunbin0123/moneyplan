@@ -394,7 +394,7 @@ export default function TravelPage() {
 
                   <div>
                     <label className="block text-xs font-black mb-1.5">금액 ({newSpend.currency === "JPY" ? "엔" : "원"})</label>
-                    <input type="number" value={newSpend.amount} onChange={(e) => setNewSpend((p) => ({ ...p, amount: e.target.value }))}
+                    <input type="number" inputMode="numeric" pattern="[0-9]*" value={newSpend.amount} onChange={(e) => setNewSpend((p) => ({ ...p, amount: e.target.value }))}
                            placeholder={newSpend.currency === "JPY" ? "¥ 입력" : "₩ 입력"}
                            className="w-full h-11 border-2 border-black px-3 text-sm font-bold font-mono outline-none focus:border-[#E63946]"
                            onKeyDown={(e) => e.key === "Enter" && addSpend()} />
@@ -461,20 +461,20 @@ export default function TravelPage() {
                   </div>
                   <div>
                     <label className="block text-xs font-black mb-1.5">환율 (¥1 = ?원)</label>
-                    <input type="number" step="0.1" value={rateInput}
+                    <input type="number" inputMode="numeric" pattern="[0-9]*" step="0.1" value={rateInput}
                            onChange={(e) => setRateInput(e.target.value)}
                            onBlur={saveRate}
                            className="w-full h-11 border-2 border-black px-3 text-sm font-bold font-mono outline-none focus:border-[#E63946]" />
                   </div>
                   <div>
                     <label className="block text-xs font-black mb-1.5">현금 예산 (엔)</label>
-                    <input type="number" value={settings.cashBudget}
+                    <input type="number" inputMode="numeric" pattern="[0-9]*" value={settings.cashBudget}
                            onChange={(e) => setSettings((p) => ({ ...p, cashBudget: parseInt(e.target.value) || 0 }))}
                            className="w-full h-11 border-2 border-black px-3 text-sm font-bold font-mono outline-none focus:border-[#E63946]" />
                   </div>
                   <div>
                     <label className="block text-xs font-black mb-1.5">카드 예산 (엔)</label>
-                    <input type="number" value={settings.cardBudget}
+                    <input type="number" inputMode="numeric" pattern="[0-9]*" value={settings.cardBudget}
                            onChange={(e) => setSettings((p) => ({ ...p, cardBudget: parseInt(e.target.value) || 0 }))}
                            className="w-full h-11 border-2 border-black px-3 text-sm font-bold font-mono outline-none focus:border-[#E63946]" />
                   </div>
