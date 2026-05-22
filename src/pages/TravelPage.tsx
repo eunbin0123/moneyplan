@@ -441,17 +441,23 @@ export default function TravelPage() {
                 <div className="p-5 space-y-4">
                   <div>
                     <label className="block text-xs font-black mb-1.5">여행 시작일</label>
-                    <input type="date" value={settings.startDate}
-                           onChange={(e) => setSettings((p) => ({ ...p, startDate: e.target.value }))}
-                           className="w-full border-2 border-black px-3 font-bold outline-none focus:border-[#E63946]"
-                           style={{fontSize: "16px", height: "48px", lineHeight: "48px"}} />
+                    <input
+                        type="date"
+                        value={settings.startDate}
+                        onChange={(e) => setSettings((p) => ({ ...p, startDate: e.target.value }))}
+                        className="w-full h-11 border-2 border-black bg-white focus:border-[#E63946] rounded-none px-3 text-xs font-bold font-mono text-black outline-none appearance-none"
+                        style={{ fontSize: "16px" }}
+                    />
                   </div>
                   <div>
                     <label className="block text-xs font-black mb-1.5">여행 종료일</label>
-                    <input type="date" value={settings.endDate}
-                           onChange={(e) => setSettings((p) => ({ ...p, endDate: e.target.value }))}
-                           className="w-full border-2 border-black px-3 font-bold outline-none focus:border-[#E63946]"
-                           style={{fontSize: "16px", height: "48px", lineHeight: "48px"}} />
+                    <input
+                        type="date"
+                        value={settings.endDate}
+                        onChange={(e) => setSettings((p) => ({ ...p, endDate: e.target.value }))}
+                        className="w-full h-11 border-2 border-black bg-white focus:border-[#E63946] rounded-none px-3 text-xs font-bold font-mono text-black outline-none appearance-none"
+                        style={{ fontSize: "16px" }}
+                    />
                   </div>
                   <div>
                     <label className="block text-xs font-black mb-1.5">환율 (¥1 = ?원)</label>
