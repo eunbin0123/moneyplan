@@ -100,7 +100,6 @@ export const MemoTab: React.FC<MemoTabProps> = ({
           placeholder={`이번 달 기억해야 할 것들을 자유롭게 적어두세요.\n예) 굴비적금 만기, 여행 일정, 이번 달 공과금 변동 등...`}
         />
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-[10px] font-bold text-slate-470 uppercase tracking-wide gap-1 mt-1.5">
-          <span>※ 작성하시는 메모는 브라우저 내부 스토리지에 실시간 동기화 자동 기록됩니다.</span>
           <span className="font-mono bg-black text-white px-2 py-0.5 shrink-0 select-none">{memo.length}자</span>
         </div>
       </div>
