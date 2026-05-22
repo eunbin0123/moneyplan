@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { MonthData } from "../types";
-import { Edit2, ArrowUpRight, TrendingUp, DollarSign, BookOpen, AlertCircle, X, Save, Cloud, CloudOff, RefreshCw, ExternalLink, Link2, LogOut } from "lucide-react";
+import { Edit2, ArrowUpRight, TrendingUp, DollarSign, BookOpen, AlertCircle, X, Save } from "lucide-react";
 
 interface OverviewTabProps {
   data: MonthData;
@@ -9,18 +9,7 @@ interface OverviewTabProps {
   onSwitchTab: (tab: string) => void;
   onUpdateAllocations: (budget: number, fixedBudget: number, eventBudget: number) => void;
 
-  // Google Sheets integration props
-  googleUser: any;
-  isSyncing: boolean;
-  lastSyncTime: Date | null;
-  syncError: string | null;
-  spreadsheetId: string | null;
-  onGoogleSignIn: () => Promise<void>;
-  onGoogleSignOut: () => Promise<void>;
-  onCreateSpreadsheet: () => Promise<void>;
-  onManualSync: () => Promise<void>;
-  onDisconnectSheet: () => void;
-  onConnectExistingSheet: (id: string) => void;
+
 }
 
 export const OverviewTab: React.FC<OverviewTabProps> = ({
@@ -29,17 +18,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                                                           onEditCycle,
                                                           onSwitchTab,
                                                           onUpdateAllocations,
-                                                          googleUser,
-                                                          isSyncing,
-                                                          lastSyncTime,
-                                                          syncError,
-                                                          spreadsheetId,
-                                                          onGoogleSignIn,
-                                                          onGoogleSignOut,
-                                                          onCreateSpreadsheet,
-                                                          onManualSync,
-                                                          onDisconnectSheet,
-                                                          onConnectExistingSheet,
+
                                                         }) => {
   // Modal toggle state
   const [isEditAllocModalOpen, setIsEditAllocModalOpen] = useState(false);
@@ -217,102 +196,10 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             <h2 className="text-sm sm:text-base font-black text-black flex items-center gap-2 justify-center sm:justify-start select-none">
               📊 {getShortMonthLabel(activeMonth)} 가계부 대시보드
             </h2>
-            {googleUser && (
-                <div className="text-[10px] text-slate-500 font-extrabold mt-0.5 flex flex-wrap items-center gap-1 justify-center sm:justify-start select-none">
-                  <span className="text-[#0F9D58] font-black">구글 시트 연동 활성</span>
-                  <span className="text-slate-300">•</span>
-                  <span>{googleUser.displayName || googleUser.email}</span>
-                  {lastSyncTime && (
-                      <>
-                        <span className="text-slate-300">•</span>
-                        <span>최종 동기화: {lastSyncTime.toLocaleTimeString("ko-KR")}</span>
-                      </>
-                  )}
-                </div>
-            )}
+
           </div>
           <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-            {/* Google Sheets Sync Integration Replacing Excel Export */}
-            {!googleUser ? (
-                <button
-                    onClick={onGoogleSignIn}
-                    className="inline-flex items-center justify-center gap-1.5 text-xs font-black bg-white text-black border-2 border-black px-3.5 py-1.5 rounded-none hover:bg-[#0F9D58] hover:text-white hover:border-[#0F9D58] active:translate-y-0.5 transition-all cursor-pointer geo-shadow-sm flex-1 sm:flex-none"
-                    title="Google 로그인하여 실시간 스프레드시트 동기화를 시작합니다."
-                >
-                  <svg className="h-3.5 w-3.5 shrink-0" viewBox="0 0 48 48">
-                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
-                    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
-                    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
-                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
-                  </svg>
-                  <span>구글 시트 연동</span>
-                </button>
-            ) : !spreadsheetId ? (
-                <div className="flex items-center gap-1 flex-1 sm:flex-none">
-                  <button
-                      onClick={onCreateSpreadsheet}
-                      disabled={isSyncing}
-                      className="inline-flex items-center justify-center gap-1 text-[11px] font-black bg-[#0F9D58] text-white border-2 border-black px-2.5 py-1.5 rounded-none hover:bg-[#0b8043] disabled:bg-slate-300 disabled:cursor-not-allowed active:translate-y-0.5 transition-colors cursor-pointer geo-shadow-sm flex-1 sm:flex-none"
-                      title="새로운 실시간 동기화 구글 시트를 드라이브에 안전하게 생성합니다."
-                  >
-                    {isSyncing ? "생성 중..." : "📊 새 구글 시트 제작"}
-                  </button>
-                  <button
-                      onClick={() => {
-                        const urlOrId = window.prompt("연결할 구글 스프레드의 링크(URL) 또는 ID를 입력해 주세요:");
-                        if (urlOrId) {
-                          let id = urlOrId.trim();
-                          if (id.includes("/d/")) {
-                            const match = id.match(/\/d\/([a-zA-Z0-9-_]+)/);
-                            if (match) id = match[1];
-                          }
-                          onConnectExistingSheet(id);
-                        }
-                      }}
-                      className="inline-flex items-center justify-center gap-1 text-[11px] font-bold bg-white text-black border-2 border-black px-2 py-1.5 hover:bg-slate-50 cursor-pointer rounded-none transition-colors"
-                      title="기존 스프레드시트 URL/ID 주소 연결"
-                  >
-                    <Link2 className="h-3 w-3" />
-                  </button>
-                  <button
-                      onClick={onGoogleSignOut}
-                      className="inline-flex items-center justify-center gap-1 text-[11px] font-bold bg-slate-100 text-slate-700 border-2 border-slate-300 hover:text-[#E63946] hover:border-[#E63946] px-2 py-1.5 rounded-none active:translate-y-0.5 transition-all cursor-pointer"
-                      title="Google 연동 로그아웃"
-                  >
-                    <LogOut className="h-3 w-3" />
-                  </button>
-                </div>
-            ) : (
-                <div className="flex items-center gap-1 flex-1 sm:flex-none">
-                  <button
-                      onClick={onManualSync}
-                      disabled={isSyncing}
-                      className="inline-flex items-center justify-center gap-1 text-[11px] font-black bg-white text-black border-2 border-black px-2.5 py-1.5 rounded-none hover:bg-slate-50 disabled:bg-slate-100 active:translate-y-0.5 transition-colors cursor-pointer geo-shadow-sm whitespace-nowrap"
-                      title="실시간 자동 저장 중이나 언제든 즉시 클릭하여 수동 동기화할 수 있습니다."
-                  >
-                    <RefreshCw className={`h-3 w-3 ${isSyncing ? "animate-spin" : ""}`} />
-                    <span>동기화</span>
-                  </button>
-                  <a
-                      href={`https://docs.google.com/spreadsheets/d/${spreadsheetId}/edit`}
-                      target="_blank"
-                      rel="noreferrer"
-                      referrerPolicy="no-referrer"
-                      className="inline-flex items-center justify-center gap-1 text-[11px] font-black bg-[#EBF7EE] text-[#0F9D58] border-2 border-black px-3 py-1.5 rounded-none hover:bg-[#0F9D58] hover:text-white active:translate-y-0.5 transition-colors cursor-pointer geo-shadow-sm whitespace-nowrap"
-                      title="연동 완료된 구글 가계부 스프레드시트를 새 탭에서 열어 조회합니다."
-                  >
-                    <Cloud className="h-3.5 w-3.5" />
-                    <span>시트 열기</span>
-                  </a>
-                  <button
-                      onClick={onDisconnectSheet}
-                      className="inline-flex items-center justify-center gap-1 text-[11px] font-bold bg-white text-slate-400 border-2 border-slate-200 px-2 py-1.5 rounded-none hover:text-[#E63946] hover:border-[#E63946] hover:bg-[#E63946]/5 active:translate-y-0.5 transition-all cursor-pointer"
-                      title="구글 시트 브라우저 연동 연결 해제"
-                  >
-                    <CloudOff className="h-3 w-3" />
-                  </button>
-                </div>
-            )}
+
             <button
                 onClick={() => setIsEditAllocModalOpen(true)}
                 className="inline-flex items-center justify-center gap-1.5 text-xs font-black bg-black text-white border-2 border-black px-3.5 py-1.5 rounded-none hover:bg-[#E63946] hover:border-[#E63946] active:translate-y-0.5 transition-colors cursor-pointer geo-shadow-sm flex-1 sm:flex-none"
@@ -321,13 +208,6 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             </button>
           </div>
         </div>
-
-        {syncError && (
-            <div className="p-3 bg-[#E63946]/10 border-2 border-[#E63946] text-xs font-bold text-[#E63946] flex items-center gap-2 rounded-none">
-              <AlertCircle className="h-4 w-4 shrink-0" />
-              <span>{syncError}</span>
-            </div>
-        )}
 
         {/* 2 Grid Elements: 남은 생활비 예산 & 전체 사용내역 */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
