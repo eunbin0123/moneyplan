@@ -177,7 +177,7 @@ export default function TravelPage() {
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <span className="text-xl">✈️</span>
-                <h1 className="text-lg font-extrabold text-black select-none">東京旅行の予算</h1>
+                <h1 className="text-lg font-extrabold text-black select-none">東京旅行予算</h1>
               </div>
               <div className="flex items-center gap-2">
                 <button
@@ -391,16 +391,13 @@ export default function TravelPage() {
                               <div className="flex gap-2">
                                 <input type="text" value={editingFixedData.name}
                                        onChange={(e) => setEditingFixedData((p) => p && ({ ...p, name: e.target.value }))}
-                                       className="flex-1 h-9 border-2 border-black px-2 text-xs font-bold outline-none focus:border-[#E63946]"
-                                       style={{ fontSize: "16px" }} />
-                                <div className="flex items-center gap-1 shrink-0">
-                                  <input type="number" inputMode="numeric" pattern="[0-9]*"
-                                         value={editingFixedData.amount}
-                                         onChange={(e) => setEditingFixedData((p) => p && ({ ...p, amount: e.target.value }))}
-                                         className="w-28 h-9 border-2 border-black px-2 text-xs font-bold font-mono outline-none focus:border-[#E63946] text-right"
-                                         style={{ fontSize: "16px" }} />
-                                  <span className="text-xs font-black">원</span>
-                                </div>
+                                       className="flex-1 h-9 border-2 border-black px-3 text-xs font-bold outline-none focus:border-[#E63946]"
+                                       style={{ fontSize: "16px" }} placeholder="항목명" />
+                                <input type="number" inputMode="numeric" pattern="[0-9]*"
+                                       value={editingFixedData.amount}
+                                       onChange={(e) => setEditingFixedData((p) => p && ({ ...p, amount: e.target.value }))}
+                                       className="w-32 h-9 border-2 border-black px-3 text-xs font-bold font-mono outline-none focus:border-[#E63946] text-right"
+                                       style={{ fontSize: "16px" }} placeholder="금액(원)" />
                               </div>
                               <div className="flex gap-2 justify-end">
                                 <button onClick={() => {
