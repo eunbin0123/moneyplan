@@ -68,8 +68,8 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
   };
 
   return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75">
-        <div className="bg-white border-4 border-black rounded-none p-6 w-full max-w-sm geo-shadow-lg">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }} onTouchMove={(e) => e.stopPropagation()}>
+        <div className="bg-white border-4 border-black rounded-none p-6 w-full max-w-sm geo-shadow-lg" onClick={(e) => e.stopPropagation()}>
           <div className="flex items-center justify-between border-b-2 border-black pb-3.5 mb-5">
             <h3 className="text-sm font-black text-black">
               {initialItem ? "지출 수정" : "지출 추가"}
@@ -87,7 +87,8 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
                   required
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  className="w-full h-11 border-2 border-black bg-white focus:border-[#E63946] focus:ring-1 focus:ring-[#E63946] rounded-none px-3 text-xs font-bold font-mono text-black outline-none"
+                  className="w-full h-11 border-2 border-black bg-white focus:border-[#E63946] focus:ring-1 focus:ring-[#E63946] rounded-none px-3 text-xs font-bold font-mono text-black outline-none appearance-none"
+                  style={{ fontSize: "16px" }}
               />
             </div>
 
@@ -148,20 +149,28 @@ interface FixedModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (item: FixedExpense) => void;
+  initialItem?: FixedExpense | null;
+  editingIdx?: number | null;
 }
 
-export const FixedModal: React.FC<FixedModalProps> = ({ isOpen, onClose, onSave }) => {
+export const FixedModal: React.FC<FixedModalProps> = ({ isOpen, onClose, onSave, initialItem, editingIdx }) => {
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
   const [day, setDay] = useState("");
 
   useEffect(() => {
     if (isOpen) {
-      setName("");
-      setAmount("");
-      setDay("");
+      if (initialItem) {
+        setName(initialItem.name);
+        setAmount(String(initialItem.amount));
+        setDay(initialItem.day ? initialItem.day.replace(/[^0-9]/g, "") : "");
+      } else {
+        setName("");
+        setAmount("");
+        setDay("");
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, initialItem]);
 
   if (!isOpen) return null;
 
@@ -181,7 +190,7 @@ export const FixedModal: React.FC<FixedModalProps> = ({ isOpen, onClose, onSave 
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75">
         <div className="bg-white border-4 border-black rounded-none p-6 w-full max-w-sm geo-shadow-lg">
           <div className="flex items-center justify-between border-b-2 border-black pb-3.5 mb-5">
-            <h3 className="text-sm font-black text-black">고정 지출 추가</h3>
+            <h3 className="text-sm font-black text-black">{initialItem ? "고정 지출 수정" : "고정 지출 추가"}</h3>
             <button onClick={onClose} className="p-1.5 bg-white border-2 border-black text-black hover:bg-[#E63946] hover:text-white rounded-none cursor-pointer">
               <X className="h-4 w-4" />
             </button>
@@ -196,9 +205,6 @@ export const FixedModal: React.FC<FixedModalProps> = ({ isOpen, onClose, onSave 
                   placeholder="예: 통신비, 유튜브 구독, 피트니스 등"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  inputMode="text"
-                  lang="ko"
-                  autoComplete="off"
                   className="w-full h-11 border-2 border-black bg-white focus:border-[#E63946] focus:ring-1 focus:ring-[#E63946] rounded-none px-3 text-xs font-bold text-black outline-none"
               />
             </div>
@@ -542,9 +548,6 @@ export const EventModal: React.FC<EventModalProps> = ({ isOpen, onClose, onSave 
                   placeholder="예: 어버이날 용돈, 지인 결혼식 등"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  inputMode="text"
-                  lang="ko"
-                  autoComplete="off"
                   className="w-full h-11 border-2 border-black bg-white focus:border-[#E63946] focus:ring-1 focus:ring-[#E63946] rounded-none px-3 text-xs font-bold text-black outline-none"
               />
             </div>

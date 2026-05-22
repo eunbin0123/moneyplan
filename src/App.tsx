@@ -11,7 +11,7 @@ import { ExpenseModal, FixedModal, MonthModal, CycleModal, EventModal } from "./
 import { calculateBudgetWithCarryOver } from "./utils/budgetCalculator";
 import { saveToFirestore, loadFromFirestore, subscribeToFirestore } from "./utils/firestore";
 
-type TabType = "overview" | "expenses" | "savings" | "memo";
+type TabType = "overview" | "expenses" | "fixed" | "savings";
 
 export default function App() {
   const [budgetState, setBudgetState] = useState<BudgetState>(() => {
@@ -112,11 +112,13 @@ export default function App() {
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [editingExpenseIdx, setEditingExpenseIdx] = useState<number | null>(null);
   const [isFixedModalOpen, setIsFixedModalOpen] = useState(false);
+  const [editingFixedIdx, setEditingFixedIdx] = useState<number | null>(null);
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const [isMonthModalOpen, setIsMonthModalOpen] = useState(false);
   const [isCycleModalOpen, setIsCycleModalOpen] = useState(false);
   const [editingCycleIdx, setEditingCycleIdx] = useState<number | null>(null);
   const [memoSavingFeedback, setMemoSavingFeedback] = useState(false);
+  const [isMemoOpen, setIsMemoOpen] = useState(false);
   const memoFeedbackTimer = useRef<NodeJS.Timeout | null>(null);
 
   const memoStates: Record<string, boolean> = {};
@@ -188,10 +190,17 @@ export default function App() {
     setBudgetState((prev) => {
       const copy = { ...prev };
       const mD = { ...copy[currentMonth] };
-      mD.fixed = [...mD.fixed, item];
+      if (editingFixedIdx !== null) {
+        const updated = [...mD.fixed];
+        updated[editingFixedIdx] = item;
+        mD.fixed = updated;
+      } else {
+        mD.fixed = [...mD.fixed, item];
+      }
       copy[currentMonth] = mD;
       return copy;
     });
+    setEditingFixedIdx(null);
   };
 
   const handleDeleteFixed = (idx: number) => {
@@ -321,17 +330,23 @@ export default function App() {
             onAddMonth={() => setIsMonthModalOpen(true)}
             onDeleteMonth={handleDeleteMonth}
             memoStates={memoStates}
+            memo={activeData.memo}
+            onUpdateMemo={handleUpdateMemo}
+            memoSavingFeedback={memoSavingFeedback}
+            shortMonthLabel={getShortMonthLabel(currentMonth)}
+            isMemoOpen={isMemoOpen}
+            onToggleMemo={() => setIsMemoOpen(prev => !prev)}
         />
 
         <main className="max-w-2xl mx-auto px-4 pt-6 space-y-6">
           <div className="grid grid-cols-4 border-2 border-black bg-white rounded-none divide-x-2 divide-black relative overflow-hidden geo-shadow-sm">
-            {(["overview", "expenses", "savings", "memo"] as TabType[]).map((tab) => {
+            {(["overview", "expenses", "fixed", "savings"] as TabType[]).map((tab) => {
               const isActive = activeTab === tab;
               const labels: Record<TabType, string> = {
-                overview: "개요",
+                overview: "메인",
                 expenses: "지출내역",
-                savings: "저축·적금",
-                memo: "비고",
+                fixed: "고정·경조사",
+                savings: "월급분배",
               };
               return (
                   <button
@@ -363,7 +378,7 @@ export default function App() {
                         setEditingCycleIdx(idx);
                         setIsCycleModalOpen(true);
                       }}
-                      onSwitchTab={(target) => setActiveTab(target as TabType)}
+                      onOpenMemo={() => setIsMemoOpen(true)}
                       onUpdateAllocations={handleUpdateAllocations}
                   />
               )}
@@ -382,24 +397,33 @@ export default function App() {
                       onToggleExpense={handleToggleExpense}
                   />
               )}
+              {activeTab === "fixed" && (
+                  <SavingsTab
+                      data={activeData}
+                      onToggleAccount={handleToggleAccount}
+                      onAddFixed={() => { setEditingFixedIdx(null); setIsFixedModalOpen(true); }}
+                      onEditFixed={(idx) => { setEditingFixedIdx(idx); setIsFixedModalOpen(true); }}
+                      onDeleteFixed={handleDeleteFixed}
+                      onAddEvent={() => setIsEventModalOpen(true)}
+                      onDeleteEvent={handleDeleteEvent}
+                      activeSubTab="fixed"
+                      onSubTabChange={() => {}}
+                  />
+              )}
               {activeTab === "savings" && (
                   <SavingsTab
                       data={activeData}
                       onToggleAccount={handleToggleAccount}
-                      onAddFixed={() => setIsFixedModalOpen(true)}
+                      onAddFixed={() => { setEditingFixedIdx(null); setIsFixedModalOpen(true); }}
+                      onEditFixed={(idx) => { setEditingFixedIdx(idx); setIsFixedModalOpen(true); }}
                       onDeleteFixed={handleDeleteFixed}
                       onAddEvent={() => setIsEventModalOpen(true)}
                       onDeleteEvent={handleDeleteEvent}
+                      activeSubTab="distribution"
+                      onSubTabChange={() => {}}
                   />
               )}
-              {activeTab === "memo" && (
-                  <MemoTab
-                      memo={activeData.memo}
-                      onUpdateMemo={handleUpdateMemo}
-                      savingIndicator={memoSavingFeedback}
-                      shortMonthLabel={getShortMonthLabel(currentMonth)}
-                  />
-              )}
+
             </motion.div>
           </AnimatePresence>
         </main>
@@ -411,7 +435,7 @@ export default function App() {
             initialItem={editingExpenseIdx !== null ? activeData.expenses[editingExpenseIdx] : null}
             defaultMonthStr={currentMonth}
         />
-        <FixedModal isOpen={isFixedModalOpen} onClose={() => setIsFixedModalOpen(false)} onSave={handleSaveFixed} />
+        <FixedModal isOpen={isFixedModalOpen} onClose={() => { setIsFixedModalOpen(false); setEditingFixedIdx(null); }} onSave={handleSaveFixed} initialItem={editingFixedIdx !== null ? activeData.fixed[editingFixedIdx] : null} editingIdx={editingFixedIdx} />
         <MonthModal isOpen={isMonthModalOpen} onClose={() => setIsMonthModalOpen(false)} onSave={handleSaveMonth} />
         <CycleModal
             isOpen={isCycleModalOpen}

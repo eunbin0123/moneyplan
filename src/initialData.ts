@@ -27,7 +27,11 @@ export const makeDefaultMonth = (year: number, month: number, budget = 600000): 
       { name: "미래에셋 투자", amount: 200000, checked: false },
       { name: "기업 청약", amount: 100000, checked: false },
     ],
-    fixed: [],
+    fixed: [
+      { name: "교통비", amount: 56770, day: "15" },
+      { name: "통신비", amount: 82410, day: "25" },
+      { name: "유튜브프리미엄", amount: 13900, day: "27" },
+    ],
     events: [],
     cycles: [
       { label: "1주기", start: `${pys}-${pms}-30`, end: `${ys}-${ms}-09`, budget: cb },

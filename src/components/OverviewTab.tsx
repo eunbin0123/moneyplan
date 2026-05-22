@@ -6,7 +6,7 @@ interface OverviewTabProps {
   data: MonthData;
   activeMonth: string;
   onEditCycle: (idx: number) => void;
-  onSwitchTab: (tab: string) => void;
+  onOpenMemo: () => void;
   onUpdateAllocations: (budget: number, fixedBudget: number, eventBudget: number) => void;
 
 
@@ -16,7 +16,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                                                           data,
                                                           activeMonth,
                                                           onEditCycle,
-                                                          onSwitchTab,
+                                                          onOpenMemo,
                                                           onUpdateAllocations,
 
                                                         }) => {
@@ -289,27 +289,12 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                   <span className="font-black text-white text-sm">총 지출액 합계</span>
                   <div className="text-right">
                     <span className="text-base font-black font-mono text-[#E63946] tracking-tight">{formatCurrency(totalCombinedSpent)}</span>
-                    <span className="text-[10px] font-mono text-slate-400 block mt-0.5">총 예산 {formatCurrency(totalCombinedBudget)} 중</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Combined Progress Bar */}
-            <div className="space-y-2">
-              <div className="flex justify-between items-center text-[10px] font-black text-slate-400">
-                <span>통합 소진율</span>
-                <span className="font-mono">{combinedPct}%</span>
-              </div>
-              <div className="h-5 w-full bg-neutral-900 border-2 border-black rounded-none overflow-hidden p-[2px]">
-                <div
-                    className={`h-full rounded-none transition-all duration-500 ease-out ${
-                        combinedPct >= 100 ? "bg-[#E63946]" : combinedPct >= 80 ? "bg-amber-400" : "bg-emerald-400"
-                    }`}
-                    style={{ width: `${Math.min(combinedPct, 100)}%` }}
-                />
-              </div>
-            </div>
+          
           </div>
         </div>
 
@@ -376,7 +361,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                   <BookOpen className="h-4 w-4 text-[#E63946]" /> 이번 달 주요 메모
                 </h3>
                 <button
-                    onClick={() => onSwitchTab("memo")}
+                    onClick={onOpenMemo}
                     className="text-[10px] bg-black text-white px-2 py-1 hover:bg-[#E63946] transition-colors cursor-pointer"
                 >
                   상세 편집 &rarr;
