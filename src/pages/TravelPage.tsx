@@ -220,7 +220,7 @@ export default function TravelPage() {
             {activeDate === "all" && (
                 <div className="mt-3 pt-3 border-t border-white/20 grid grid-cols-2 gap-3">
                   <div>
-                    <p className="text-[10px] text-slate-400 font-black uppercase">고정 지출</p>
+                    <p className="text-[10px] text-slate-400 font-black uppercase">사전 지출</p>
                     <p className="text-sm font-black font-mono mt-0.5">{fmt(totalFixed)}원</p>
                   </div>
                   <div>
