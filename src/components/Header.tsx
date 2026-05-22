@@ -54,7 +54,7 @@ export const Header: React.FC<HeaderProps> = ({
                             <div className="h-10 w-10 bg-black text-white flex items-center justify-center border-2 border-black shrink-0">
                                 <Wallet className="h-5 w-5" />
                             </div>
-                            <h1 className="text-lg font-extrabold text-black select-none">☆EB's Money Plan☆</h1>
+                            <h1 className="text-lg font-extrabold text-black select-none">EB's Money Plan</h1>
                         </div>
 
                         <div className="flex items-center gap-2">
