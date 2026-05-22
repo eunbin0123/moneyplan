@@ -383,20 +383,20 @@ export default function TravelPage() {
               <span className="text-sm font-black font-mono text-[#E63946]">{fmt(totalFixed)}원</span>
             </div>
             {fixedOpen && (
-                <div className="border-t-2 border-black px-5 pb-5 pt-4 space-y-1">
+                <div className="border-t-2 border-black px-5 pb-5 pt-4 space-y-1 overflow-hidden">
                   {fixedItems.map((item) => (
                       <div key={item.id} className="py-2.5 border-b border-black/10 last:border-0">
                         {editingFixedId === item.id && editingFixedData ? (
                             <div className="flex flex-col gap-2">
-                              <div className="flex gap-2">
+                              <div className="grid grid-cols-2 gap-2">
                                 <input type="text" value={editingFixedData.name}
                                        onChange={(e) => setEditingFixedData((p) => p && ({ ...p, name: e.target.value }))}
-                                       className="flex-1 h-9 border-2 border-black px-3 text-xs font-bold outline-none focus:border-[#E63946]"
+                                       className="w-full h-9 border-2 border-black px-3 text-xs font-bold outline-none focus:border-[#E63946]"
                                        style={{ fontSize: "16px" }} placeholder="항목명" />
                                 <input type="number" inputMode="numeric" pattern="[0-9]*"
                                        value={editingFixedData.amount}
                                        onChange={(e) => setEditingFixedData((p) => p && ({ ...p, amount: e.target.value }))}
-                                       className="w-32 h-9 border-2 border-black px-3 text-xs font-bold font-mono outline-none focus:border-[#E63946] text-right"
+                                       className="w-full h-9 border-2 border-black px-3 text-xs font-bold font-mono outline-none focus:border-[#E63946] text-right"
                                        style={{ fontSize: "16px" }} placeholder="금액(원)" />
                               </div>
                               <div className="flex gap-2 justify-end">
