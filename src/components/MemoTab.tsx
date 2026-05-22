@@ -18,12 +18,13 @@ export const MemoTab: React.FC<MemoTabProps> = ({
 
   const quickChips = [
     "💊 병원/약국",
-    "✈️ 여행 🗼",
+    "✈️ 여행",
     "🎂 경조사",
     "🛍 쇼핑",
     "📚 자기계발",
     "🎵 문화생활",
     "⚠️ 이번달 주의",
+      "🪙 할부"
   ];
 
   const handleChipClick = (chip: string) => {
@@ -57,7 +58,7 @@ export const MemoTab: React.FC<MemoTabProps> = ({
         {/* Speed chips insert panel */}
         <div>
           <p className="text-xs font-black text-black mb-3 flex items-center gap-1.5">
-            <Sparkles className="h-3.5 w-3.5 text-[#E63946]" /> 빠른 태그 입력
+            <Sparkles className="h-3.5 w-3.5 text-[#E63946]" /> 태그 입력
           </p>
           <div className="flex flex-wrap gap-2">
             {quickChips.map((chip, i) => (

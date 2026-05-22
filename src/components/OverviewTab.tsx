@@ -252,7 +252,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             {/* Living Budget Progress Bar */}
             <div className="space-y-2">
               <div className="flex justify-between items-center text-[10px] font-black text-slate-500">
-                <span>수행 소진율</span>
+                <span>사용</span>
                 <span className="font-mono">{livingPct}%</span>
               </div>
               <div className="h-5 w-full bg-slate-100 border-2 border-black rounded-none overflow-hidden p-[2px]">
@@ -278,11 +278,11 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                   <span className="font-mono font-bold">{formatCurrency(totalLivingSpent)}</span>
                 </div>
                 <div className="flex justify-between items-center text-xs text-slate-300">
-                  <span>월 정기 고정비 지출</span>
+                  <span>고정비 지출</span>
                   <span className="font-mono font-bold">{formatCurrency(totalFixedSpent)}</span>
                 </div>
                 <div className="flex justify-between items-center text-xs text-slate-300">
-                  <span>비정기 경조사비 지출</span>
+                  <span>경조사비 지출</span>
                   <span className="font-mono font-bold">{formatCurrency(totalEventSpent)}</span>
                 </div>
                 <div className="flex justify-between items-center pt-3 border-t border-dashed border-white/20">

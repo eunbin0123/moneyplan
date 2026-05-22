@@ -192,7 +192,7 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
                     <div className="bg-white border-2 border-black p-5 geo-shadow">
                         <div className="flex items-center justify-between pb-3 border-b-2 border-black mb-4">
                             <h3 className="text-sm font-black text-black uppercase tracking-widest flex items-center gap-1.5">
-                                <Calendar className="h-4 w-4 text-black" /> 매달 고정 지출
+                                <Calendar className="h-4 w-4 text-black" /> 고정 지출
                             </h3>
                             <button
                                 onClick={onAddFixed}
@@ -237,7 +237,7 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
                     <div className="bg-white border-2 border-black p-5 geo-shadow border-l-[8px] border-l-[#E63946]">
                         <div className="flex items-center justify-between pb-3 border-b-2 border-black mb-4">
                             <h3 className="text-sm font-black text-black uppercase tracking-widest flex items-center gap-1.5">
-                                <CalendarRange className="h-4 w-4 text-black" /> 이달의 비정기 경조사비
+                                <CalendarRange className="h-4 w-4 text-black" /> 경조사비
                             </h3>
                             <button
                                 onClick={onAddEvent}
@@ -265,7 +265,7 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
                                     </div>
                                 ))}
                                 <div className="flex justify-between items-center pt-3.5 mt-1 border-t-2 border-black text-xs font-black text-black">
-                                    <span>경조사 지출계</span>
+                                    <span>경조사비 총 합계</span>
                                     <span className="font-mono text-[#E63946]">-{formatCurrency(totalEvents)}</span>
                                 </div>
                             </div>
