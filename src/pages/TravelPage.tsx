@@ -177,7 +177,7 @@ export default function TravelPage() {
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <span className="text-xl">✈️</span>
-                <h1 className="text-lg font-extrabold text-black select-none">東京旅行予算</h1>
+                <h1 className="text-lg font-extrabold text-black select-none">東京旅行の予算</h1>
               </div>
               <div className="flex items-center gap-2">
                 <button
@@ -387,26 +387,32 @@ export default function TravelPage() {
                   {fixedItems.map((item) => (
                       <div key={item.id} className="py-2.5 border-b border-black/10 last:border-0">
                         {editingFixedId === item.id && editingFixedData ? (
-                            <div className="flex gap-2 items-center">
-                              <input type="text" value={editingFixedData.name}
-                                     onChange={(e) => setEditingFixedData((p) => p && ({ ...p, name: e.target.value }))}
-                                     className="flex-1 h-8 border-2 border-black px-2 text-xs font-bold outline-none focus:border-[#E63946]"
-                                     style={{ fontSize: "16px" }} />
-                              <input type="number" inputMode="numeric" pattern="[0-9]*"
-                                     value={editingFixedData.amount}
-                                     onChange={(e) => setEditingFixedData((p) => p && ({ ...p, amount: e.target.value }))}
-                                     className="w-24 h-8 border-2 border-black px-2 text-xs font-bold font-mono outline-none focus:border-[#E63946] text-right"
-                                     style={{ fontSize: "16px" }} />
-                              <span className="text-xs font-black shrink-0">원</span>
-                              <button onClick={() => {
-                                const amt = parseInt(editingFixedData.amount, 10);
-                                if (!isNaN(amt) && amt > 0) {
-                                  setFixedItems((p) => p.map((i) => i.id === item.id ? { ...i, name: editingFixedData.name, amount: amt } : i));
-                                }
-                                setEditingFixedId(null); setEditingFixedData(null);
-                              }} className="px-2.5 py-1 bg-black text-white text-[10px] font-black border border-black hover:bg-[#E63946] cursor-pointer shrink-0">확인</button>
-                              <button onClick={() => { setEditingFixedId(null); setEditingFixedData(null); }}
-                                      className="px-2.5 py-1 bg-white text-black text-[10px] font-black border border-black hover:bg-slate-100 cursor-pointer shrink-0">취소</button>
+                            <div className="flex flex-col gap-2">
+                              <div className="flex gap-2">
+                                <input type="text" value={editingFixedData.name}
+                                       onChange={(e) => setEditingFixedData((p) => p && ({ ...p, name: e.target.value }))}
+                                       className="flex-1 h-9 border-2 border-black px-2 text-xs font-bold outline-none focus:border-[#E63946]"
+                                       style={{ fontSize: "16px" }} />
+                                <div className="flex items-center gap-1 shrink-0">
+                                  <input type="number" inputMode="numeric" pattern="[0-9]*"
+                                         value={editingFixedData.amount}
+                                         onChange={(e) => setEditingFixedData((p) => p && ({ ...p, amount: e.target.value }))}
+                                         className="w-28 h-9 border-2 border-black px-2 text-xs font-bold font-mono outline-none focus:border-[#E63946] text-right"
+                                         style={{ fontSize: "16px" }} />
+                                  <span className="text-xs font-black">원</span>
+                                </div>
+                              </div>
+                              <div className="flex gap-2 justify-end">
+                                <button onClick={() => {
+                                  const amt = parseInt(editingFixedData.amount, 10);
+                                  if (!isNaN(amt) && amt > 0) {
+                                    setFixedItems((p) => p.map((i) => i.id === item.id ? { ...i, name: editingFixedData.name, amount: amt } : i));
+                                  }
+                                  setEditingFixedId(null); setEditingFixedData(null);
+                                }} className="px-4 py-1.5 bg-black text-white text-xs font-black border border-black hover:bg-[#E63946] cursor-pointer">확인</button>
+                                <button onClick={() => { setEditingFixedId(null); setEditingFixedData(null); }}
+                                        className="px-4 py-1.5 bg-white text-black text-xs font-black border border-black hover:bg-slate-100 cursor-pointer">취소</button>
+                              </div>
                             </div>
                         ) : (
                             <div className="flex items-center justify-between gap-2">
