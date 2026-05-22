@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from "react";
+import { Plus } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Header } from "./components/Header";
 import { OverviewTab } from "./components/OverviewTab";
 import { ExpensesTab } from "./components/ExpensesTab";
 import { SavingsTab } from "./components/SavingsTab";
-import { MemoTab } from "./components/MemoTab";
 import { FixedExpense, BudgetCycle, ExpenseItem, MonthData, BudgetState, EventExpense } from "./types";
 import { initialBudgetState, makeDefaultMonth } from "./initialData";
 import { ExpenseModal, FixedModal, MonthModal, CycleModal, EventModal } from "./components/Modals";
@@ -18,9 +18,7 @@ export default function App() {
     try {
       const saved = localStorage.getItem("smart_budget_state_v2");
       return saved ? JSON.parse(saved) : initialBudgetState;
-    } catch {
-      return initialBudgetState;
-    }
+    } catch { return initialBudgetState; }
   });
 
   const [months, setMonths] = useState<string[]>(() => {
@@ -28,17 +26,16 @@ export default function App() {
       const saved = localStorage.getItem("smart_budget_months_v2");
       if (saved) return JSON.parse(saved);
       return ["2025-05", "2025-06", "2025-07"];
-    } catch {
-      return ["2025-05", "2025-06", "2025-07"];
-    }
+    } catch { return ["2025-05", "2025-06", "2025-07"]; }
   });
 
   const [currentMonth, setCurrentMonth] = useState<string>(() => {
     try {
       const saved = localStorage.getItem("smart_budget_months_v2");
       if (saved) {
-        const arr = JSON.parse(saved);
-        return arr[arr.length - 1] || "2025-05";
+        const arr: string[] = JSON.parse(saved);
+        const today = new Date().toISOString().slice(0, 7);
+        return arr.includes(today) ? today : arr[arr.length - 1] || "2025-05";
       }
     } catch {}
     return "2025-05";
@@ -46,11 +43,11 @@ export default function App() {
 
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [isLoading, setIsLoading] = useState(true);
+  const [isMemoOpen, setIsMemoOpen] = useState(false);
 
   const firestoreUnsub = useRef<(() => void) | null>(null);
   const isRemoteUpdate = useRef(false);
 
-  // localStorage 백업
   useEffect(() => {
     localStorage.setItem("smart_budget_state_v2", JSON.stringify(budgetState));
   }, [budgetState]);
@@ -59,22 +56,15 @@ export default function App() {
     localStorage.setItem("smart_budget_months_v2", JSON.stringify(months));
   }, [months]);
 
-  // Firestore 저장 (1초 디바운스, 원격 업데이트는 제외)
   useEffect(() => {
-    if (isRemoteUpdate.current) {
-      isRemoteUpdate.current = false;
-      return;
-    }
+    if (isRemoteUpdate.current) { isRemoteUpdate.current = false; return; }
     if (isLoading) return;
-
     const timer = setTimeout(() => {
       saveToFirestore(months, budgetState).catch(console.error);
     }, 1000);
-
     return () => clearTimeout(timer);
   }, [budgetState, months, isLoading]);
 
-  // 앱 시작 시 Firestore에서 데이터 로드 + 실시간 리스너
   useEffect(() => {
     const init = async () => {
       try {
@@ -83,28 +73,30 @@ export default function App() {
           isRemoteUpdate.current = true;
           setMonths(remote.months);
           setBudgetState(remote.budgetState);
-          setCurrentMonth(remote.months[remote.months.length - 1]);
+          setCurrentMonth(findCurrentMonth(remote.months));
         }
       } catch (e) {
         console.error("Firestore 로드 실패:", e);
       } finally {
         setIsLoading(false);
       }
-
-      // 실시간 리스너 등록
       firestoreUnsub.current = subscribeToFirestore((remoteMonths, remoteBudget) => {
         isRemoteUpdate.current = true;
         setMonths(remoteMonths);
         setBudgetState(remoteBudget);
       });
     };
-
     init();
-
-    return () => {
-      if (firestoreUnsub.current) firestoreUnsub.current();
-    };
+    return () => { if (firestoreUnsub.current) firestoreUnsub.current(); };
   }, []);
+
+  // 오늘 날짜가 포함된 달 찾기
+  const findCurrentMonth = (monthList: string[]) => {
+    const today = new Date().toISOString().slice(0, 7); // "2026-05"
+    if (monthList.includes(today)) return today;
+    // 없으면 가장 최근 달
+    return monthList[monthList.length - 1];
+  };
 
   const computedState = calculateBudgetWithCarryOver(months, budgetState);
   const activeData: MonthData = computedState[currentMonth] || budgetState[currentMonth] || makeDefaultMonth(2025, 5);
@@ -118,7 +110,6 @@ export default function App() {
   const [isCycleModalOpen, setIsCycleModalOpen] = useState(false);
   const [editingCycleIdx, setEditingCycleIdx] = useState<number | null>(null);
   const [memoSavingFeedback, setMemoSavingFeedback] = useState(false);
-  const [isMemoOpen, setIsMemoOpen] = useState(false);
   const memoFeedbackTimer = useRef<NodeJS.Timeout | null>(null);
 
   const memoStates: Record<string, boolean> = {};
@@ -136,9 +127,7 @@ export default function App() {
     setBudgetState((prev) => {
       const copy = { ...prev };
       const mD = { ...copy[currentMonth] };
-      mD.accounts = mD.accounts.map((acc, i) =>
-          i === idx ? { ...acc, checked: !acc.checked } : acc
-      );
+      mD.accounts = mD.accounts.map((acc, i) => i === idx ? { ...acc, checked: !acc.checked } : acc);
       copy[currentMonth] = mD;
       return copy;
     });
@@ -148,13 +137,10 @@ export default function App() {
     setBudgetState((prev) => {
       const copy = { ...prev };
       const mD = { ...copy[currentMonth] };
-      const currentExps = [...mD.expenses];
-      if (editingExpenseIdx !== null && editingExpenseIdx >= 0) {
-        currentExps[editingExpenseIdx] = item;
-      } else {
-        currentExps.push(item);
-      }
-      mD.expenses = currentExps;
+      const exps = [...mD.expenses];
+      if (editingExpenseIdx !== null && editingExpenseIdx >= 0) { exps[editingExpenseIdx] = item; }
+      else { exps.push(item); }
+      mD.expenses = exps;
       copy[currentMonth] = mD;
       return copy;
     });
@@ -165,9 +151,9 @@ export default function App() {
     setBudgetState((prev) => {
       const copy = { ...prev };
       const mD = { ...copy[currentMonth] };
-      const currentExps = [...mD.expenses];
-      currentExps.splice(idx, 1);
-      mD.expenses = currentExps;
+      const exps = [...mD.expenses];
+      exps.splice(idx, 1);
+      mD.expenses = exps;
       copy[currentMonth] = mD;
       return copy;
     });
@@ -177,10 +163,9 @@ export default function App() {
     setBudgetState((prev) => {
       const copy = { ...prev };
       const mD = { ...copy[currentMonth] };
-      const currentExps = [...mD.expenses];
-      const target = currentExps[idx];
-      currentExps[idx] = { ...target, checked: target.checked === false ? true : false };
-      mD.expenses = currentExps;
+      const exps = [...mD.expenses];
+      exps[idx] = { ...exps[idx], checked: exps[idx].checked === false ? true : false };
+      mD.expenses = exps;
       copy[currentMonth] = mD;
       return copy;
     });
@@ -207,9 +192,9 @@ export default function App() {
     setBudgetState((prev) => {
       const copy = { ...prev };
       const mD = { ...copy[currentMonth] };
-      const currentValue = [...mD.fixed];
-      currentValue.splice(idx, 1);
-      mD.fixed = currentValue;
+      const fixed = [...mD.fixed];
+      fixed.splice(idx, 1);
+      mD.fixed = fixed;
       copy[currentMonth] = mD;
       return copy;
     });
@@ -229,9 +214,9 @@ export default function App() {
     setBudgetState((prev) => {
       const copy = { ...prev };
       const mD = { ...copy[currentMonth] };
-      const currentEvents = [...(mD.events || [])];
-      currentEvents.splice(idx, 1);
-      mD.events = currentEvents;
+      const events = [...(mD.events || [])];
+      events.splice(idx, 1);
+      mD.events = events;
       copy[currentMonth] = mD;
       return copy;
     });
@@ -240,11 +225,7 @@ export default function App() {
   const handleUpdateAllocations = (budget: number, fixedBudget: number, eventBudget: number) => {
     setBudgetState((prev) => {
       const copy = { ...prev };
-      const mD = { ...copy[currentMonth] };
-      mD.budget = budget;
-      mD.fixedBudget = fixedBudget;
-      mD.eventBudget = eventBudget;
-      copy[currentMonth] = mD;
+      copy[currentMonth] = { ...copy[currentMonth], budget, fixedBudget, eventBudget };
       return copy;
     });
   };
@@ -252,9 +233,7 @@ export default function App() {
   const handleUpdateMemo = (newMemo: string) => {
     setBudgetState((prev) => {
       const copy = { ...prev };
-      const mD = { ...copy[currentMonth] };
-      mD.memo = newMemo;
-      copy[currentMonth] = mD;
+      copy[currentMonth] = { ...copy[currentMonth], memo: newMemo };
       return copy;
     });
     setMemoSavingFeedback(true);
@@ -262,38 +241,45 @@ export default function App() {
     memoFeedbackTimer.current = setTimeout(() => setMemoSavingFeedback(false), 1200);
   };
 
+  const handleUpdateSalary = (amount: number) => {
+    setBudgetState((prev) => {
+      const copy = { ...prev };
+      copy[currentMonth] = { ...copy[currentMonth], salary: amount };
+      return copy;
+    });
+  };
+
   const handleSaveMonth = (year: number, month: number, budget: number) => {
     const key = `${year}-${String(month).padStart(2, "0")}`;
-    if (budgetState[key]) {
-      alert("이미 동일한 지출월 데이터가 존재합니다.");
-      return;
-    }
+    if (budgetState[key]) { alert("이미 동일한 지출월 데이터가 존재합니다."); return; }
     setBudgetState((prev) => ({ ...prev, [key]: makeDefaultMonth(year, month, budget) }));
-    setMonths((prev) => {
-      const next = [...prev, key];
-      next.sort();
-      return next;
-    });
+    setMonths((prev) => { const next = [...prev, key]; next.sort(); return next; });
     setCurrentMonth(key);
     setActiveTab("overview");
   };
 
   const handleDeleteMonth = (key: string) => {
-    if (months.length <= 1) {
-      alert("최소 1개 이상의 지출월이 필요합니다.");
-      return;
-    }
+    if (months.length <= 1) { alert("최소 1개 이상의 지출월이 필요합니다."); return; }
     if (!window.confirm(`${getShortMonthLabel(key)} 전체 내역을 삭제하시겠습니까?`)) return;
     const idx = months.indexOf(key);
     const newMonths = months.filter((m) => m !== key);
     setMonths(newMonths);
-    setBudgetState((prev) => {
-      const copy = { ...prev };
-      delete copy[key];
-      return copy;
-    });
+    setBudgetState((prev) => { const copy = { ...prev }; delete copy[key]; return copy; });
     setCurrentMonth(newMonths[Math.max(0, Math.min(idx, newMonths.length - 1))]);
     setActiveTab("overview");
+  };
+
+  const handleReorderExpense = (fromIdx: number, toIdx: number) => {
+    setBudgetState((prev) => {
+      const copy = { ...prev };
+      const mD = { ...copy[currentMonth] };
+      const exps = [...mD.expenses];
+      const [moved] = exps.splice(fromIdx, 1);
+      exps.splice(toIdx, 0, moved);
+      mD.expenses = exps;
+      copy[currentMonth] = mD;
+      return copy;
+    });
   };
 
   const handleSaveCycle = (cycle: BudgetCycle) => {
@@ -301,9 +287,9 @@ export default function App() {
     setBudgetState((prev) => {
       const copy = { ...prev };
       const mD = { ...copy[currentMonth] };
-      const currentCycles = [...mD.cycles];
-      currentCycles[editingCycleIdx] = cycle;
-      mD.cycles = currentCycles;
+      const cycles = [...mD.cycles];
+      cycles[editingCycleIdx] = cycle;
+      mD.cycles = cycles;
       copy[currentMonth] = mD;
       return copy;
     });
@@ -339,11 +325,10 @@ export default function App() {
         />
 
         <main className="max-w-2xl mx-auto px-4 pt-6 space-y-6">
-          <div className="grid grid-cols-4 border-2 border-black bg-white rounded-none divide-x-2 divide-black relative overflow-hidden geo-shadow-sm">
+          <div className="grid grid-cols-4 border-2 border-black bg-white rounded-none divide-x-2 divide-black overflow-hidden geo-shadow-sm">
             {(["overview", "expenses", "fixed", "savings"] as TabType[]).map((tab) => {
-              const isActive = activeTab === tab;
               const labels: Record<TabType, string> = {
-                overview: "메인",
+                overview: "개요",
                 expenses: "지출내역",
                 fixed: "고정·경조사",
                 savings: "월급분배",
@@ -352,11 +337,11 @@ export default function App() {
                   <button
                       key={tab}
                       onClick={() => setActiveTab(tab)}
-                      className={`relative py-3.5 text-xs font-black uppercase tracking-wider cursor-pointer transition-colors ${
-                          isActive ? "bg-black text-white" : "bg-white text-black hover:bg-[#E63946] hover:text-white"
+                      className={`py-3.5 text-xs font-black uppercase tracking-wider cursor-pointer transition-colors ${
+                          activeTab === tab ? "bg-black text-white" : "bg-white text-black hover:bg-[#E63946] hover:text-white"
                       }`}
                   >
-                    <span className="relative z-20">{labels[tab]}</span>
+                    {labels[tab]}
                   </button>
               );
             })}
@@ -374,10 +359,7 @@ export default function App() {
                   <OverviewTab
                       data={activeData}
                       activeMonth={currentMonth}
-                      onEditCycle={(idx) => {
-                        setEditingCycleIdx(idx);
-                        setIsCycleModalOpen(true);
-                      }}
+                      onEditCycle={(idx) => { setEditingCycleIdx(idx); setIsCycleModalOpen(true); }}
                       onOpenMemo={() => setIsMemoOpen(true)}
                       onUpdateAllocations={handleUpdateAllocations}
                   />
@@ -385,16 +367,11 @@ export default function App() {
               {activeTab === "expenses" && (
                   <ExpensesTab
                       data={activeData}
-                      onAddExpense={() => {
-                        setEditingExpenseIdx(null);
-                        setIsExpenseModalOpen(true);
-                      }}
-                      onEditExpense={(idx) => {
-                        setEditingExpenseIdx(idx);
-                        setIsExpenseModalOpen(true);
-                      }}
+                      onAddExpense={() => { setEditingExpenseIdx(null); setIsExpenseModalOpen(true); }}
+                      onEditExpense={(idx) => { setEditingExpenseIdx(idx); setIsExpenseModalOpen(true); }}
                       onDeleteExpense={handleDeleteExpense}
                       onToggleExpense={handleToggleExpense}
+                      onReorderExpense={handleReorderExpense}
                   />
               )}
               {activeTab === "fixed" && (
@@ -406,8 +383,8 @@ export default function App() {
                       onDeleteFixed={handleDeleteFixed}
                       onAddEvent={() => setIsEventModalOpen(true)}
                       onDeleteEvent={handleDeleteEvent}
+                      onUpdateSalary={handleUpdateSalary}
                       activeSubTab="fixed"
-                      onSubTabChange={() => {}}
                   />
               )}
               {activeTab === "savings" && (
@@ -419,11 +396,10 @@ export default function App() {
                       onDeleteFixed={handleDeleteFixed}
                       onAddEvent={() => setIsEventModalOpen(true)}
                       onDeleteEvent={handleDeleteEvent}
+                      onUpdateSalary={handleUpdateSalary}
                       activeSubTab="distribution"
-                      onSubTabChange={() => {}}
                   />
               )}
-
             </motion.div>
           </AnimatePresence>
         </main>
@@ -435,7 +411,13 @@ export default function App() {
             initialItem={editingExpenseIdx !== null ? activeData.expenses[editingExpenseIdx] : null}
             defaultMonthStr={currentMonth}
         />
-        <FixedModal isOpen={isFixedModalOpen} onClose={() => { setIsFixedModalOpen(false); setEditingFixedIdx(null); }} onSave={handleSaveFixed} initialItem={editingFixedIdx !== null ? activeData.fixed[editingFixedIdx] : null} editingIdx={editingFixedIdx} />
+        <FixedModal
+            isOpen={isFixedModalOpen}
+            onClose={() => { setIsFixedModalOpen(false); setEditingFixedIdx(null); }}
+            onSave={handleSaveFixed}
+            initialItem={editingFixedIdx !== null ? activeData.fixed[editingFixedIdx] : null}
+            editingIdx={editingFixedIdx}
+        />
         <MonthModal isOpen={isMonthModalOpen} onClose={() => setIsMonthModalOpen(false)} onSave={handleSaveMonth} />
         <CycleModal
             isOpen={isCycleModalOpen}
@@ -444,6 +426,15 @@ export default function App() {
             initialCycle={editingCycleIdx !== null ? activeData.cycles[editingCycleIdx] : null}
         />
         <EventModal isOpen={isEventModalOpen} onClose={() => setIsEventModalOpen(false)} onSave={handleSaveEvent} />
+
+        {/* 플로팅 지출 추가 버튼 */}
+        <button
+            onClick={() => { setEditingExpenseIdx(null); setIsExpenseModalOpen(true); }}
+            className="fixed bottom-6 right-6 z-40 h-14 w-14 bg-black text-white rounded-full flex items-center justify-center shadow-xl hover:bg-[#E63946] active:scale-95 transition-all cursor-pointer"
+            title="지출 추가"
+        >
+          <Plus className="h-6 w-6" />
+        </button>
       </div>
   );
 }

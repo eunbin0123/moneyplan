@@ -45,6 +45,7 @@ export interface MonthData {
   events: EventExpense[];
   cycles: BudgetCycle[];
   expenses: ExpenseItem[];
+  salary?: number;
   carryFromPrevMonth?: number;      // 이월 금액
   effectiveMonthlyBudget?: number;  // 이월금이 반영된 정산 생활비 예산
 }
