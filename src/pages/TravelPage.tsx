@@ -214,7 +214,7 @@ export default function TravelPage() {
           {/* 총 예상 경비 */}
           <div className="bg-black text-white border-2 border-black p-5 geo-shadow-lg">
             <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">
-              {activeDate === "all" ? "총 예상 경비" : `${getDayLabel(activeDate)} 지출`}
+              {activeDate === "all" ? "총 경비" : `${getDayLabel(activeDate)} 지출`}
             </p>
             <p className="text-3xl font-black font-mono">
               {activeDate === "all" ? fmt(grandTotal) : fmt(filteredSpent)}원
