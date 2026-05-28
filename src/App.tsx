@@ -5,9 +5,9 @@ import { Header } from "./components/Header";
 import { OverviewTab } from "./components/OverviewTab";
 import { ExpensesTab } from "./components/ExpensesTab";
 import { SavingsTab } from "./components/SavingsTab";
-import { FixedExpense, BudgetCycle, ExpenseItem, MonthData, BudgetState, EventExpense } from "./types";
+import { FixedExpense, BudgetCycle, ExpenseItem, MonthData, BudgetState, EventExpense, IncomeItem } from "./types";
 import { initialBudgetState, makeDefaultMonth } from "./initialData";
-import { ExpenseModal, FixedModal, MonthModal, CycleModal, EventModal } from "./components/Modals";
+import { ExpenseModal, FixedModal, MonthModal, CycleModal, EventModal, IncomeModal } from "./components/Modals";
 import { calculateBudgetWithCarryOver } from "./utils/budgetCalculator";
 import { saveToFirestore, loadFromFirestore, subscribeToFirestore } from "./utils/firestore";
 
@@ -90,17 +90,16 @@ export default function App() {
     return () => { if (firestoreUnsub.current) firestoreUnsub.current(); };
   }, []);
 
-  // 오늘 날짜가 포함된 달 찾기
   const findCurrentMonth = (monthList: string[]) => {
-    const today = new Date().toISOString().slice(0, 7); // "2026-05"
+    const today = new Date().toISOString().slice(0, 7);
     if (monthList.includes(today)) return today;
-    // 없으면 가장 최근 달
     return monthList[monthList.length - 1];
   };
 
   const computedState = calculateBudgetWithCarryOver(months, budgetState);
   const activeData: MonthData = computedState[currentMonth] || budgetState[currentMonth] || makeDefaultMonth(2025, 5);
 
+  // 모달 상태
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [editingExpenseIdx, setEditingExpenseIdx] = useState<number | null>(null);
   const [isFixedModalOpen, setIsFixedModalOpen] = useState(false);
@@ -109,6 +108,8 @@ export default function App() {
   const [isMonthModalOpen, setIsMonthModalOpen] = useState(false);
   const [isCycleModalOpen, setIsCycleModalOpen] = useState(false);
   const [editingCycleIdx, setEditingCycleIdx] = useState<number | null>(null);
+  const [isIncomeModalOpen, setIsIncomeModalOpen] = useState(false);
+  const [editingIncomeId, setEditingIncomeId] = useState<string | null>(null);
   const [memoSavingFeedback, setMemoSavingFeedback] = useState(false);
   const memoFeedbackTimer = useRef<NodeJS.Timeout | null>(null);
 
@@ -171,6 +172,19 @@ export default function App() {
     });
   };
 
+  const handleReorderExpense = (fromIdx: number, toIdx: number) => {
+    setBudgetState((prev) => {
+      const copy = { ...prev };
+      const mD = { ...copy[currentMonth] };
+      const exps = [...mD.expenses];
+      const [moved] = exps.splice(fromIdx, 1);
+      exps.splice(toIdx, 0, moved);
+      mD.expenses = exps;
+      copy[currentMonth] = mD;
+      return copy;
+    });
+  };
+
   const handleSaveFixed = (item: FixedExpense) => {
     setBudgetState((prev) => {
       const copy = { ...prev };
@@ -222,6 +236,31 @@ export default function App() {
     });
   };
 
+  const handleSaveIncome = (item: IncomeItem) => {
+    setBudgetState((prev) => {
+      const copy = { ...prev };
+      const mD = { ...copy[currentMonth] };
+      const incomes = [...(mD.incomes || [])];
+      const existingIdx = incomes.findIndex((i) => i.id === item.id);
+      if (existingIdx >= 0) { incomes[existingIdx] = item; }
+      else { incomes.push(item); }
+      mD.incomes = incomes;
+      copy[currentMonth] = mD;
+      return copy;
+    });
+    setEditingIncomeId(null);
+  };
+
+  const handleDeleteIncome = (id: string) => {
+    setBudgetState((prev) => {
+      const copy = { ...prev };
+      const mD = { ...copy[currentMonth] };
+      mD.incomes = (mD.incomes || []).filter((i) => i.id !== id);
+      copy[currentMonth] = mD;
+      return copy;
+    });
+  };
+
   const handleUpdateAllocations = (budget: number, fixedBudget: number, eventBudget: number) => {
     setBudgetState((prev) => {
       const copy = { ...prev };
@@ -267,19 +306,6 @@ export default function App() {
     setBudgetState((prev) => { const copy = { ...prev }; delete copy[key]; return copy; });
     setCurrentMonth(newMonths[Math.max(0, Math.min(idx, newMonths.length - 1))]);
     setActiveTab("overview");
-  };
-
-  const handleReorderExpense = (fromIdx: number, toIdx: number) => {
-    setBudgetState((prev) => {
-      const copy = { ...prev };
-      const mD = { ...copy[currentMonth] };
-      const exps = [...mD.expenses];
-      const [moved] = exps.splice(fromIdx, 1);
-      exps.splice(toIdx, 0, moved);
-      mD.expenses = exps;
-      copy[currentMonth] = mD;
-      return copy;
-    });
   };
 
   const handleSaveCycle = (cycle: BudgetCycle) => {
@@ -372,6 +398,9 @@ export default function App() {
                       onDeleteExpense={handleDeleteExpense}
                       onToggleExpense={handleToggleExpense}
                       onReorderExpense={handleReorderExpense}
+                      onAddIncome={() => { setEditingIncomeId(null); setIsIncomeModalOpen(true); }}
+                      onEditIncome={(id) => { setEditingIncomeId(id); setIsIncomeModalOpen(true); }}
+                      onDeleteIncome={handleDeleteIncome}
                   />
               )}
               {activeTab === "fixed" && (
@@ -426,8 +455,14 @@ export default function App() {
             initialCycle={editingCycleIdx !== null ? activeData.cycles[editingCycleIdx] : null}
         />
         <EventModal isOpen={isEventModalOpen} onClose={() => setIsEventModalOpen(false)} onSave={handleSaveEvent} />
+        <IncomeModal
+            isOpen={isIncomeModalOpen}
+            onClose={() => { setIsIncomeModalOpen(false); setEditingIncomeId(null); }}
+            onSave={handleSaveIncome}
+            cycles={activeData.cycles}
+            initialItem={editingIncomeId !== null ? (activeData.incomes || []).find((i) => i.id === editingIncomeId) || null : null}
+        />
 
-        {/* 플로팅 지출 추가 버튼 */}
         <button
             onClick={() => { setEditingExpenseIdx(null); setIsExpenseModalOpen(true); }}
             className="fixed bottom-6 right-6 z-40 h-14 w-14 bg-black text-white rounded-full flex items-center justify-center shadow-xl hover:bg-[#E63946] active:scale-95 transition-all cursor-pointer"

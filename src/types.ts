@@ -34,6 +34,13 @@ export interface ExpenseItem {
   checked?: boolean;
 }
 
+export interface IncomeItem {
+  id: string;
+  name: string;
+  amount: number;
+  cycleIdx: number; // 어느 주기에 넣을지
+}
+
 export interface MonthData {
   budget: number;
   fixedBudget?: number;
@@ -46,6 +53,7 @@ export interface MonthData {
   cycles: BudgetCycle[];
   expenses: ExpenseItem[];
   salary?: number;
+  incomes?: IncomeItem[];
   carryFromPrevMonth?: number;      // 이월 금액
   effectiveMonthlyBudget?: number;  // 이월금이 반영된 정산 생활비 예산
 }

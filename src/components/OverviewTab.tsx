@@ -220,31 +220,28 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               </div>
 
               <div className="space-y-3.5 my-5 border-t border-b border-black/10 py-5">
+                {/* 내 예산 + 이월금 = 사용예산 */}
                 <div className="flex justify-between items-center text-xs">
-                  <span className="text-slate-500 font-bold">기본 생활비 배정액</span>
+                  <span className="text-slate-500 font-bold">내 예산</span>
                   <span className="font-mono font-black text-black">{formatCurrency(baseLivingBudget)}</span>
                 </div>
-                {carryFromPrevMonth > 0 && (
-                    <div className="flex justify-between items-center text-xs text-emerald-600 font-bold">
-                      <span>지난달 이월금 (+)</span>
-                      <span className="font-mono">+{formatCurrency(carryFromPrevMonth)}</span>
-                    </div>
-                )}
-                {carryFromPrevMonth > 0 && (
-                    <div className="flex justify-between items-center text-xs border-t border-slate-100 pt-2 pb-1">
-                      <span className="text-slate-500 font-bold">총 생활비 예산</span>
-                      <span className="font-mono font-black text-black">{formatCurrency(effectiveMonthlyBudget)}</span>
-                    </div>
-                )}
+                <div className="flex justify-between items-center text-xs text-emerald-600 font-bold">
+                  <span>이월금 (+)</span>
+                  <span className="font-mono">+{formatCurrency(carryFromPrevMonth)}</span>
+                </div>
+                <div className="flex justify-between items-center text-xs border-t border-slate-100 pt-2 pb-1">
+                  <span className="text-slate-600 font-black">사용 예산</span>
+                  <span className="font-mono font-black text-black">{formatCurrency(effectiveMonthlyBudget)}</span>
+                </div>
                 <div className="flex justify-between items-center text-xs">
-                  <span className="text-slate-500 font-bold">실제 생활비 지출 (-)</span>
+                  <span className="text-slate-500 font-bold">지출 (-)</span>
                   <span className="font-mono font-black text-black">{formatCurrency(totalLivingSpent)}</span>
                 </div>
                 <div className="flex justify-between items-center pt-3 border-t border-dashed border-black/20">
                   <span className="text-slate-900 font-black text-sm">남은 생활비</span>
                   <span className={`text-base font-black font-mono tracking-tight ${remainingLiving < 0 ? "text-[#E63946] bg-[#E63946]/10 px-1.5 py-0.5" : "text-emerald-600"}`}>
-                  {formatCurrency(remainingLiving)}
-                </span>
+                    {formatCurrency(remainingLiving)}
+                  </span>
                 </div>
               </div>
             </div>
@@ -252,7 +249,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             {/* Living Budget Progress Bar */}
             <div className="space-y-2">
               <div className="flex justify-between items-center text-[10px] font-black text-slate-500">
-                <span>사용</span>
+                <span>수행 소진율</span>
                 <span className="font-mono">{livingPct}%</span>
               </div>
               <div className="h-5 w-full bg-slate-100 border-2 border-black rounded-none overflow-hidden p-[2px]">
@@ -278,11 +275,11 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                   <span className="font-mono font-bold">{formatCurrency(totalLivingSpent)}</span>
                 </div>
                 <div className="flex justify-between items-center text-xs text-slate-300">
-                  <span>고정비 지출</span>
+                  <span>월 정기 고정비 지출</span>
                   <span className="font-mono font-bold">{formatCurrency(totalFixedSpent)}</span>
                 </div>
                 <div className="flex justify-between items-center text-xs text-slate-300">
-                  <span>경조사비 지출</span>
+                  <span>비정기 경조사비 지출</span>
                   <span className="font-mono font-bold">{formatCurrency(totalEventSpent)}</span>
                 </div>
                 <div className="flex justify-between items-center pt-3 border-t border-dashed border-white/20">
@@ -294,7 +291,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               </div>
             </div>
 
-          
+
           </div>
         </div>
 
@@ -344,8 +341,11 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                       />
                     </div>
 
-                    <div className="flex justify-between text-[10px] font-bold text-slate-500 uppercase tracking-wider select-none">
-                      <span>지출: {formatCurrency(spent)} / 예산: {formatCurrency(c.budget)} ({pct}%)</span>
+                    <div className="flex items-center gap-3 text-[10px] font-bold text-slate-500 select-none flex-wrap">
+                      <span>내 예산 <span className="font-black text-black">{formatCurrency(baseBudget)}</span></span>
+                      {(c as any).incomeAmount > 0 && <span>수입 <span className="font-black text-emerald-600">+{formatCurrency((c as any).incomeAmount)}</span></span>}
+                      <span>이월 <span className={`font-black ${carryIn > 0 ? "text-emerald-600" : "text-slate-300"}`}>+{formatCurrency(carryIn)}</span></span>
+                      <span>사용예산 <span className="font-black text-black">{formatCurrency(c.budget)}</span></span>
                     </div>
                   </div>
               );

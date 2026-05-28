@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { X, HelpCircle, Save } from "lucide-react";
-import { ExpenseItem, FixedExpense, BudgetCycle, EventExpense } from "../types";
+import { ExpenseItem, FixedExpense, BudgetCycle, EventExpense, IncomeItem } from "../types";
 
 // ==========================================
 // 1. EXPENSE ADD / EDIT MODAL
@@ -110,7 +110,7 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
             <div>
               <label className="block text-xs font-black text-black mb-1.5">금액</label>
               <input
-                  type="number" inputMode="numeric" pattern="[0-9]*"
+                  type="number"
                   required
                   min="1"
                   placeholder="0"
@@ -212,7 +212,7 @@ export const FixedModal: React.FC<FixedModalProps> = ({ isOpen, onClose, onSave,
             <div>
               <label className="block text-xs font-black text-black mb-1.5">금액</label>
               <input
-                  type="number" inputMode="numeric" pattern="[0-9]*"
+                  type="number"
                   required
                   min="1"
                   placeholder="예: 55000"
@@ -225,7 +225,7 @@ export const FixedModal: React.FC<FixedModalProps> = ({ isOpen, onClose, onSave,
             <div>
               <label className="block text-xs font-black text-black mb-1.5">매월 출금일</label>
               <input
-                  type="number" inputMode="numeric" pattern="[0-9]*"
+                  type="number"
                   min="1"
                   max="31"
                   placeholder="예: 25"
@@ -308,7 +308,7 @@ export const MonthModal: React.FC<MonthModalProps> = ({ isOpen, onClose, onSave 
               <div>
                 <label className="block text-xs font-black text-black mb-1.5">연도</label>
                 <input
-                    type="number" inputMode="numeric" pattern="[0-9]*"
+                    type="number"
                     required
                     min="2020"
                     max="2099"
@@ -320,7 +320,7 @@ export const MonthModal: React.FC<MonthModalProps> = ({ isOpen, onClose, onSave 
               <div>
                 <label className="block text-xs font-black text-black mb-1.5">월</label>
                 <input
-                    type="number" inputMode="numeric" pattern="[0-9]*"
+                    type="number"
                     required
                     min="1"
                     max="12"
@@ -334,7 +334,7 @@ export const MonthModal: React.FC<MonthModalProps> = ({ isOpen, onClose, onSave 
             <div>
               <label className="block text-xs font-black text-black mb-1.5">생활비 총예산</label>
               <input
-                  type="number" inputMode="numeric" pattern="[0-9]*"
+                  type="number"
                   required
                   min="0"
                   placeholder="600000"
@@ -463,7 +463,7 @@ export const CycleModal: React.FC<CycleModalProps> = ({
             <div>
               <label className="block text-xs font-black text-black mb-1.5">주기 배정 예산</label>
               <input
-                  type="number" inputMode="numeric" pattern="[0-9]*"
+                  type="number"
                   required
                   min="0"
                   placeholder="0"
@@ -555,7 +555,7 @@ export const EventModal: React.FC<EventModalProps> = ({ isOpen, onClose, onSave 
             <div>
               <label className="block text-xs font-black text-black mb-1.5">금액</label>
               <input
-                  type="number" inputMode="numeric" pattern="[0-9]*"
+                  type="number"
                   required
                   min="1"
                   placeholder="0"
@@ -581,6 +581,105 @@ export const EventModal: React.FC<EventModalProps> = ({ isOpen, onClose, onSave 
               </button>
             </div>
           </form>
+        </div>
+      </div>
+  );
+};
+// ===================== INCOME MODAL =====================
+interface IncomeModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (item: IncomeItem) => void;
+  cycles: { label: string }[];
+  initialItem?: IncomeItem | null;
+}
+
+export const IncomeModal: React.FC<IncomeModalProps> = ({ isOpen, onClose, onSave, cycles, initialItem }) => {
+  const [name, setName] = useState("");
+  const [amount, setAmount] = useState("");
+  const [cycleIdx, setCycleIdx] = useState(0);
+
+  useEffect(() => {
+    if (isOpen) {
+      if (initialItem) {
+        setName(initialItem.name);
+        setAmount(String(initialItem.amount));
+        setCycleIdx(initialItem.cycleIdx);
+      } else {
+        setName("");
+        setAmount("");
+        setCycleIdx(0);
+      }
+    }
+  }, [isOpen, initialItem]);
+
+  const handleSave = () => {
+    const amt = parseInt(amount.replace(/,/g, ""), 10);
+    if (!name.trim() || isNaN(amt) || amt <= 0) return;
+    onSave({
+      id: initialItem?.id || Date.now().toString(),
+      name: name.trim(),
+      amount: amt,
+      cycleIdx,
+    });
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
+  const getCleanLabel = (label: string) => label.replace(/\s*\(.*?\)\s*/g, "").trim();
+
+  return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75"
+           onClick={onClose}>
+        <div className="bg-white border-4 border-black w-full max-w-sm geo-shadow-lg"
+             onClick={(e) => e.stopPropagation()}>
+          <div className="flex items-center justify-between border-b-4 border-black px-5 py-4">
+            <h3 className="text-sm font-black text-black">{initialItem ? "수입 수정" : "추가 수입"}</h3>
+            <button onClick={onClose} className="p-1.5 bg-white border-2 border-black hover:bg-[#E63946] hover:text-white cursor-pointer">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="p-5 space-y-4">
+            <div>
+              <label className="block text-xs font-black mb-1.5">수입 내용</label>
+              <input type="text" value={name} onChange={(e) => setName(e.target.value)}
+                     placeholder="예: 부업 수입, 환급금 등"
+                     lang="ko" inputMode="text"
+                     className="w-full h-11 border-2 border-black px-3 font-bold outline-none focus:border-[#E63946]"
+                     style={{ fontSize: "16px" }} />
+            </div>
+            <div>
+              <label className="block text-xs font-black mb-1.5">금액 (원)</label>
+              <input type="number" inputMode="numeric" pattern="[0-9]*"
+                     value={amount} onChange={(e) => setAmount(e.target.value)}
+                     placeholder="0"
+                     className="w-full h-11 border-2 border-black px-3 font-bold font-mono outline-none focus:border-[#E63946]"
+                     style={{ fontSize: "16px" }}
+                     onKeyDown={(e) => e.key === "Enter" && handleSave()} />
+            </div>
+            <div>
+              <label className="block text-xs font-black mb-1.5">적용 주기</label>
+              <div className="flex flex-col gap-2">
+                {cycles.map((c, i) => (
+                    <button key={i} onClick={() => setCycleIdx(i)}
+                            className={`w-full py-2.5 text-xs font-black border-2 border-black transition-all cursor-pointer ${cycleIdx === i ? "bg-black text-white" : "bg-white text-black hover:bg-slate-100"}`}>
+                      {getCleanLabel(c.label)}
+                    </button>
+                ))}
+              </div>
+            </div>
+            <div className="flex gap-2 pt-1">
+              <button onClick={onClose}
+                      className="flex-1 h-11 bg-white text-black text-xs font-black border-2 border-black hover:bg-slate-100 cursor-pointer">
+                취소
+              </button>
+              <button onClick={handleSave}
+                      className="flex-1 h-11 bg-black text-white text-xs font-black border-2 border-black hover:bg-[#E63946] cursor-pointer">
+                저장
+              </button>
+            </div>
+          </div>
         </div>
       </div>
   );
