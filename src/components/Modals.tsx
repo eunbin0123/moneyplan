@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { X, HelpCircle, Save } from "lucide-react";
-import { ExpenseItem, FixedExpense, BudgetCycle, EventExpense, IncomeItem, InstallmentItem } from "../types";
+import { ExpenseItem, FixedExpense, BudgetCycle, EventExpense, IncomeItem, InstallmentItem, DebtItem } from "../types";
 
 // ==========================================
 // 1. EXPENSE ADD / EDIT MODAL
@@ -878,6 +878,179 @@ export const InstallmentModal: React.FC<InstallmentModalProps> = ({
             {startMonth && endLabel && (
                 <div className="bg-[#F0F0F0] border-2 border-black px-3 py-2 text-[10px] font-black text-black font-mono">
                   {startMonth} ~ {endLabel} 매달 반영
+                </div>
+            )}
+
+            <div className="flex gap-2.5 pt-2">
+              <button
+                  type="button"
+                  onClick={onClose}
+                  className="flex-1 h-11 bg-white hover:bg-slate-100 text-xs text-black font-black uppercase tracking-wider border-2 border-black rounded-none cursor-pointer geo-shadow-sm active:translate-y-0.5"
+              >
+                취소
+              </button>
+              <button
+                  type="submit"
+                  className="flex-1 h-11 bg-black hover:bg-[#E63946] text-xs text-white font-black uppercase tracking-wider border-2 border-black rounded-none flex items-center justify-center gap-1 cursor-pointer geo-shadow-sm active:translate-y-0.5"
+              >
+                <Save className="h-4 w-4" /> 저장
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+  );
+};
+
+// ==========================================
+// 7. DEBT (당겨쓰기) ADD / EDIT MODAL
+// ==========================================
+
+interface DebtModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (item: DebtItem) => void;
+  initialItem?: DebtItem | null;
+  defaultMonthStr?: string;
+}
+
+export const DebtModal: React.FC<DebtModalProps> = ({
+                                                      isOpen,
+                                                      onClose,
+                                                      onSave,
+                                                      initialItem,
+                                                      defaultMonthStr,
+                                                    }) => {
+  const [name, setName] = useState("");
+  const [amount, setAmount] = useState("");
+  const [fromMonth, setFromMonth] = useState("");
+  const [targetMonth, setTargetMonth] = useState("");
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const fallback = defaultMonthStr || new Date().toISOString().slice(0, 7);
+    if (initialItem) {
+      setName(initialItem.name);
+      setAmount(String(initialItem.amount));
+      setFromMonth(initialItem.fromMonth);
+      setTargetMonth(initialItem.targetMonth);
+    } else {
+      setName("");
+      setAmount("");
+      // fromMonth 기본값: targetMonth 의 전달
+      const [y, m] = fallback.split("-").map(Number);
+      const prevIdx = y * 12 + (m - 1) - 1;
+      const py = Math.floor(prevIdx / 12);
+      const pm = (prevIdx % 12) + 1;
+      setFromMonth(`${py}-${String(pm).padStart(2, "0")}`);
+      setTargetMonth(fallback);
+    }
+  }, [isOpen, initialItem, defaultMonthStr]);
+
+  if (!isOpen) return null;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const amt = parseInt(amount, 10);
+    if (!name.trim() || isNaN(amt) || amt <= 0 || !fromMonth || !targetMonth) return;
+    onSave({
+      id: initialItem?.id || Date.now().toString(),
+      name: name.trim(),
+      amount: amt,
+      fromMonth,
+      targetMonth,
+    });
+    onClose();
+  };
+
+  const inputCls =
+      "w-full h-11 border-2 border-black bg-white focus:border-[#E63946] focus:ring-1 focus:ring-[#E63946] rounded-none px-3 text-xs font-bold text-black outline-none";
+  const monoCls = inputCls + " font-mono";
+
+  return (
+      <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75"
+          onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      >
+        <div
+            className="bg-white border-4 border-black rounded-none p-6 w-full max-w-sm geo-shadow-lg"
+            onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between border-b-2 border-black pb-3.5 mb-5">
+            <h3 className="text-sm font-black text-black flex items-center gap-2">
+              🔴 {initialItem ? "당겨쓰기 수정" : "당겨쓰기 추가"}
+            </h3>
+            <button
+                onClick={onClose}
+                className="p-1.5 bg-white border-2 border-black text-black hover:bg-[#E63946] hover:text-white rounded-none cursor-pointer"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          <p className="text-[10px] font-bold text-slate-500 bg-[#F0F0F0] border-2 border-black px-3 py-2 mb-4 leading-relaxed">
+            지난달 초과 지출 등 이번 달 생활비 예산에서 갚아야 할 금액을 등록합니다.<br />
+            총예산 자동 분배 시 이 금액도 생활비에서 자동 차감됩니다.
+          </p>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-xs font-black text-black mb-1.5">메모</label>
+              <input
+                  type="text"
+                  required
+                  placeholder="예: 5월 생활비 초과분, 친구 빌린 돈"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  lang="ko"
+                  autoComplete="off"
+                  className={inputCls}
+                  style={{ fontSize: "16px" }}
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-black text-black mb-1.5">금액</label>
+              <input
+                  type="number"
+                  required
+                  min="1"
+                  placeholder="0"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  className={monoCls}
+                  style={{ fontSize: "16px" }}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-black text-black mb-1.5">발생 월</label>
+                <input
+                    type="month"
+                    required
+                    value={fromMonth}
+                    onChange={(e) => setFromMonth(e.target.value)}
+                    className={monoCls + " appearance-none"}
+                    style={{ fontSize: "16px" }}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-black text-black mb-1.5">차감 월</label>
+                <input
+                    type="month"
+                    required
+                    value={targetMonth}
+                    onChange={(e) => setTargetMonth(e.target.value)}
+                    className={monoCls + " appearance-none"}
+                    style={{ fontSize: "16px" }}
+                />
+              </div>
+            </div>
+
+            {fromMonth && targetMonth && (
+                <div className="bg-black text-white px-3 py-2 text-[10px] font-black font-mono">
+                  {fromMonth}에 발생 → {targetMonth} 예산에서 차감
                 </div>
             )}
 

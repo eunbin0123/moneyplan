@@ -1,6 +1,6 @@
 import { BudgetState, MonthData } from "./types";
 
-export const makeDefaultMonth = (year: number, month: number, budget = 600000): MonthData => {
+export const makeDefaultMonth = (year: number, month: number, budget = 600000, totalBudget?: number): MonthData => {
   const ys = String(year);
   const ms = String(month).padStart(2, "0");
   const pm = month <= 1 ? 12 : month - 1;
@@ -12,6 +12,7 @@ export const makeDefaultMonth = (year: number, month: number, budget = 600000): 
 
   return {
     budget,
+    totalBudget,
     fixedBudget: 160000,
     eventBudget: 200000,
     totalSavings: 0,

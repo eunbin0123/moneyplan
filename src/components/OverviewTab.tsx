@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { MonthData, InstallmentItem } from "../types";
+import { MonthData, InstallmentItem, DebtItem } from "../types";
 import { Edit2, ArrowUpRight, TrendingUp, DollarSign, BookOpen, AlertCircle, X, Save } from "lucide-react";
 
 interface OverviewTabProps {
@@ -7,10 +7,9 @@ interface OverviewTabProps {
   activeMonth: string;
   onEditCycle: (idx: number) => void;
   onOpenMemo: () => void;
-  onUpdateAllocations: (budget: number, fixedBudget: number, eventBudget: number) => void;
+  onUpdateAllocations: (budget: number, fixedBudget: number, eventBudget: number, totalBudget?: number) => void;
   installments?: InstallmentItem[];
-
-
+  debts?: DebtItem[];
 }
 
 export const OverviewTab: React.FC<OverviewTabProps> = ({
@@ -20,6 +19,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                                                           onOpenMemo,
                                                           onUpdateAllocations,
                                                           installments = [],
+                                                          debts = [],
 
                                                         }) => {
   // Modal toggle state
@@ -28,12 +28,14 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   const [existingIdInput, setExistingIdInput] = useState("");
 
   // Modal form states
+  const [inputTotalBudget, setInputTotalBudget] = useState("");
   const [inputBudget, setInputBudget] = useState("");
   const [inputFixedBudget, setInputFixedBudget] = useState("");
   const [inputEventBudget, setInputEventBudget] = useState("");
 
   useEffect(() => {
     if (isEditAllocModalOpen) {
+      setInputTotalBudget(String(data.totalBudget ?? ""));
       setInputBudget(String(data.budget));
       setInputFixedBudget(String(data.fixedBudget ?? 160000));
       setInputEventBudget(String(data.eventBudget ?? 200000));
@@ -78,9 +80,12 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
     return sum + (cur >= start && cur < start + it.months ? it.monthlyAmount : 0);
   }, 0);
 
+  // 6. 당겨쓰기 (Debt repayment this month)
+  const debtChargeThisMonth = (debts || []).reduce((sum, d) => sum + d.amount, 0);
+
   // 4. 통합 (Combined/Aggregate)
   const totalCombinedBudget = effectiveMonthlyBudget + fixedAllocBudget + eventAllocBudget;
-  const totalCombinedSpent = totalLivingSpent + totalFixedSpent + totalEventSpent + installmentChargeThisMonth;
+  const totalCombinedSpent = totalLivingSpent + totalFixedSpent + totalEventSpent + installmentChargeThisMonth + debtChargeThisMonth;
   const totalCombinedRemaining = totalCombinedBudget - totalCombinedSpent;
   const combinedPct = totalCombinedBudget > 0 ? Math.round((totalCombinedSpent / totalCombinedBudget) * 100) : 0;
 
@@ -124,11 +129,20 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
 
   const handleSaveAllocations = (e: React.FormEvent) => {
     e.preventDefault();
-    const bg = parseInt(inputBudget, 10);
+    const tb = inputTotalBudget ? parseInt(inputTotalBudget, 10) : NaN;
     const fx = parseInt(inputFixedBudget, 10);
     const ev = parseInt(inputEventBudget, 10);
-    if (isNaN(bg) || bg < 0 || isNaN(fx) || fx < 0 || isNaN(ev) || ev < 0) return;
-    onUpdateAllocations(bg, fx, ev);
+    if (isNaN(fx) || fx < 0 || isNaN(ev) || ev < 0) return;
+
+    if (!isNaN(tb) && tb > 0) {
+      // totalBudget 모드: 생활비는 자동 역산, budget=0 으로 전달 (계산기가 재계산)
+      onUpdateAllocations(0, fx, ev, tb);
+    } else {
+      // 기존 수동 모드
+      const bg = parseInt(inputBudget, 10);
+      if (isNaN(bg) || bg < 0) return;
+      onUpdateAllocations(bg, fx, ev, undefined);
+    }
     setIsEditAllocModalOpen(false);
   };
 
@@ -299,6 +313,12 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                   <span>이번 달 할부금</span>
                   <span className="font-mono font-bold">{formatCurrency(installmentChargeThisMonth)}</span>
                 </div>
+                {debtChargeThisMonth > 0 && (
+                    <div className="flex justify-between items-center text-xs text-slate-300">
+                      <span>당겨쓰기 차감</span>
+                      <span className="font-mono font-bold">{formatCurrency(debtChargeThisMonth)}</span>
+                    </div>
+                )}
                 <div className="flex justify-between items-center pt-3 border-t border-dashed border-white/20">
                   <span className="font-black text-white text-sm">총 지출액 합계</span>
                   <div className="text-right">
@@ -430,23 +450,85 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 </div>
 
                 <form onSubmit={handleSaveAllocations} className="space-y-4">
+                  {/* ── 총예산 모드 ── */}
+                  <div className="bg-black text-white p-4 border-2 border-black space-y-3">
+                    <p className="text-xs font-black text-[#E63946] uppercase tracking-widest flex items-center gap-1.5">
+                      ✦ 총예산 자동 분배 모드
+                    </p>
+                    <div>
+                      <label className="block text-xs font-black text-white mb-1.5">
+                        이달 총 지출 한도
+                        <span className="ml-1 text-[10px] text-slate-400 font-bold normal-case tracking-normal">(비워두면 아래 수동 입력 사용)</span>
+                      </label>
+                      <input
+                          type="number"
+                          min="0"
+                          placeholder="예) 1000000"
+                          value={inputTotalBudget}
+                          onChange={(e) => setInputTotalBudget(e.target.value)}
+                          className="w-full h-11 border-2 border-white bg-white focus:border-[#E63946] focus:ring-1 focus:ring-[#E63946] rounded-none px-3 text-xs font-bold font-mono text-black outline-none"
+                      />
+                    </div>
+
+                    {/* 자동 역산 미리보기 */}
+                    {inputTotalBudget && parseInt(inputTotalBudget, 10) > 0 && (() => {
+                      const tb = parseInt(inputTotalBudget, 10);
+                      const fx = parseInt(inputFixedBudget, 10) || 0;
+                      const ev = parseInt(inputEventBudget, 10) || 0;
+                      const instCharge = installmentChargeThisMonth;
+                      const debtCharge = debtChargeThisMonth;
+                      const living = Math.max(0, tb - fx - ev - instCharge - debtCharge);
+                      const cycleCount = data.cycles.length || 3;
+                      const base = Math.floor(living / cycleCount);
+                      const remainder = living - base * cycleCount;
+                      return (
+                          <div className="text-[10px] font-mono bg-white/10 border border-white/20 p-3 space-y-1.5 text-slate-200">
+                            <div className="flex justify-between"><span>총 한도</span><span className="text-white font-black">{tb.toLocaleString("ko-KR")}원</span></div>
+                            <div className="flex justify-between"><span>― 고정비</span><span>-{fx.toLocaleString("ko-KR")}원</span></div>
+                            <div className="flex justify-between"><span>― 경조사비</span><span>-{ev.toLocaleString("ko-KR")}원</span></div>
+                            {instCharge > 0 && <div className="flex justify-between"><span>― 할부금</span><span>-{instCharge.toLocaleString("ko-KR")}원</span></div>}
+                            {debtCharge > 0 && <div className="flex justify-between"><span>― 당겨쓰기</span><span>-{debtCharge.toLocaleString("ko-KR")}원</span></div>}
+                            <div className="flex justify-between border-t border-white/20 pt-1.5 text-white font-black">
+                              <span>생활비 예산</span><span>{living.toLocaleString("ko-KR")}원</span>
+                            </div>
+                            <div className="flex justify-between text-emerald-400">
+                              <span>→ 주기당 ({cycleCount}등분)</span>
+                              <span>{base.toLocaleString("ko-KR")}원 {remainder > 0 ? `/ 마지막 +${remainder.toLocaleString("ko-KR")}` : ""}</span>
+                            </div>
+                          </div>
+                      );
+                    })()}
+                  </div>
+
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">또는 수동으로 직접 입력</p>
+
                   <div>
                     <label className="block text-xs font-black text-black mb-1.5 flex justify-between items-center select-none">
-                      <span>1. 생활비 예산</span>
-                      <span className="text-[10px] text-slate-500 font-bold">주기별 예산 합계로 자동 계산됨</span>
+                      <span>생활비 예산 (수동)</span>
+                      <span className="text-[10px] text-slate-500 font-bold">총예산 입력 시 자동 계산됨</span>
                     </label>
                     <input
                         type="text"
-                        readOnly
-                        disabled
-                        value={formatCurrency(Number(inputBudget))}
+                        readOnly={!!(inputTotalBudget && parseInt(inputTotalBudget, 10) > 0)}
+                        disabled={!!(inputTotalBudget && parseInt(inputTotalBudget, 10) > 0)}
+                        value={
+                          inputTotalBudget && parseInt(inputTotalBudget, 10) > 0
+                              ? (() => {
+                                const tb = parseInt(inputTotalBudget, 10);
+                                const fx = parseInt(inputFixedBudget, 10) || 0;
+                                const ev = parseInt(inputEventBudget, 10) || 0;
+                                const living = Math.max(0, tb - fx - ev - installmentChargeThisMonth - debtChargeThisMonth);
+                                return living.toLocaleString("ko-KR") + "원 (자동계산)";
+                              })()
+                              : formatCurrency(Number(inputBudget))
+                        }
                         className="w-full h-11 border-2 border-black bg-slate-100 rounded-none px-3 text-xs font-bold font-mono text-slate-700 outline-none select-none cursor-not-allowed"
                     />
                   </div>
 
                   <div>
                     <label className="block text-xs font-black text-black mb-1.5">
-                      2. 고정지출 예산
+                      고정지출 예산
                     </label>
                     <input
                         type="number"
@@ -460,7 +542,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
 
                   <div>
                     <label className="block text-xs font-black text-black mb-1.5">
-                      3. 비정기 경조사비 예산
+                      비정기 경조사비 예산
                     </label>
                     <input
                         type="number"

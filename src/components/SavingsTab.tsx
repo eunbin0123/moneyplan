@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { MonthData, InstallmentItem } from "../types";
+import { MonthData, InstallmentItem, DebtItem } from "../types";
 import { Check, Calendar, Trash2, CalendarRange, Sparkles, Plus, CreditCard } from "lucide-react";
 
 interface SavingsTabProps {
@@ -18,6 +18,10 @@ interface SavingsTabProps {
     onAddInstallment?: () => void;
     onEditInstallment?: (id: string) => void;
     onDeleteInstallment?: (id: string) => void;
+    debts?: DebtItem[];
+    onAddDebt?: () => void;
+    onEditDebt?: (id: string) => void;
+    onDeleteDebt?: (id: string) => void;
 }
 
 export const SavingsTab: React.FC<SavingsTabProps> = ({
@@ -36,6 +40,10 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
                                                           onAddInstallment,
                                                           onEditInstallment,
                                                           onDeleteInstallment,
+                                                          debts = [],
+                                                          onAddDebt,
+                                                          onEditDebt,
+                                                          onDeleteDebt,
                                                       }) => {
     const formatCurrency = (amount: number) => {
         return Math.round(amount).toLocaleString("ko-KR") + "원";
@@ -355,6 +363,56 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
                                 <div className="flex justify-between items-center pt-3.5 mt-1 border-t-2 border-black text-xs font-black text-black">
                                     <span>이번 달 할부금 합계</span>
                                     <span className="font-mono text-[#E63946]">-{formatCurrency(totalInstallmentThisMonth)}</span>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* 당겨쓰기 */}
+                    <div className="bg-white border-2 border-black p-5 geo-shadow border-l-[8px] border-l-[#E63946]">
+                        <div className="flex items-center justify-between pb-3 border-b-2 border-black mb-4">
+                            <h3 className="text-sm font-black text-black uppercase tracking-widest flex items-center gap-1.5">
+                                🔴 당겨쓰기
+                            </h3>
+                            <button
+                                onClick={onAddDebt}
+                                className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest bg-black text-white border-2 border-black px-3 py-1.5 hover:bg-[#E63946] hover:border-[#E63946] active:translate-y-0.5 transition-colors cursor-pointer geo-shadow-sm"
+                            >
+                                <Plus className="h-3.5 w-3.5" /> 추가
+                            </button>
+                        </div>
+
+                        {debts.length === 0 ? (
+                            <div className="text-center p-8 text-slate-400 text-xs font-medium uppercase tracking-widest">// 이번 달 차감할 당겨쓰기 내역이 없습니다.</div>
+                        ) : (
+                            <div className="space-y-2">
+                                {debts.map((d) => (
+                                    <div key={d.id} className="border-2 border-black px-3 py-3 bg-[#FFF5F5]">
+                                        <div className="flex items-center justify-between gap-2">
+                                            <div className="flex items-center gap-2 min-w-0 flex-1">
+                                                <span className="text-xs font-black text-black truncate">{d.name}</span>
+                                                <span className="text-[9px] font-mono font-black uppercase tracking-widest px-1.5 py-0.5 border-2 bg-[#E63946] text-white border-[#E63946] shrink-0">
+                                                    {d.fromMonth} 발생
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center gap-2 shrink-0 select-none">
+                                                <button onClick={() => onEditDebt && onEditDebt(d.id)} className="p-1 px-2 bg-white hover:bg-black text-black hover:text-white text-[10px] font-black border-2 border-black transition-all cursor-pointer">
+                                                    수정
+                                                </button>
+                                                <button onClick={() => onDeleteDebt && onDeleteDebt(d.id)} className="p-1 px-2 bg-white hover:bg-[#E63946] text-black hover:text-white text-[10px] font-black border-2 border-black transition-all cursor-pointer">
+                                                    삭제
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center justify-between mt-2 text-[10px] font-bold text-slate-500 font-mono">
+                                            <span>{d.targetMonth} 예산에서 차감</span>
+                                            <span className="font-black text-[#E63946]">-{formatCurrency(d.amount)}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                                <div className="flex justify-between items-center pt-3.5 mt-1 border-t-2 border-black text-xs font-black text-black">
+                                    <span>당겨쓰기 합계</span>
+                                    <span className="font-mono text-[#E63946]">-{formatCurrency(debts.reduce((s, d) => s + d.amount, 0))}</span>
                                 </div>
                             </div>
                         )}
