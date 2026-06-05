@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { MonthData } from "../types";
-import { Check, Calendar, Trash2, CalendarRange, Sparkles, Plus } from "lucide-react";
+import { MonthData, InstallmentItem } from "../types";
+import { Check, Calendar, Trash2, CalendarRange, Sparkles, Plus, CreditCard } from "lucide-react";
 
 interface SavingsTabProps {
     data: MonthData;
@@ -13,6 +13,11 @@ interface SavingsTabProps {
     onUpdateSalary: (amount: number) => void;
     activeSubTab?: "distribution" | "fixed";
     onSubTabChange?: (tab: "distribution" | "fixed") => void;
+    installments?: InstallmentItem[];
+    activeMonth?: string;
+    onAddInstallment?: () => void;
+    onEditInstallment?: (id: string) => void;
+    onDeleteInstallment?: (id: string) => void;
 }
 
 export const SavingsTab: React.FC<SavingsTabProps> = ({
@@ -26,6 +31,11 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
                                                           onUpdateSalary,
                                                           activeSubTab = "distribution",
                                                           onSubTabChange,
+                                                          installments = [],
+                                                          activeMonth = "",
+                                                          onAddInstallment,
+                                                          onEditInstallment,
+                                                          onDeleteInstallment,
                                                       }) => {
     const formatCurrency = (amount: number) => {
         return Math.round(amount).toLocaleString("ko-KR") + "원";
@@ -33,6 +43,26 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
 
     const totalFixed = data.fixed.reduce((sum, item) => sum + item.amount, 0);
     const totalEvents = data.events ? data.events.reduce((sum, item) => sum + item.amount, 0) : 0;
+
+    // 할부: 월 인덱스 기준으로 현재 월에 걸치는지/몇 회차인지 계산
+    const monthIdx = (key: string) => {
+        const [y, m] = key.split("-").map(Number);
+        return y * 12 + (m - 1);
+    };
+    const instStatus = (it: InstallmentItem) => {
+        if (!activeMonth) return { state: "none" as const, n: 0 };
+        const start = monthIdx(it.startMonth);
+        const cur = monthIdx(activeMonth);
+        if (cur < start) return { state: "upcoming" as const, n: 0 };
+        if (cur >= start + it.months) return { state: "done" as const, n: it.months };
+        return { state: "active" as const, n: cur - start + 1 };
+    };
+    const sortedInstallments = [...installments].sort((a, b) =>
+        a.startMonth === b.startMonth ? a.name.localeCompare(b.name) : a.startMonth < b.startMonth ? -1 : 1
+    );
+    const totalInstallmentThisMonth = installments.reduce(
+        (sum, it) => sum + (instStatus(it).state === "active" ? it.monthlyAmount : 0), 0
+    );
 
     // 생활비 = effectiveMonthlyBudget (이월 포함) 또는 budget
     const livingBudget = data.effectiveMonthlyBudget ?? data.budget;
@@ -267,6 +297,64 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
                                 <div className="flex justify-between items-center pt-3.5 mt-1 border-t-2 border-black text-xs font-black text-black">
                                     <span>경조사비 총 합계</span>
                                     <span className="font-mono text-[#E63946]">-{formatCurrency(totalEvents)}</span>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* 할부 */}
+                    <div className="bg-white border-2 border-black p-5 geo-shadow">
+                        <div className="flex items-center justify-between pb-3 border-b-2 border-black mb-4">
+                            <h3 className="text-sm font-black text-black uppercase tracking-widest flex items-center gap-1.5">
+                                <CreditCard className="h-4 w-4 text-black" /> 할부
+                            </h3>
+                            <button
+                                onClick={onAddInstallment}
+                                className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest bg-black text-white border-2 border-black px-3 py-1.5 hover:bg-[#E63946] hover:border-[#E63946] active:translate-y-0.5 transition-colors cursor-pointer geo-shadow-sm"
+                            >
+                                <Plus className="h-3.5 w-3.5" /> 추가
+                            </button>
+                        </div>
+
+                        {sortedInstallments.length === 0 ? (
+                            <div className="text-center p-8 text-slate-400 text-xs font-medium uppercase tracking-widest">// 등록된 할부가 없습니다.</div>
+                        ) : (
+                            <div className="space-y-2">
+                                {sortedInstallments.map((it) => {
+                                    const st = instStatus(it);
+                                    const badge =
+                                        st.state === "active" ? { txt: `이번 달 ${st.n}/${it.months}회차`, cls: "bg-[#E63946] text-white border-[#E63946]" } :
+                                            st.state === "upcoming" ? { txt: "예정", cls: "bg-white text-slate-400 border-black" } :
+                                                st.state === "done" ? { txt: "완료", cls: "bg-black text-white border-black" } :
+                                                    { txt: "-", cls: "bg-white text-slate-400 border-black" };
+                                    return (
+                                        <div key={it.id} className={`border-2 border-black px-3 py-3 ${st.state === "active" ? "bg-[#FFF5F5]" : "bg-[#F9F9F9]"}`}>
+                                            <div className="flex items-center justify-between gap-2">
+                                                <div className="flex items-center gap-2 min-w-0 flex-1">
+                                                    <span className="text-xs font-black text-black truncate uppercase tracking-tight">{it.name}</span>
+                                                    <span className={`text-[9px] font-mono font-black uppercase tracking-widest px-1.5 py-0.5 border-2 shrink-0 ${badge.cls}`}>
+                                                        {badge.txt}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-2 shrink-0 select-none">
+                                                    <button onClick={() => onEditInstallment && onEditInstallment(it.id)} className="p-1 px-2 bg-white hover:bg-black text-black hover:text-white text-[10px] font-black border-2 border-black transition-all cursor-pointer">
+                                                        수정
+                                                    </button>
+                                                    <button onClick={() => onDeleteInstallment && onDeleteInstallment(it.id)} className="p-1 px-2 bg-white hover:bg-[#E63946] text-black hover:text-white text-[10px] font-black border-2 border-black transition-all cursor-pointer">
+                                                        삭제
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center justify-between mt-2 text-[10px] font-bold text-slate-500 font-mono">
+                                                <span>{it.startMonth} 시작 · {it.months}개월 · 총 {formatCurrency(it.totalAmount)}</span>
+                                                <span className="font-black text-[#E63946]">월 -{formatCurrency(it.monthlyAmount)}</span>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                                <div className="flex justify-between items-center pt-3.5 mt-1 border-t-2 border-black text-xs font-black text-black">
+                                    <span>이번 달 할부금 합계</span>
+                                    <span className="font-mono text-[#E63946]">-{formatCurrency(totalInstallmentThisMonth)}</span>
                                 </div>
                             </div>
                         )}

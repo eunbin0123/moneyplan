@@ -5,9 +5,9 @@ import { Header } from "./components/Header";
 import { OverviewTab } from "./components/OverviewTab";
 import { ExpensesTab } from "./components/ExpensesTab";
 import { SavingsTab } from "./components/SavingsTab";
-import { FixedExpense, BudgetCycle, ExpenseItem, MonthData, BudgetState, EventExpense, IncomeItem } from "./types";
+import { FixedExpense, BudgetCycle, ExpenseItem, MonthData, BudgetState, EventExpense, IncomeItem, InstallmentItem } from "./types";
 import { initialBudgetState, makeDefaultMonth } from "./initialData";
-import { ExpenseModal, FixedModal, MonthModal, CycleModal, EventModal, IncomeModal } from "./components/Modals";
+import { ExpenseModal, FixedModal, MonthModal, CycleModal, EventModal, IncomeModal, InstallmentModal } from "./components/Modals";
 import { calculateBudgetWithCarryOver } from "./utils/budgetCalculator";
 import { saveToFirestore, loadFromFirestore, subscribeToFirestore } from "./utils/firestore";
 
@@ -99,6 +99,12 @@ export default function App() {
   const computedState = calculateBudgetWithCarryOver(months, budgetState);
   const activeData: MonthData = computedState[currentMonth] || budgetState[currentMonth] || makeDefaultMonth(2025, 5);
 
+  // 전체 달에 등록된 할부를 평탄화 (할부는 여러 달에 걸치므로 전역으로 모음)
+  const allInstallments: InstallmentItem[] = [];
+  Object.values(budgetState).forEach((md) => {
+    (md.installments || []).forEach((it) => allInstallments.push(it));
+  });
+
   // 모달 상태
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [editingExpenseIdx, setEditingExpenseIdx] = useState<number | null>(null);
@@ -110,6 +116,8 @@ export default function App() {
   const [editingCycleIdx, setEditingCycleIdx] = useState<number | null>(null);
   const [isIncomeModalOpen, setIsIncomeModalOpen] = useState(false);
   const [editingIncomeId, setEditingIncomeId] = useState<string | null>(null);
+  const [isInstallmentModalOpen, setIsInstallmentModalOpen] = useState(false);
+  const [editingInstallmentId, setEditingInstallmentId] = useState<string | null>(null);
   const [memoSavingFeedback, setMemoSavingFeedback] = useState(false);
   const memoFeedbackTimer = useRef<NodeJS.Timeout | null>(null);
 
@@ -288,6 +296,40 @@ export default function App() {
     });
   };
 
+  const handleSaveInstallment = (item: InstallmentItem) => {
+    setBudgetState((prev) => {
+      const copy = { ...prev };
+      // 기존 항목이면 저장돼 있던 달에서 갱신, 신규면 현재 달에 추가
+      let owner: string | null = null;
+      for (const mk of Object.keys(copy)) {
+        if ((copy[mk].installments || []).some((i) => i.id === item.id)) { owner = mk; break; }
+      }
+      const target = owner || currentMonth;
+      const mD = { ...copy[target] };
+      const list = [...(mD.installments || [])];
+      const idx = list.findIndex((i) => i.id === item.id);
+      if (idx >= 0) list[idx] = item; else list.push(item);
+      mD.installments = list;
+      copy[target] = mD;
+      return copy;
+    });
+    setEditingInstallmentId(null);
+  };
+
+  const handleDeleteInstallment = (id: string) => {
+    if (!window.confirm("이 할부를 삭제하시겠습니까?")) return;
+    setBudgetState((prev) => {
+      const copy = { ...prev };
+      for (const mk of Object.keys(copy)) {
+        if ((copy[mk].installments || []).some((i) => i.id === id)) {
+          copy[mk] = { ...copy[mk], installments: (copy[mk].installments || []).filter((i) => i.id !== id) };
+          break;
+        }
+      }
+      return copy;
+    });
+  };
+
   const handleSaveMonth = (year: number, month: number, budget: number) => {
     const key = `${year}-${String(month).padStart(2, "0")}`;
     if (budgetState[key]) { alert("이미 동일한 지출월 데이터가 존재합니다."); return; }
@@ -388,6 +430,7 @@ export default function App() {
                       onEditCycle={(idx) => { setEditingCycleIdx(idx); setIsCycleModalOpen(true); }}
                       onOpenMemo={() => setIsMemoOpen(true)}
                       onUpdateAllocations={handleUpdateAllocations}
+                      installments={allInstallments}
                   />
               )}
               {activeTab === "expenses" && (
@@ -414,6 +457,11 @@ export default function App() {
                       onDeleteEvent={handleDeleteEvent}
                       onUpdateSalary={handleUpdateSalary}
                       activeSubTab="fixed"
+                      installments={allInstallments}
+                      activeMonth={currentMonth}
+                      onAddInstallment={() => { setEditingInstallmentId(null); setIsInstallmentModalOpen(true); }}
+                      onEditInstallment={(id) => { setEditingInstallmentId(id); setIsInstallmentModalOpen(true); }}
+                      onDeleteInstallment={handleDeleteInstallment}
                   />
               )}
               {activeTab === "savings" && (
@@ -461,6 +509,13 @@ export default function App() {
             onSave={handleSaveIncome}
             cycles={activeData.cycles}
             initialItem={editingIncomeId !== null ? (activeData.incomes || []).find((i) => i.id === editingIncomeId) || null : null}
+        />
+        <InstallmentModal
+            isOpen={isInstallmentModalOpen}
+            onClose={() => { setIsInstallmentModalOpen(false); setEditingInstallmentId(null); }}
+            onSave={handleSaveInstallment}
+            initialItem={editingInstallmentId !== null ? allInstallments.find((i) => i.id === editingInstallmentId) || null : null}
+            defaultMonthStr={currentMonth}
         />
 
         <button

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { X, HelpCircle, Save } from "lucide-react";
-import { ExpenseItem, FixedExpense, BudgetCycle, EventExpense, IncomeItem } from "../types";
+import { ExpenseItem, FixedExpense, BudgetCycle, EventExpense, IncomeItem, InstallmentItem } from "../types";
 
 // ==========================================
 // 1. EXPENSE ADD / EDIT MODAL
@@ -680,6 +680,223 @@ export const IncomeModal: React.FC<IncomeModalProps> = ({ isOpen, onClose, onSav
               </button>
             </div>
           </div>
+        </div>
+      </div>
+  );
+};
+
+// ==========================================
+// 6. INSTALLMENT (할부) ADD / EDIT MODAL
+// ==========================================
+interface InstallmentModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (item: InstallmentItem) => void;
+  initialItem?: InstallmentItem | null;
+  defaultMonthStr?: string; // "YYYY-MM"
+}
+
+export const InstallmentModal: React.FC<InstallmentModalProps> = ({
+                                                                    isOpen,
+                                                                    onClose,
+                                                                    onSave,
+                                                                    initialItem,
+                                                                    defaultMonthStr,
+                                                                  }) => {
+  const [name, setName] = useState("");
+  const [startMonth, setStartMonth] = useState("");
+  const [months, setMonths] = useState("");
+  const [total, setTotal] = useState("");
+  const [monthly, setMonthly] = useState("");
+  // 월 납부액을 사용자가 직접 손댔는지 여부 (손대면 자동 계산 멈춤)
+  const [monthlyEdited, setMonthlyEdited] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    if (initialItem) {
+      setName(initialItem.name);
+      setStartMonth(initialItem.startMonth);
+      setMonths(String(initialItem.months));
+      setTotal(String(initialItem.totalAmount));
+      setMonthly(String(initialItem.monthlyAmount));
+      // 자동값과 다르면 수동 편집된 것으로 간주
+      const auto = initialItem.months > 0 ? Math.round(initialItem.totalAmount / initialItem.months) : 0;
+      setMonthlyEdited(initialItem.monthlyAmount !== auto);
+    } else {
+      const fallback = defaultMonthStr || new Date().toISOString().slice(0, 7);
+      setName("");
+      setStartMonth(fallback);
+      setMonths("");
+      setTotal("");
+      setMonthly("");
+      setMonthlyEdited(false);
+    }
+  }, [isOpen, initialItem, defaultMonthStr]);
+
+  // 총액·개월 변경 시 월 납부액 자동 계산 (사용자가 직접 수정하지 않은 경우에만)
+  useEffect(() => {
+    if (monthlyEdited) return;
+    const t = parseInt(total, 10);
+    const m = parseInt(months, 10);
+    if (!isNaN(t) && !isNaN(m) && m > 0) {
+      setMonthly(String(Math.round(t / m)));
+    } else {
+      setMonthly("");
+    }
+  }, [total, months, monthlyEdited]);
+
+  if (!isOpen) return null;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const m = parseInt(months, 10);
+    const t = parseInt(total, 10);
+    const mo = parseInt(monthly, 10);
+    if (!name.trim() || !startMonth || isNaN(m) || m <= 0 || isNaN(t) || t <= 0 || isNaN(mo) || mo <= 0) return;
+    onSave({
+      id: initialItem?.id || Date.now().toString(),
+      name: name.trim(),
+      startMonth,
+      months: m,
+      totalAmount: t,
+      monthlyAmount: mo,
+    });
+    onClose();
+  };
+
+  const inputCls =
+      "w-full h-11 border-2 border-black bg-white focus:border-[#E63946] focus:ring-1 focus:ring-[#E63946] rounded-none px-3 text-xs font-bold text-black outline-none";
+  const monoCls = inputCls + " font-mono";
+
+  // 미리보기용 종료 월
+  const endLabel = (() => {
+    if (!startMonth) return "";
+    const m = parseInt(months, 10);
+    if (isNaN(m) || m <= 0) return "";
+    const [y, mo] = startMonth.split("-").map(Number);
+    const idx = y * 12 + (mo - 1) + (m - 1);
+    const ey = Math.floor(idx / 12);
+    const em = (idx % 12) + 1;
+    return `${ey}-${String(em).padStart(2, "0")}`;
+  })();
+
+  return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75"
+           onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+        <div className="bg-white border-4 border-black rounded-none p-6 w-full max-w-sm geo-shadow-lg"
+             onClick={(e) => e.stopPropagation()}>
+          <div className="flex items-center justify-between border-b-2 border-black pb-3.5 mb-5">
+            <h3 className="text-sm font-black text-black">{initialItem ? "할부 수정" : "할부 추가"}</h3>
+            <button onClick={onClose} className="p-1.5 bg-white border-2 border-black text-black hover:bg-[#E63946] hover:text-white rounded-none cursor-pointer">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-xs font-black text-black mb-1.5">항목명</label>
+              <input
+                  type="text"
+                  required
+                  placeholder="예: 노트북, 냉장고 할부 등"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  lang="ko"
+                  autoComplete="off"
+                  className={inputCls}
+                  style={{ fontSize: "16px" }}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-black text-black mb-1.5">시작 월</label>
+                <input
+                    type="month"
+                    required
+                    value={startMonth}
+                    onChange={(e) => setStartMonth(e.target.value)}
+                    className={monoCls + " appearance-none"}
+                    style={{ fontSize: "16px" }}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-black text-black mb-1.5">개월 수</label>
+                <input
+                    type="number"
+                    required
+                    min="1"
+                    placeholder="예: 6"
+                    value={months}
+                    onChange={(e) => setMonths(e.target.value)}
+                    className={monoCls}
+                    style={{ fontSize: "16px" }}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-black text-black mb-1.5">총 결제금액</label>
+              <input
+                  type="number"
+                  required
+                  min="1"
+                  placeholder="0"
+                  value={total}
+                  onChange={(e) => setTotal(e.target.value)}
+                  className={monoCls}
+                  style={{ fontSize: "16px" }}
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-black text-black mb-1.5 flex justify-between items-center">
+                <span>월 납부액</span>
+                <span className="text-[10px] text-slate-500 font-bold">자동 계산 · 수정 가능</span>
+              </label>
+              <input
+                  type="number"
+                  required
+                  min="1"
+                  placeholder="0"
+                  value={monthly}
+                  onChange={(e) => { setMonthly(e.target.value); setMonthlyEdited(true); }}
+                  className={monoCls}
+                  style={{ fontSize: "16px" }}
+              />
+              {monthlyEdited && (
+                  <button
+                      type="button"
+                      onClick={() => setMonthlyEdited(false)}
+                      className="mt-1.5 text-[10px] font-black text-slate-500 underline hover:text-[#E63946] cursor-pointer"
+                  >
+                    ↻ 자동 계산으로 되돌리기
+                  </button>
+              )}
+            </div>
+
+            {startMonth && endLabel && (
+                <div className="bg-[#F0F0F0] border-2 border-black px-3 py-2 text-[10px] font-black text-black font-mono">
+                  {startMonth} ~ {endLabel} 매달 반영
+                </div>
+            )}
+
+            <div className="flex gap-2.5 pt-2">
+              <button
+                  type="button"
+                  onClick={onClose}
+                  className="flex-1 h-11 bg-white hover:bg-slate-100 text-xs text-black font-black uppercase tracking-wider border-2 border-black rounded-none cursor-pointer geo-shadow-sm active:translate-y-0.5"
+              >
+                취소
+              </button>
+              <button
+                  type="submit"
+                  className="flex-1 h-11 bg-black hover:bg-[#E63946] text-xs text-white font-black uppercase tracking-wider border-2 border-black rounded-none flex items-center justify-center gap-1 cursor-pointer geo-shadow-sm active:translate-y-0.5"
+              >
+                <Save className="h-4 w-4" /> 저장
+              </button>
+            </div>
+          </form>
         </div>
       </div>
   );

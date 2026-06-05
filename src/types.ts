@@ -41,6 +41,15 @@ export interface IncomeItem {
   cycleIdx: number; // 어느 주기에 넣을지
 }
 
+export interface InstallmentItem {
+  id: string;
+  name: string;
+  startMonth: string;   // "YYYY-MM" 시작 월
+  months: number;       // 할부 개월 수
+  totalAmount: number;  // 총 결제 금액
+  monthlyAmount: number; // 월 납부액 (기본 = 총액/개월, 수정 가능)
+}
+
 export interface MonthData {
   budget: number;
   fixedBudget?: number;
@@ -54,6 +63,7 @@ export interface MonthData {
   expenses: ExpenseItem[];
   salary?: number;
   incomes?: IncomeItem[];
+  installments?: InstallmentItem[];   // 이 달에 등록한 할부 목록
   carryFromPrevMonth?: number;      // 이월 금액
   effectiveMonthlyBudget?: number;  // 이월금이 반영된 정산 생활비 예산
 }

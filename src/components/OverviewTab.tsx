@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { MonthData } from "../types";
+import { MonthData, InstallmentItem } from "../types";
 import { Edit2, ArrowUpRight, TrendingUp, DollarSign, BookOpen, AlertCircle, X, Save } from "lucide-react";
 
 interface OverviewTabProps {
@@ -8,6 +8,7 @@ interface OverviewTabProps {
   onEditCycle: (idx: number) => void;
   onOpenMemo: () => void;
   onUpdateAllocations: (budget: number, fixedBudget: number, eventBudget: number) => void;
+  installments?: InstallmentItem[];
 
 
 }
@@ -18,6 +19,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                                                           onEditCycle,
                                                           onOpenMemo,
                                                           onUpdateAllocations,
+                                                          installments = [],
 
                                                         }) => {
   // Modal toggle state
@@ -65,9 +67,20 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   const remainingEvent = eventAllocBudget - totalEventSpent;
   const eventPct = eventAllocBudget > 0 ? Math.round((totalEventSpent / eventAllocBudget) * 100) : 0;
 
+  // 5. 할부 (Installments) — 시작월부터 개월 수만큼 매달 반영
+  const monthIdx = (key: string) => {
+    const [y, m] = key.split("-").map(Number);
+    return y * 12 + (m - 1);
+  };
+  const installmentChargeThisMonth = (installments || []).reduce((sum, it) => {
+    const start = monthIdx(it.startMonth);
+    const cur = monthIdx(activeMonth);
+    return sum + (cur >= start && cur < start + it.months ? it.monthlyAmount : 0);
+  }, 0);
+
   // 4. 통합 (Combined/Aggregate)
   const totalCombinedBudget = effectiveMonthlyBudget + fixedAllocBudget + eventAllocBudget;
-  const totalCombinedSpent = totalLivingSpent + totalFixedSpent + totalEventSpent;
+  const totalCombinedSpent = totalLivingSpent + totalFixedSpent + totalEventSpent + installmentChargeThisMonth;
   const totalCombinedRemaining = totalCombinedBudget - totalCombinedSpent;
   const combinedPct = totalCombinedBudget > 0 ? Math.round((totalCombinedSpent / totalCombinedBudget) * 100) : 0;
 
@@ -281,6 +294,10 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 <div className="flex justify-between items-center text-xs text-slate-300">
                   <span>비정기 경조사비 지출</span>
                   <span className="font-mono font-bold">{formatCurrency(totalEventSpent)}</span>
+                </div>
+                <div className="flex justify-between items-center text-xs text-slate-300">
+                  <span>이번 달 할부금</span>
+                  <span className="font-mono font-bold">{formatCurrency(installmentChargeThisMonth)}</span>
                 </div>
                 <div className="flex justify-between items-center pt-3 border-t border-dashed border-white/20">
                   <span className="font-black text-white text-sm">총 지출액 합계</span>
