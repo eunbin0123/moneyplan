@@ -81,15 +81,20 @@ export function calculateBudgetWithCarryOver(
       const debtCharge = (rawData.debts || []).reduce((sum, d) => sum + d.amount, 0);
       const derivedLiving = Math.max(0, rawData.totalBudget - fixedAlloc - eventAlloc - installmentCharge - debtCharge);
 
-      // 균등 분배: 나머지는 마지막 주기에 몰아줌
-      const cycleCount = workingCycles.length || 3;
-      const base = Math.floor(derivedLiving / cycleCount);
-      const remainder = derivedLiving - base * cycleCount;
+      // 수동 고정(manual)된 주기는 그대로 두고, 남은 금액을 나머지 주기에 균등 분배
+      const pinnedSum = workingCycles.reduce((s, c) => s + (c.manual ? (c.budget || 0) : 0), 0);
+      const autoCount = workingCycles.filter((c) => !c.manual).length;
+      const remaining = Math.max(0, derivedLiving - pinnedSum);
+      const base = autoCount > 0 ? Math.floor(remaining / autoCount) : 0;
+      const remainder = autoCount > 0 ? remaining - base * autoCount : 0;
 
-      workingCycles = workingCycles.map((c, ci) => ({
-        ...c,
-        budget: ci === cycleCount - 1 ? base + remainder : base,
-      }));
+      let autoSeen = 0;
+      workingCycles = workingCycles.map((c) => {
+        if (c.manual) return { ...c };           // 고정 주기는 손 안 댐
+        autoSeen += 1;
+        const isLastAuto = autoSeen === autoCount; // 나머지(잔돈)는 마지막 자동주기에
+        return { ...c, budget: isLastAuto ? base + remainder : base };
+      });
     }
 
     // 기본 예산 = 주기별 budget 합산

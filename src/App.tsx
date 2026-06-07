@@ -282,7 +282,12 @@ export default function App() {
   const handleUpdateAllocations = (budget: number, fixedBudget: number, eventBudget: number, totalBudget?: number) => {
     setBudgetState((prev) => {
       const copy = { ...prev };
-      copy[currentMonth] = { ...copy[currentMonth], budget, fixedBudget, eventBudget, totalBudget };
+      const mD = { ...copy[currentMonth], budget, fixedBudget, eventBudget, totalBudget };
+      // 총예산 자동분배를 다시 적용하면 주기 고정 해제 → 처음처럼 균등 재분배
+      if (totalBudget && totalBudget > 0) {
+        mD.cycles = mD.cycles.map((c) => ({ ...c, manual: false }));
+      }
+      copy[currentMonth] = mD;
       return copy;
     });
   };
@@ -393,14 +398,15 @@ export default function App() {
     setCurrentMonth(newMonths[Math.max(0, Math.min(idx, newMonths.length - 1))]);
     setActiveTab("overview");
   };
-
   const handleSaveCycle = (cycle: BudgetCycle) => {
     if (editingCycleIdx === null) return;
     setBudgetState((prev) => {
       const copy = { ...prev };
       const mD = { ...copy[currentMonth] };
       const cycles = [...mD.cycles];
-      cycles[editingCycleIdx] = cycle;
+      const isAutoMode = !!(mD.totalBudget && mD.totalBudget > 0);
+      // 자동분배 모드에서 손으로 고치면 그 주기를 고정 → 나머지가 다른 주기로 분배됨
+      cycles[editingCycleIdx] = { ...cycle, manual: isAutoMode ? true : undefined };
       mD.cycles = cycles;
       copy[currentMonth] = mD;
       return copy;

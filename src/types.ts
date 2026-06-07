@@ -20,9 +20,10 @@ export interface BudgetCycle {
   start: string;
   end: string;
   budget: number;
-  baseBudget?: number;  // 기본 배정액
-  carryIn?: number;     // 이전 단위에서 이월된 금액
-  carryOut?: number;    // 다음 단위로 이월하는 금액
+  baseBudget?: number;
+  carryIn?: number;
+  carryOut?: number;
+  manual?: boolean;   // ← 추가: true면 자동분배에서 제외(이 값 고정)
 }
 
 export interface ExpenseItem {
