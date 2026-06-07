@@ -11,8 +11,8 @@ interface SavingsTabProps {
     onAddEvent: () => void;
     onDeleteEvent: (idx: number) => void;
     onUpdateSalary: (amount: number) => void;
-    activeSubTab?: "distribution" | "fixed";
-    onSubTabChange?: (tab: "distribution" | "fixed") => void;
+    activeSubTab?: "distribution" | "fixed" | "installment";
+    onSubTabChange?: (tab: "distribution" | "fixed" | "installment") => void;
     installments?: InstallmentItem[];
     activeMonth?: string;
     onAddInstallment?: () => void;
@@ -52,11 +52,11 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
     const totalFixed = data.fixed.reduce((sum, item) => sum + item.amount, 0);
     const totalEvents = data.events ? data.events.reduce((sum, item) => sum + item.amount, 0) : 0;
 
-    // 할부: 월 인덱스 기준으로 현재 월에 걸치는지/몇 회차인지 계산
     const monthIdx = (key: string) => {
         const [y, m] = key.split("-").map(Number);
         return y * 12 + (m - 1);
     };
+
     const instStatus = (it: InstallmentItem) => {
         if (!activeMonth) return { state: "none" as const, n: 0 };
         const start = monthIdx(it.startMonth);
@@ -65,18 +65,18 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
         if (cur >= start + it.months) return { state: "done" as const, n: it.months };
         return { state: "active" as const, n: cur - start + 1 };
     };
+
     const sortedInstallments = [...installments].sort((a, b) =>
         a.startMonth === b.startMonth ? a.name.localeCompare(b.name) : a.startMonth < b.startMonth ? -1 : 1
     );
+
     const totalInstallmentThisMonth = installments.reduce(
         (sum, it) => sum + (instStatus(it).state === "active" ? it.monthlyAmount : 0), 0
     );
 
-    // 생활비 = effectiveMonthlyBudget (이월 포함) 또는 budget
     const livingBudget = data.effectiveMonthlyBudget ?? data.budget;
     const livingAmount = livingBudget > 0 ? livingBudget : data.accounts[0]?.amount ?? 0;
 
-    // 체크된 항목만 이체 합계 (생활비는 livingAmount 기준)
     const checkedCount = data.accounts.filter((a) => a.checked).length;
     const totalTransfer = data.accounts.reduce((sum, a, idx) => {
         if (!a.checked) return sum;
@@ -85,7 +85,6 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
     const totalPlanned = data.accounts.reduce((sum, a, idx) =>
         sum + (idx === 0 ? livingAmount : a.amount), 0);
 
-    // 월급 관련
     const salary = data.salary ?? 0;
     const remaining = salary > 0 ? salary - totalTransfer : null;
     const usedPct = salary > 0 ? Math.min(Math.round((totalTransfer / salary) * 100), 100) : 0;
@@ -93,7 +92,6 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
     const [salaryInput, setSalaryInput] = useState(salary > 0 ? String(salary) : "");
     const [isEditingSalary, setIsEditingSalary] = useState(false);
 
-    // 외부 salary 값 변경 시 input 동기화
     useEffect(() => {
         setSalaryInput(salary > 0 ? String(salary) : "");
     }, [salary]);
@@ -123,7 +121,6 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
                                 </button>
                             )}
                         </div>
-
                         {isEditingSalary ? (
                             <div className="flex gap-2">
                                 <input
@@ -185,10 +182,8 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
                                 <Sparkles className="h-4 w-4 text-[#E63946]" /> 통장별 이체 현황
                             </h3>
                         </div>
-
                         <div className="divide-y divide-black/10">
                             {data.accounts.map((a, idx) => {
-                                // 첫번째(머니통장 생활비)는 livingAmount로 표시
                                 const displayAmount = idx === 0 ? livingAmount : a.amount;
                                 return (
                                     <div
@@ -214,8 +209,8 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
                                         <span className={`text-[9px] font-mono font-black uppercase tracking-widest px-2.5 py-1 border-2 border-black ${
                                             a.checked ? "bg-black text-white" : "bg-white text-slate-400"
                                         }`}>
-                      {a.checked ? "완료" : "대기"}
-                    </span>
+                                            {a.checked ? "완료" : "대기"}
+                                        </span>
                                     </div>
                                 );
                             })}
@@ -239,7 +234,6 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
                                 <Plus className="h-3.5 w-3.5" /> 추가
                             </button>
                         </div>
-
                         {data.fixed.length === 0 ? (
                             <div className="text-center p-8 text-slate-400 text-xs font-medium uppercase tracking-widest">// 고정지출 목록이 비어있습니다.</div>
                         ) : (
@@ -284,7 +278,6 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
                                 <Plus className="h-3.5 w-3.5" /> 추가
                             </button>
                         </div>
-
                         {!data.events || data.events.length === 0 ? (
                             <div className="text-center p-8 text-slate-400 text-xs font-medium uppercase tracking-widest">
                                 // 이번 달 비정기 경조사비 내역이 없습니다.
@@ -309,7 +302,11 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
                             </div>
                         )}
                     </div>
+                </div>
+            )}
 
+            {activeSubTab === "installment" && (
+                <div className="space-y-4">
                     {/* 할부 */}
                     <div className="bg-white border-2 border-black p-5 geo-shadow">
                         <div className="flex items-center justify-between pb-3 border-b-2 border-black mb-4">
@@ -323,7 +320,6 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
                                 <Plus className="h-3.5 w-3.5" /> 추가
                             </button>
                         </div>
-
                         {sortedInstallments.length === 0 ? (
                             <div className="text-center p-8 text-slate-400 text-xs font-medium uppercase tracking-widest">// 등록된 할부가 없습니다.</div>
                         ) : (
@@ -381,7 +377,6 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
                                 <Plus className="h-3.5 w-3.5" /> 추가
                             </button>
                         </div>
-
                         {debts.length === 0 ? (
                             <div className="text-center p-8 text-slate-400 text-xs font-medium uppercase tracking-widest">// 이번 달 차감할 당겨쓰기 내역이 없습니다.</div>
                         ) : (

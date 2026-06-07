@@ -11,7 +11,7 @@ import { ExpenseModal, FixedModal, MonthModal, CycleModal, EventModal, IncomeMod
 import { calculateBudgetWithCarryOver } from "./utils/budgetCalculator";
 import { saveToFirestore, loadFromFirestore, subscribeToFirestore } from "./utils/firestore";
 
-type TabType = "overview" | "expenses" | "fixed" | "savings";
+type TabType = "overview" | "expenses" | "fixed" | "installment" | "savings";
 
 export default function App() {
   const [budgetState, setBudgetState] = useState<BudgetState>(() => {
@@ -443,13 +443,14 @@ export default function App() {
         />
 
         <main className="max-w-2xl mx-auto px-4 pt-6 space-y-6">
-          <div className="grid grid-cols-4 border-2 border-black bg-white rounded-none divide-x-2 divide-black overflow-hidden geo-shadow-sm">
-            {(["overview", "expenses", "fixed", "savings"] as TabType[]).map((tab) => {
+          <div className="grid grid-cols-5 border-2 border-black bg-white rounded-none divide-x-2 divide-black overflow-hidden geo-shadow-sm">
+            {(["overview", "expenses", "fixed", "installment", "savings"] as TabType[]).map((tab) => {
               const labels: Record<TabType, string> = {
                 overview: "개요",
-                expenses: "지출내역",
-                fixed: "고정·경조사",
-                savings: "월급분배",
+                expenses: "지출",
+                fixed: "고정",
+                installment: "할부・당겨쓰기",
+                savings: "분배",
               };
               return (
                   <button
@@ -508,6 +509,19 @@ export default function App() {
                       onDeleteEvent={handleDeleteEvent}
                       onUpdateSalary={handleUpdateSalary}
                       activeSubTab="fixed"
+                  />
+              )}
+              {activeTab === "installment" && (
+                  <SavingsTab
+                      data={activeData}
+                      onToggleAccount={handleToggleAccount}
+                      onAddFixed={() => { setEditingFixedIdx(null); setIsFixedModalOpen(true); }}
+                      onEditFixed={(idx) => { setEditingFixedIdx(idx); setIsFixedModalOpen(true); }}
+                      onDeleteFixed={handleDeleteFixed}
+                      onAddEvent={() => setIsEventModalOpen(true)}
+                      onDeleteEvent={handleDeleteEvent}
+                      onUpdateSalary={handleUpdateSalary}
+                      activeSubTab="installment"
                       installments={allInstallments}
                       activeMonth={currentMonth}
                       onAddInstallment={() => { setEditingInstallmentId(null); setIsInstallmentModalOpen(true); }}
