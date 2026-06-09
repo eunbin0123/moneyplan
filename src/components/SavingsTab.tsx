@@ -113,7 +113,6 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
         setIsEditingSalary(false);
     };
 
-    /* ─── 분배율 프로그레스 바 색상 ─── */
     const progressBarClass =
         usedPct >= 100
             ? styles.progressBarOver
@@ -121,7 +120,6 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
                 ? styles.progressBarWarning
                 : styles.progressBarNormal;
 
-    /* ─── 잔여 월급 색상 ─── */
     const remainingClass =
         remaining !== null && remaining < 0
             ? styles.summaryValueNegative
@@ -216,7 +214,7 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
                     <div className={styles.card}>
                         <div className={styles.cardHeader}>
                             <h3 className={styles.cardTitle}>
-                                <Sparkles className="h-4 w-4" style={{ color: "#E63946" }} />
+                                <Sparkles className={styles.iconSm} style={{ color: "#E63946" }} />
                                 통장별 이체 현황
                             </h3>
                         </div>
@@ -233,7 +231,7 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
                                     >
                                         <div className={styles.accountLeft}>
                                             <div className={styles.checkBox} data-checked={checked}>
-                                                {a.checked && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
+                                                {a.checked && <Check className={styles.checkIcon} />}
                                             </div>
                                             <div>
                                                 <p className={styles.accountName} data-checked={checked}>
@@ -265,10 +263,10 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
                     <div className={styles.card}>
                         <div className={styles.cardHeader}>
                             <h3 className={styles.cardTitle}>
-                                <Calendar className="h-4 w-4" /> 고정 지출
+                                <Calendar className={styles.iconSm} /> 고정 지출
                             </h3>
                             <button className={styles.btnAdd} onClick={onAddFixed}>
-                                <Plus className="h-3.5 w-3.5" /> 추가
+                                <Plus className={styles.iconXs} /> 추가
                             </button>
                         </div>
 
@@ -309,10 +307,10 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
                     <div className={styles.cardAccent}>
                         <div className={styles.cardHeader}>
                             <h3 className={styles.cardTitle}>
-                                <CalendarRange className="h-4 w-4" /> 경조사비
+                                <CalendarRange className={styles.iconSm} /> 경조사비
                             </h3>
                             <button className={styles.btnAdd} onClick={onAddEvent}>
-                                <Plus className="h-3.5 w-3.5" /> 추가
+                                <Plus className={styles.iconXs} /> 추가
                             </button>
                         </div>
 
@@ -353,10 +351,10 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
                     <div className={styles.card}>
                         <div className={styles.cardHeader}>
                             <h3 className={styles.cardTitle}>
-                                <CreditCard className="h-4 w-4" /> 할부
+                                <CreditCard className={styles.iconSm} /> 할부
                             </h3>
                             <button className={styles.btnAdd} onClick={onAddInstallment}>
-                                <Plus className="h-3.5 w-3.5" /> 추가
+                                <Plus className={styles.iconXs} /> 추가
                             </button>
                         </div>
 
@@ -413,7 +411,7 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
                         <div className={styles.cardHeader}>
                             <h3 className={styles.cardTitle}>🔴 당겨쓰기</h3>
                             <button className={styles.btnAdd} onClick={onAddDebt}>
-                                <Plus className="h-3.5 w-3.5" /> 추가
+                                <Plus className={styles.iconXs} /> 추가
                             </button>
                         </div>
 

@@ -81,7 +81,7 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
 
   return (
       <div className={styles.overlay} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }} onTouchMove={(e) => e.stopPropagation()}>
-        <div className={`${styles.panel} geo-shadow-lg`} onClick={(e) => e.stopPropagation()}>
+        <div className={`${styles.panel} `} onClick={(e) => e.stopPropagation()}>
           <div className={styles.modalHeader}>
             <h3 className={styles.modalTitle}>
               {initialItem ? "지출 수정" : "지출 추가"}
@@ -109,7 +109,7 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
               <input
                   type="text"
                   required
-                  placeholder="예: 다이소 수납함, 스타벅스 커피 등"
+                  placeholder="예: 다이소, 커피 등"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   inputMode="text"
@@ -152,10 +152,10 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
             </div>
 
             <div className={styles.actions}>
-              <button type="button" onClick={onClose} className={`${styles.btnCancel} geo-shadow-sm`}>
+              <button type="button" onClick={onClose} className={`${styles.btnCancel} `}>
                 취소
               </button>
-              <button type="submit" className={`${styles.btnSave} geo-shadow-sm`}>
+              <button type="submit" className={`${styles.btnSave} `}>
                 <Save className={styles.btnIcon} /> 저장
               </button>
             </div>
@@ -212,7 +212,7 @@ export const FixedModal: React.FC<FixedModalProps> = ({ isOpen, onClose, onSave,
 
   return (
       <div className={styles.overlay}>
-        <div className={`${styles.panel} geo-shadow-lg`}>
+        <div className={`${styles.panel} `}>
           <div className={styles.modalHeader}>
             <h3 className={styles.modalTitle}>{initialItem ? "고정 지출 수정" : "고정 지출 추가"}</h3>
             <button onClick={onClose} className={styles.closeBtn}>
@@ -261,10 +261,10 @@ export const FixedModal: React.FC<FixedModalProps> = ({ isOpen, onClose, onSave,
             </div>
 
             <div className={styles.actions}>
-              <button type="button" onClick={onClose} className={`${styles.btnCancel} geo-shadow-sm`}>
+              <button type="button" onClick={onClose} className={`${styles.btnCancel} `}>
                 취소
               </button>
-              <button type="submit" className={`${styles.btnSave} geo-shadow-sm`}>
+              <button type="submit" className={`${styles.btnSave} `}>
                 저장
               </button>
             </div>
@@ -312,7 +312,7 @@ export const MonthModal: React.FC<MonthModalProps> = ({ isOpen, onClose, onSave 
 
   return (
       <div className={styles.overlay}>
-        <div className={`${styles.panel} geo-shadow-lg`}>
+        <div className={`${styles.panel} `}>
           <div className={styles.modalHeader}>
             <h3 className={styles.modalTitle}>새로운 지출월 추가</h3>
             <button onClick={onClose} className={styles.closeBtn}>
@@ -362,10 +362,10 @@ export const MonthModal: React.FC<MonthModalProps> = ({ isOpen, onClose, onSave 
             </div>
 
             <div className={styles.actions}>
-              <button type="button" onClick={onClose} className={`${styles.btnCancel} geo-shadow-sm`}>
+              <button type="button" onClick={onClose} className={`${styles.btnCancel} `}>
                 취소
               </button>
-              <button type="submit" className={`${styles.btnSave} geo-shadow-sm`}>
+              <button type="submit" className={`${styles.btnSave} `}>
                 추가하기
               </button>
             </div>
@@ -427,7 +427,7 @@ export const CycleModal: React.FC<CycleModalProps> = ({
 
   return (
       <div className={styles.overlay}>
-        <div className={`${styles.panel} geo-shadow-lg`}>
+        <div className={`${styles.panel} `}>
           <div className={styles.modalHeader}>
             <h3 className={styles.modalTitle}>소비 주기 설정 변경</h3>
             <button onClick={onClose} className={styles.closeBtn}>
@@ -485,10 +485,10 @@ export const CycleModal: React.FC<CycleModalProps> = ({
             </div>
 
             <div className={styles.actions}>
-              <button type="button" onClick={onClose} className={`${styles.btnCancel} geo-shadow-sm`}>
+              <button type="button" onClick={onClose} className={`${styles.btnCancel} `}>
                 취소
               </button>
-              <button type="submit" className={`${styles.btnSave} geo-shadow-sm`}>
+              <button type="submit" className={`${styles.btnSave} `}>
                 저장
               </button>
             </div>
@@ -534,7 +534,7 @@ export const EventModal: React.FC<EventModalProps> = ({ isOpen, onClose, onSave 
 
   return (
       <div className={styles.overlay}>
-        <div className={`${styles.panel} geo-shadow-lg`}>
+        <div className={`${styles.panel} `}>
           <div className={styles.modalHeader}>
             <h3 className={styles.modalTitle}>경조사비 추가</h3>
             <button onClick={onClose} className={styles.closeBtn}>
@@ -569,10 +569,10 @@ export const EventModal: React.FC<EventModalProps> = ({ isOpen, onClose, onSave 
             </div>
 
             <div className={styles.actions}>
-              <button type="button" onClick={onClose} className={`${styles.btnCancel} geo-shadow-sm`}>
+              <button type="button" onClick={onClose} className={`${styles.btnCancel} `}>
                 취소
               </button>
-              <button type="submit" className={`${styles.btnSave} geo-shadow-sm`}>
+              <button type="submit" className={`${styles.btnSave} `}>
                 <Save className={styles.btnIcon} /> 저장
               </button>
             </div>
@@ -628,7 +628,7 @@ export const IncomeModal: React.FC<IncomeModalProps> = ({ isOpen, onClose, onSav
 
   return (
       <div className={styles.overlay} onClick={onClose}>
-        <div className={`${styles.panelFlush} geo-shadow-lg`} onClick={(e) => e.stopPropagation()}>
+        <div className={`${styles.panelFlush} `} onClick={(e) => e.stopPropagation()}>
           <div className={styles.modalHeaderFlush}>
             <h3 className={styles.modalTitle}>{initialItem ? "수입 수정" : "추가 수입"}</h3>
             <button onClick={onClose} className={styles.closeBtn}>
@@ -773,7 +773,7 @@ export const InstallmentModal: React.FC<InstallmentModalProps> = ({
   return (
       <div className={styles.overlay}
            onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-        <div className={`${styles.panel} geo-shadow-lg`}
+        <div className={`${styles.panel} `}
              onClick={(e) => e.stopPropagation()}>
           <div className={styles.modalHeader}>
             <h3 className={styles.modalTitle}>{initialItem ? "할부 수정" : "할부 추가"}</h3>
@@ -872,10 +872,10 @@ export const InstallmentModal: React.FC<InstallmentModalProps> = ({
             )}
 
             <div className={styles.actions}>
-              <button type="button" onClick={onClose} className={`${styles.btnCancel} geo-shadow-sm`}>
+              <button type="button" onClick={onClose} className={`${styles.btnCancel} `}>
                 취소
               </button>
-              <button type="submit" className={`${styles.btnSave} geo-shadow-sm`}>
+              <button type="submit" className={`${styles.btnSave} `}>
                 <Save className={styles.btnIcon} /> 저장
               </button>
             </div>
@@ -952,22 +952,17 @@ export const DebtModal: React.FC<DebtModalProps> = ({
           onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
       >
         <div
-            className={`${styles.panel} geo-shadow-lg`}
+            className={`${styles.panel} `}
             onClick={(e) => e.stopPropagation()}
         >
           <div className={styles.modalHeader}>
             <h3 className={styles.modalTitleFlex}>
-              🔴 {initialItem ? "당겨쓰기 수정" : "당겨쓰기 추가"}
+              {initialItem ? "당겨쓰기 수정" : "당겨쓰기 추가"}
             </h3>
             <button onClick={onClose} className={styles.closeBtn}>
               <X className={styles.closeIcon} />
             </button>
           </div>
-
-          <p className={styles.debtNotice}>
-            지난달 초과 지출 등 이번 달 생활비 예산에서 갚아야 할 금액을 등록합니다.<br />
-            총예산 자동 분배 시 이 금액도 생활비에서 자동 차감됩니다.
-          </p>
 
           <form onSubmit={handleSubmit} className={styles.form}>
             <div>
@@ -1031,10 +1026,10 @@ export const DebtModal: React.FC<DebtModalProps> = ({
             )}
 
             <div className={styles.actions}>
-              <button type="button" onClick={onClose} className={`${styles.btnCancel} geo-shadow-sm`}>
+              <button type="button" onClick={onClose} className={`${styles.btnCancel} `}>
                 취소
               </button>
-              <button type="submit" className={`${styles.btnSave} geo-shadow-sm`}>
+              <button type="submit" className={`${styles.btnSave} `}>
                 <Save className={styles.btnIcon} /> 저장
               </button>
             </div>

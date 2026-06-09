@@ -83,7 +83,7 @@ export const Header: React.FC<HeaderProps> = ({
                         <div className={styles.topActions}>
                             <button
                                 onClick={onToggleMemo}
-                                className={`${styles.memoBtn} geo-shadow-sm`}
+                                className={`${styles.memoBtn}`}
                                 data-open={isMemoOpen}
                                 title="이달 메모"
                             >
@@ -101,7 +101,7 @@ export const Header: React.FC<HeaderProps> = ({
                             <button
                                 onClick={() => prevMonth && onSelectMonth(prevMonth)}
                                 disabled={!prevMonth}
-                                className={`${styles.navArrow} geo-shadow-sm`}
+                                className={`${styles.navArrow} `}
                                 title="Prev"
                             >
                                 <ChevronLeft className={styles.navArrowIcon} />
@@ -109,7 +109,7 @@ export const Header: React.FC<HeaderProps> = ({
 
                             <button
                                 onClick={() => setIsPickerOpen(true)}
-                                className={`${styles.monthBtn} geo-shadow-sm`}
+                                className={`${styles.monthBtn} `}
                                 title="Month"
                             >
                                 <CalendarRange className={styles.monthBtnIcon} />
@@ -119,7 +119,7 @@ export const Header: React.FC<HeaderProps> = ({
                             <button
                                 onClick={() => nextMonth && onSelectMonth(nextMonth)}
                                 disabled={!nextMonth}
-                                className={`${styles.navArrow} geo-shadow-sm`}
+                                className={`${styles.navArrow} `}
                                 title="Next"
                             >
                                 <ChevronRight className={styles.navArrowIcon} />
@@ -132,7 +132,7 @@ export const Header: React.FC<HeaderProps> = ({
             {/* 달 선택 피커 */}
             {isPickerOpen && (
                 <div className={styles.overlay} onClick={() => setIsPickerOpen(false)}>
-                    <div className={`${styles.panel} geo-shadow-lg`} onClick={(e) => e.stopPropagation()}>
+                    <div className={`${styles.panel} `} onClick={(e) => e.stopPropagation()}>
                         <div className={styles.panelHeader}>
                             <h2 className={styles.panelTitle}>Month</h2>
                             <div className={styles.panelHeaderActions}>
@@ -154,7 +154,7 @@ export const Header: React.FC<HeaderProps> = ({
                                                 <div key={m} className={styles.monthCell}>
                                                     <button
                                                         onClick={() => { onSelectMonth(m); setIsPickerOpen(false); if (isMonthNavOpen) onToggleMonthNav(); }}
-                                                        className={`${styles.monthCellBtn}${isActive ? " geo-shadow-sm" : ""}`}
+                                                        className={`${styles.monthCellBtn}${isActive ? " " : ""}`}
                                                         data-active={isActive}
                                                     >
                                                         {monthOnly(m)}
@@ -181,7 +181,7 @@ export const Header: React.FC<HeaderProps> = ({
             {/* 메모 모달 */}
             {isMemoOpen && (
                 <div className={styles.overlay} onClick={onToggleMemo}>
-                    <div className={`${styles.panel} geo-shadow-lg`} onClick={(e) => e.stopPropagation()}>
+                    <div className={`${styles.panel} `} onClick={(e) => e.stopPropagation()}>
                         <div className={styles.panelHeader}>
                             <h2 className={styles.panelTitle}>{shortMonthLabel} Memo</h2>
                             <button onClick={onToggleMemo} className={styles.closeBtn}>

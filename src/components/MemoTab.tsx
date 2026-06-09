@@ -56,7 +56,7 @@ export const MemoTab: React.FC<MemoTabProps> = ({
   };
 
   return (
-      <div className={`${styles.container} geo-shadow`}>
+      <div className={`${styles.container} `}>
         {/* Speed chips insert panel */}
         <div>
           <p className={styles.sectionLabel}>

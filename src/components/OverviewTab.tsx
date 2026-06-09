@@ -225,10 +225,10 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             </h2>
           </div>
           <div className={styles.tabActions}>
-            <button onClick={() => setIsEditAllocModalOpen(true)} className={`${styles.btnBudget} geo-shadow-sm`}>
+            <button onClick={() => setIsEditAllocModalOpen(true)} className={`${styles.btnBudget} `}>
               <Edit2 className={styles.btnBudgetIcon} /> 예산 조정
             </button>
-            <button onClick={onOpenSavings} className={`${styles.btnSavings} geo-shadow-sm`}>
+            <button onClick={onOpenSavings} className={`${styles.btnSavings} `}>
               💰 분배
             </button>
           </div>
@@ -237,7 +237,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         {/* 2 Grid Elements: 남은 생활비 예산 & 전체 사용내역 */}
         <div className={styles.cardGrid}>
           {/* Card 1: 남은 생활비 예산 */}
-          <div className={`${styles.cardLight} geo-shadow-lg`}>
+          <div className={`${styles.cardLight} `}>
             <div>
               <div className={styles.cardHeadRow}>
                 <span className={styles.dotBlack} />
@@ -288,7 +288,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           </div>
 
           {/* Card 2: 전체 사용내역 */}
-          <div className={`${styles.cardDark} geo-shadow-lg`}>
+          <div className={`${styles.cardDark} `}>
             <div>
               <div className={styles.cardHeadRow}>
                 <span className={styles.dotRed} />
@@ -330,7 +330,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         </div>
 
         {/* Cycles Breakdown */}
-        <div className={`${styles.cyclesCard} geo-shadow`}>
+        <div className={`${styles.cyclesCard} `}>
           <div className={styles.cyclesHeader}>
             <div>
               <h3 className={styles.cyclesHeaderTitle}>주기별 예산 잔액</h3>
@@ -385,7 +385,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
 
         {/* Memo Card Preview */}
         {data.memo && data.memo.trim() && (
-            <div className={`${styles.memoCard} geo-shadow`}>
+            <div className={`${styles.memoCard} `}>
               <div className={styles.memoHeader}>
                 <h3 className={styles.memoTitle}>
                   <BookOpen className={styles.memoIcon} /> 이번 달 주요 메모
@@ -403,7 +403,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         {/* ✏️ EDIT ALLOCATIONS DIALOG MODAL */}
         {isEditAllocModalOpen && (
             <div className={styles.overlay}>
-              <div className={`${styles.panel} geo-shadow-lg`}>
+              <div className={`${styles.panel} `}>
                 <div className={styles.modalHeader}>
                   <h3 className={styles.modalTitle}>가구 예산 배정액 조율</h3>
                   <button onClick={() => setIsEditAllocModalOpen(false)} className={styles.closeBtn}>
@@ -513,10 +513,10 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                   </div>
 
                   <div className={styles.actions}>
-                    <button type="button" onClick={() => setIsEditAllocModalOpen(false)} className={`${styles.btnCancel} geo-shadow-sm`}>
+                    <button type="button" onClick={() => setIsEditAllocModalOpen(false)} className={`${styles.btnCancel}`}>
                       취소
                     </button>
-                    <button type="submit" className={`${styles.btnSave} geo-shadow-sm`}>
+                    <button type="submit" className={`${styles.btnSave} `}>
                       <Save className={styles.btnIcon} /> 저장
                     </button>
                   </div>

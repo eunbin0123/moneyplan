@@ -183,11 +183,11 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
                         <span className={styles.paidText}>✓ 결제 완료</span>
                     )}
                     <div className={styles.headerActions}>
-                        <button onClick={onAddIncome} className={`${styles.btnIncome} geo-shadow-sm`}>
-                            <TrendingUp className={styles.btnIcon} /> 수입
+                        <button onClick={onAddIncome} className={`${styles.btnIncome}`}>
+                            수입
                         </button>
-                        <button onClick={onAddExpense} className={`${styles.btnExpense} geo-shadow-sm`}>
-                            <Plus className={styles.btnIcon} /> 지출
+                        <button onClick={onAddExpense} className={`${styles.btnExpense} `}>
+                            지출
                         </button>
                     </div>
                 </div>
@@ -203,7 +203,7 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
                     const carryIn = c.carryIn ?? 0;
 
                     return (
-                        <div key={ci} className={`${styles.cycleCard} geo-shadow`}>
+                        <div key={ci} className={`${styles.cycleCard} `}>
                             <div onClick={() => toggleCollapse(ci)} className={styles.cycleHeader}>
                                 <div className={styles.cycleHeaderLeft}>
                                     <ChevronDown className={styles.chevron} data-open={isOpen} />
@@ -263,7 +263,7 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
                     const isOpen = !collapsed[-1];
 
                     return (
-                        <div className={`${styles.unclassifiedCard} geo-shadow`}>
+                        <div className={`${styles.unclassifiedCard} `}>
                             <div onClick={() => toggleCollapse(-1)} className={styles.unclassifiedHeader}>
                                 <div className={styles.cycleHeaderLeft}>
                                     <ChevronDown className={styles.chevron} data-open={isOpen} />

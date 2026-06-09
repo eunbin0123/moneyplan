@@ -13,18 +13,6 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Custom geo flat shadow styling */
-.geo-shadow {
-  box-shadow: 4px 4px 0px 0px #000000;
-}
-
-.geo-shadow-lg {
-  box-shadow: 8px 8px 0px 0px #000000;
-}
-
-.geo-shadow-sm {
-  box-shadow: 2px 2px 0px 0px #000000;
-}
 
 .accent-bg {
   background-color: #E63946;

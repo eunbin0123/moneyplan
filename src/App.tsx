@@ -639,7 +639,7 @@ export default function App() {
                       className={styles.savingsPanelClose}
                       onClick={() => setIsSavingsModalOpen(false)}
                   >
-                    <X className="h-4 w-4" />
+                    <X className={styles.savingsPanelCloseIcon} />  {/* ← h-4 w-4 제거 */}
                   </button>
                 </div>
                 <div className={styles.savingsPanelBody}>
