@@ -23,12 +23,14 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
   const [date, setDate] = useState("");
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
+  const [settle, setSettle] = useState("");
 
   useEffect(() => {
     if (initialItem) {
       setDate(initialItem.date);
       setName(initialItem.name);
       setAmount(String(initialItem.amount));
+      setSettle(initialItem.settleAmount ? String(initialItem.settleAmount) : "");
     } else {
       const today = new Date();
       const yr = today.getFullYear();
@@ -48,19 +50,27 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
       }
       setName("");
       setAmount("");
+      setSettle("");
     }
   }, [initialItem, isOpen, defaultMonthStr]);
 
   if (!isOpen) return null;
 
+  const amtNum = parseInt(amount, 10) || 0;
+  const settleNum = parseInt(settle, 10) || 0;
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const amtNum = parseInt(amount, 10);
-    if (!date || !name.trim() || isNaN(amtNum) || amtNum <= 0) return;
+    if (!date || !name.trim() || amtNum <= 0) return;
+    if (settleNum > amtNum) {
+      alert("정산받을 금액은 전체 금액보다 클 수 없어요.");
+      return;
+    }
     onSave({
       date,
       name: name.trim(),
       amount: amtNum,
+      settleAmount: settleNum > 0 ? settleNum : undefined,
       editable: true,
       checked: initialItem ? initialItem.checked : true,
       paid: initialItem ? initialItem.paid : false,
@@ -119,6 +129,25 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
                   onChange={(e) => setAmount(e.target.value)}
                   className="w-full h-11 border-2 border-black bg-white focus:border-[#E63946] focus:ring-1 focus:ring-[#E63946] rounded-none px-3 text-xs font-bold font-mono text-black outline-none"
               />
+            </div>
+
+            <div>
+              <label className="block text-xs font-black text-black mb-1.5">
+                정산받을 금액 <span className="font-normal text-slate-400">(친구 몫 · 선택)</span>
+              </label>
+              <input
+                  type="number"
+                  min="0"
+                  placeholder="0"
+                  value={settle}
+                  onChange={(e) => setSettle(e.target.value)}
+                  className="w-full h-11 border-2 border-black bg-white focus:border-[#E63946] focus:ring-1 focus:ring-[#E63946] rounded-none px-3 text-xs font-bold font-mono text-black outline-none"
+              />
+              {settleNum > 0 && amtNum > 0 && (
+                  <p className="text-[10px] font-bold text-slate-500 mt-1.5">
+                    카드 {amtNum.toLocaleString("ko-KR")}원 · 정산 {settleNum.toLocaleString("ko-KR")}원 → <span className="text-[#E63946] font-black">내 몫 {(amtNum - settleNum).toLocaleString("ko-KR")}원</span>
+                  </p>
+              )}
             </div>
 
             <div className="flex gap-2.5 pt-2">

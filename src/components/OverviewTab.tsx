@@ -51,7 +51,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
 
   const totalLivingSpent = data.expenses
       .filter((e) => e.checked !== false)
-      .reduce((sum, item) => sum + item.amount, 0);
+      .reduce((sum, item) => sum + (item.amount - (item.settleAmount || 0)), 0);
   const remainingLiving = effectiveMonthlyBudget - totalLivingSpent;
   const livingPct = effectiveMonthlyBudget > 0 ? Math.round((totalLivingSpent / effectiveMonthlyBudget) * 100) : 0;
 
@@ -93,7 +93,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   const getCycleSpent = (start: string, end: string) => {
     return data.expenses
         .filter((e) => e.date >= start && e.date <= end && e.checked !== false)
-        .reduce((sum, item) => sum + item.amount, 0);
+        .reduce((sum, item) => sum + (item.amount - (item.settleAmount || 0)), 0);
   };
 
   const getPercentageColor = (pct: number) => {

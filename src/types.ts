@@ -34,6 +34,7 @@ export interface ExpenseItem {
   editable?: boolean;
   checked?: boolean;
   paid?: boolean;     // 카드 결제(정산) 완료 여부 — 예산반영(checked)과는 별개
+  settleAmount?: number;  // 정산받을(친구 몫) 금액 — 예산엔 (amount-settleAmount)만, 미결제(통장확보)엔 amount 전액
 }
 
 export interface IncomeItem {

@@ -107,7 +107,7 @@ export function calculateBudgetWithCarryOver(
     const calculatedCycles: CalculatedCycle[] = workingCycles.map((c, ci) => {
       const spent = rawData.expenses
           .filter((e) => e.date >= c.start && e.date <= c.end && e.checked !== false)
-          .reduce((sum, item) => sum + item.amount, 0);
+          .reduce((sum, item) => sum + (item.amount - (item.settleAmount || 0)), 0);
 
       const incomeAmount = (rawData.incomes || [])
           .filter((inc) => inc.cycleIdx === ci)
@@ -145,7 +145,7 @@ export function calculateBudgetWithCarryOver(
 
     const totalLivingSpent = rawData.expenses
         .filter((e) => e.checked !== false)
-        .reduce((sum, item) => sum + item.amount, 0);
+        .reduce((sum, item) => sum + (item.amount - (item.settleAmount || 0)), 0);
 
     const remainingLiving = effectiveMonthlyBudget - totalLivingSpent;
     runningCarryOver = Math.max(0, remainingLiving);

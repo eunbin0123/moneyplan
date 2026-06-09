@@ -54,7 +54,7 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
     const getCycleSpent = (start: string, end: string) => {
         return data.expenses
             .filter((e) => e.date >= start && e.date <= end && e.checked !== false)
-            .reduce((sum, item) => sum + item.amount, 0);
+            .reduce((sum, item) => sum + (item.amount - (item.settleAmount || 0)), 0);
     };
 
     const getUnclassifiedExpenses = () => {
@@ -76,13 +76,17 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
 
     // 미결제(결제대기) 집계: 예산반영(checked)된 항목 중 아직 결제 안 한 것 = 통장에 확보해둬야 할 돈
     const unpaidItems = data.expenses.filter((e) => e.checked !== false && e.paid !== true);
-    const unpaidTotal = unpaidItems.reduce((sum, e) => sum + e.amount, 0);
+    const unpaidTotal = unpaidItems.reduce((sum, e) => sum + e.amount, 0);  // 카드 전액 = 통장에 채워야 할 돈
     const unpaidCount = unpaidItems.length;
+    const unpaidHasSplit = unpaidItems.some((e) => (e.settleAmount || 0) > 0);
 
     const renderExpenseItem = (e: any) => {
         const originalIdx = e._idx ?? data.expenses.findIndex((item) => item === e);
         const reflected = e.checked !== false;   // 예산 반영 여부
         const paid = e.paid === true;            // 결제완료 여부
+        const settle = e.settleAmount || 0;      // 정산받을(친구 몫)
+        const net = e.amount - settle;           // 내 몫
+        const isSplit = settle > 0;
         return (
             <div
                 key={originalIdx}
@@ -122,11 +126,16 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
                         <p className={`text-xs font-black truncate ${reflected ? "text-black" : "text-slate-400 line-through decoration-black/40 decoration-2"}`}>
                             {e.name}
                         </p>
+                        {isSplit && (
+                            <p className="text-[10px] font-bold text-slate-500 mt-0.5 truncate">
+                                💳 카드 {formatCurrency(e.amount)} · 정산 -{formatCurrency(settle)}
+                            </p>
+                        )}
                     </div>
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
           <span className={`text-xs font-black font-mono ${reflected ? "text-black" : "text-slate-400 line-through decoration-black/40 decoration-2"}`}>
-            -{formatCurrency(e.amount)}
+            -{formatCurrency(net)}
           </span>
                     <div className="flex items-center gap-1.5">
                         <button onClick={() => onEditExpense(originalIdx)} className="p-1 px-2.5 bg-white hover:bg-black border border-black text-[10px] text-black hover:text-white font-bold transition-all cursor-pointer rounded-none">수정</button>
@@ -147,7 +156,7 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
 
         return sortedDates.map((date) => {
             const dayExps = groups[date];
-            const dayTotal = dayExps.filter((e) => e.checked !== false).reduce((sum, e) => sum + e.amount, 0);
+            const dayTotal = dayExps.filter((e) => e.checked !== false).reduce((sum, e) => sum + (e.amount - (e.settleAmount || 0)), 0);
             const [, m, d] = date.split("-");
             return (
                 <div key={date}>
@@ -188,7 +197,7 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
                         <CreditCard className="h-5 w-5 shrink-0" />
                         <div className="min-w-0">
                             <p className="text-xs font-black uppercase tracking-wider">미결제 {unpaidCount}건</p>
-                            <p className="text-[10px] font-bold opacity-90 mt-0.5">통장에 확보해둬야 할 금액</p>
+                            <p className="text-[10px] font-bold opacity-90 mt-0.5">통장에 확보해둬야 할 금액{unpaidHasSplit ? " (정산분 포함)" : ""}</p>
                         </div>
                     </div>
                     <span className="text-sm font-black font-mono shrink-0">{formatCurrency(unpaidTotal)}</span>
@@ -271,7 +280,7 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
 
                 {getUnclassifiedExpenses().length > 0 && (() => {
                     const unclassifiedExps = getUnclassifiedExpenses();
-                    const spent = unclassifiedExps.filter((e) => e.checked !== false).reduce((sum, item) => sum + item.amount, 0);
+                    const spent = unclassifiedExps.filter((e) => e.checked !== false).reduce((sum, item) => sum + (item.amount - (item.settleAmount || 0)), 0);
                     const isOpen = !collapsed[-1];
 
                     return (
