@@ -223,7 +223,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3.5 border-b-2 border-black gap-2.5 sm:gap-0">
           <div>
             <h2 className="text-sm sm:text-base font-black text-black flex items-center gap-2 justify-center sm:justify-start select-none">
-              📊 {getShortMonthLabel(activeMonth)} 가계부 대시보드
+              📊 {getShortMonthLabel(activeMonth)} Dashboard
             </h2>
 
           </div>
@@ -527,7 +527,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
 
                   <div>
                     <label className="block text-xs font-black text-black mb-1.5">
-                      비정기 경조사비 예산
+                      경조사비 예산
                     </label>
                     <input
                         type="number"

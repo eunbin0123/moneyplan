@@ -94,7 +94,7 @@ export const Header: React.FC<HeaderProps> = ({
                             className={`h-10 w-10 shrink-0 border-2 border-black flex items-center justify-center transition-all geo-shadow-sm ${
                                 prevMonth ? "bg-white text-black hover:bg-black hover:text-white cursor-pointer active:translate-y-0.5" : "bg-slate-100 text-slate-300 cursor-not-allowed"
                             }`}
-                            title="이전 달"
+                            title="Prev"
                         >
                             <ChevronLeft className="h-5 w-5" />
                         </button>
@@ -102,7 +102,7 @@ export const Header: React.FC<HeaderProps> = ({
                         <button
                             onClick={() => setIsPickerOpen(true)}
                             className="flex-1 h-10 border-2 border-black bg-black text-white flex items-center justify-center gap-2 font-black tracking-wider uppercase text-sm hover:bg-[#E63946] transition-all cursor-pointer geo-shadow-sm active:translate-y-0.5"
-                            title="달 선택"
+                            title="Month"
                         >
                             <CalendarRange className="h-4 w-4" />
                             {fullLabel(currentMonth)}
@@ -114,7 +114,7 @@ export const Header: React.FC<HeaderProps> = ({
                             className={`h-10 w-10 shrink-0 border-2 border-black flex items-center justify-center transition-all geo-shadow-sm ${
                                 nextMonth ? "bg-white text-black hover:bg-black hover:text-white cursor-pointer active:translate-y-0.5" : "bg-slate-100 text-slate-300 cursor-not-allowed"
                             }`}
-                            title="다음 달"
+                            title="Next"
                         >
                             <ChevronRight className="h-5 w-5" />
                         </button>
@@ -133,7 +133,7 @@ export const Header: React.FC<HeaderProps> = ({
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="flex items-center justify-between border-b-4 border-black px-5 py-4">
-                            <h2 className="text-sm font-black text-black uppercase tracking-widest">달 선택</h2>
+                            <h2 className="text-sm font-black text-black uppercase tracking-widest">Month</h2>
                             <div className="flex items-center gap-2">
                                 <button
                                     onClick={() => setIsPickerOpen(false)}
@@ -196,7 +196,7 @@ export const Header: React.FC<HeaderProps> = ({
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="flex items-center justify-between border-b-4 border-black px-5 py-4">
-                            <h2 className="text-sm font-black text-black uppercase tracking-widest">{shortMonthLabel} 메모</h2>
+                            <h2 className="text-sm font-black text-black uppercase tracking-widest">{shortMonthLabel} Memo</h2>
                             <button
                                 onClick={onToggleMemo}
                                 className="p-1.5 bg-white border-2 border-black text-black hover:bg-[#E63946] hover:text-white transition-all cursor-pointer"

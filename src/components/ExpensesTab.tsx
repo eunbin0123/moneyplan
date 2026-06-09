@@ -197,7 +197,7 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
                         <CreditCard className="h-5 w-5 shrink-0" />
                         <div className="min-w-0">
                             <p className="text-xs font-black uppercase tracking-wider">미결제 {unpaidCount}건</p>
-                            <p className="text-[10px] font-bold opacity-90 mt-0.5">통장에 확보해둬야 할 금액{unpaidHasSplit ? " (정산분 포함)" : ""}</p>
+                            <p className="text-[10px] font-bold opacity-90 mt-0.5">{unpaidHasSplit ? " (정산분 포함)" : ""}</p>
                         </div>
                     </div>
                     <span className="text-sm font-black font-mono shrink-0">{formatCurrency(unpaidTotal)}</span>
@@ -207,7 +207,7 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
                     <div className="h-5 w-5 bg-black text-white flex items-center justify-center shrink-0">
                         <Check className="h-3.5 w-3.5 stroke-[3px]" />
                     </div>
-                    <p className="text-xs font-black uppercase tracking-wider">미결제 없음 · 전부 결제 완료</p>
+                    <p className="text-xs font-black uppercase tracking-wider">전부 결제 완료</p>
                 </div>
             )}
 
@@ -267,7 +267,7 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
                                     {cycleExps.length === 0 ? (
                                         <div className="p-8 text-center text-slate-400 text-xs font-medium uppercase tracking-widest bg-white">
                                             <Archive className="h-8 w-8 text-black mx-auto mb-2.5 stroke-1" />
-                                            기록된 지출 내역이 없습니다.
+                                            지출 내역이 없습니다.
                                         </div>
                                     ) : (
                                         renderGroupedExpenses(cycleExps)

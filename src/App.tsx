@@ -10,6 +10,7 @@ import { initialBudgetState, makeDefaultMonth } from "./initialData";
 import { ExpenseModal, FixedModal, MonthModal, CycleModal, EventModal, IncomeModal, InstallmentModal, DebtModal } from "./components/Modals";
 import { calculateBudgetWithCarryOver } from "./utils/budgetCalculator";
 import { saveToFirestore, loadFromFirestore, subscribeToFirestore } from "./utils/firestore";
+import styles from "./css/App.module.css";
 
 type TabType = "overview" | "expenses" | "fixed" | "installment" | "savings";
 
@@ -73,20 +74,17 @@ export default function App() {
         if (remote && remote.months.length > 0) {
           const { newMonths, newBudgetState } = ensureMonthsUpToThreeAhead(remote.months, remote.budgetState);
           const monthsChanged = newMonths.length !== remote.months.length;
-          // 새 달이 추가된 경우 isRemoteUpdate를 true로 막지 않아야 Firestore에 저장됨
           if (!monthsChanged) isRemoteUpdate.current = true;
           setMonths(newMonths);
           setBudgetState(newBudgetState);
           setCurrentMonth(findCurrentMonth(newMonths));
         } else {
-          // 로컬 데이터로 보정
           const { newMonths, newBudgetState } = ensureMonthsUpToThreeAhead(months, budgetState);
           setMonths(newMonths);
           setBudgetState(newBudgetState);
         }
       } catch (e) {
         console.error("Firestore 로드 실패:", e);
-        // 오류 시 로컬 상태 기준으로 보정
         const { newMonths, newBudgetState } = ensureMonthsUpToThreeAhead(months, budgetState);
         setMonths(newMonths);
         setBudgetState(newBudgetState);
@@ -94,7 +92,6 @@ export default function App() {
         setIsLoading(false);
       }
       firestoreUnsub.current = subscribeToFirestore((remoteMonths, remoteBudget) => {
-        // subscribe로 원격 업데이트 받을 때도 이번달~+3개월 보장
         const { newMonths, newBudgetState } = ensureMonthsUpToThreeAhead(remoteMonths, remoteBudget);
         const monthsChanged = newMonths.length !== remoteMonths.length;
         if (!monthsChanged) isRemoteUpdate.current = true;
@@ -115,13 +112,11 @@ export default function App() {
   const computedState = calculateBudgetWithCarryOver(months, budgetState);
   const activeData: MonthData = computedState[currentMonth] || budgetState[currentMonth] || makeDefaultMonth(2025, 5);
 
-  // 전체 달에 등록된 할부를 평탄화 (할부는 여러 달에 걸치므로 전역으로 모음)
   const allInstallments: InstallmentItem[] = [];
   Object.values(budgetState).forEach((md) => {
     (md.installments || []).forEach((it) => allInstallments.push(it));
   });
 
-  // 이번 달에 차감할 당겨쓰기 목록 (targetMonth === currentMonth)
   const currentMonthDebts: DebtItem[] = [];
   Object.values(budgetState).forEach((md) => {
     (md.debts || []).forEach((d) => {
@@ -194,7 +189,6 @@ export default function App() {
     });
   };
 
-  // 지출 상태 3단계 순환: 미반영(빈칸) → 예산반영·결제대기(빨강) → 결제완료(검정) → 미반영
   const handleCycleExpenseStatus = (idx: number) => {
     setBudgetState((prev) => {
       const copy = { ...prev };
@@ -205,11 +199,11 @@ export default function App() {
       const paid = cur.paid === true;
       let next;
       if (!reflected) {
-        next = { ...cur, checked: true, paid: false };   // 미반영 → 반영(대기)
+        next = { ...cur, checked: true, paid: false };
       } else if (!paid) {
-        next = { ...cur, checked: true, paid: true };    // 반영 → 결제완료
+        next = { ...cur, checked: true, paid: true };
       } else {
-        next = { ...cur, checked: false, paid: false };  // 완료 → 미반영
+        next = { ...cur, checked: false, paid: false };
       }
       exps[idx] = next;
       mD.expenses = exps;
@@ -311,7 +305,6 @@ export default function App() {
     setBudgetState((prev) => {
       const copy = { ...prev };
       const mD = { ...copy[currentMonth], budget, fixedBudget, eventBudget, totalBudget };
-      // 총예산 자동분배를 다시 적용하면 주기 고정 해제 → 처음처럼 균등 재분배
       if (totalBudget && totalBudget > 0) {
         mD.cycles = mD.cycles.map((c) => ({ ...c, manual: false }));
       }
@@ -342,7 +335,6 @@ export default function App() {
   const handleSaveInstallment = (item: InstallmentItem) => {
     setBudgetState((prev) => {
       const copy = { ...prev };
-      // 기존 항목이면 저장돼 있던 달에서 갱신, 신규면 현재 달에 추가
       let owner: string | null = null;
       for (const mk of Object.keys(copy)) {
         if ((copy[mk].installments || []).some((i) => i.id === item.id)) { owner = mk; break; }
@@ -376,7 +368,6 @@ export default function App() {
   const handleSaveDebt = (item: DebtItem) => {
     setBudgetState((prev) => {
       const copy = { ...prev };
-      // 기존 항목이면 저장돼 있던 달에서 갱신, 신규면 targetMonth 에 추가
       let owner: string | null = null;
       for (const mk of Object.keys(copy)) {
         if ((copy[mk].debts || []).some((d) => d.id === item.id)) { owner = mk; break; }
@@ -407,7 +398,6 @@ export default function App() {
     });
   };
 
-  // 이번 달 기준 +3개월까지 자동으로 달 데이터를 생성/보장
   const ensureMonthsUpToThreeAhead = (
       currentMonths: string[],
       currentBudgetState: BudgetState
@@ -452,6 +442,7 @@ export default function App() {
     setCurrentMonth(newMonths[Math.max(0, Math.min(idx, newMonths.length - 1))]);
     setActiveTab("overview");
   };
+
   const handleSaveCycle = (cycle: BudgetCycle) => {
     if (editingCycleIdx === null) return;
     setBudgetState((prev) => {
@@ -459,7 +450,6 @@ export default function App() {
       const mD = { ...copy[currentMonth] };
       const cycles = [...mD.cycles];
       const isAutoMode = !!(mD.totalBudget && mD.totalBudget > 0);
-      // 자동분배 모드에서 손으로 고치면 그 주기를 고정 → 나머지가 다른 주기로 분배됨
       cycles[editingCycleIdx] = { ...cycle, manual: isAutoMode ? true : undefined };
       mD.cycles = cycles;
       copy[currentMonth] = mD;
@@ -468,19 +458,21 @@ export default function App() {
     setEditingCycleIdx(null);
   };
 
+  /* ── 렌더 ── */
+
   if (isLoading) {
     return (
-        <div className="min-h-screen bg-[#F0F0F0] flex items-center justify-center">
-          <div className="text-center space-y-3">
-            <div className="h-8 w-8 border-4 border-black border-t-transparent rounded-full animate-spin mx-auto" />
-            <p className="text-xs font-black text-black uppercase tracking-widest">데이터 불러오는 중...</p>
+        <div className={styles.loadingScreen}>
+          <div className={styles.loadingInner}>
+            <div className={styles.loadingSpinner} />
+            <p className={styles.loadingText}>데이터 불러오는 중...</p>
           </div>
         </div>
     );
   }
 
   return (
-      <div className="min-h-screen bg-[#F0F0F0] pb-24">
+      <div className={styles.root}>
         <Header
             months={months}
             currentMonth={currentMonth}
@@ -495,7 +487,7 @@ export default function App() {
             onToggleMemo={() => setIsMemoOpen(prev => !prev)}
         />
 
-        <main className="max-w-2xl mx-auto px-4 pt-6 space-y-6">
+        <main className={styles.main}>
           <AnimatePresence mode="wait">
             <motion.div
                 key={activeTab + "-" + currentMonth}
@@ -627,15 +619,24 @@ export default function App() {
 
         {/* 분배 모달 */}
         {isSavingsModalOpen && (
-            <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/75" onClick={() => setIsSavingsModalOpen(false)}>
-              <div className="bg-white border-t-4 sm:border-4 border-black w-full sm:max-w-lg geo-shadow-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-                <div className="flex items-center justify-between border-b-4 border-black px-5 py-4 sticky top-0 bg-white z-10">
-                  <h2 className="text-sm font-black text-black uppercase tracking-widest">💰 분배</h2>
-                  <button onClick={() => setIsSavingsModalOpen(false)} className="p-1.5 bg-white border-2 border-black text-black hover:bg-[#E63946] hover:text-white transition-all cursor-pointer">
+            <div
+                className={styles.savingsOverlay}
+                onClick={() => setIsSavingsModalOpen(false)}
+            >
+              <div
+                  className={styles.savingsPanel}
+                  onClick={(e) => e.stopPropagation()}
+              >
+                <div className={styles.savingsPanelHeader}>
+                  <h2 className={styles.savingsPanelTitle}>💰 분배</h2>
+                  <button
+                      className={styles.savingsPanelClose}
+                      onClick={() => setIsSavingsModalOpen(false)}
+                  >
                     <X className="h-4 w-4" />
                   </button>
                 </div>
-                <div className="p-5">
+                <div className={styles.savingsPanelBody}>
                   <SavingsTab
                       data={activeData}
                       onToggleAccount={handleToggleAccount}
@@ -653,49 +654,66 @@ export default function App() {
         )}
 
         {/* 하단 고정 탭바 */}
-        <nav className="fixed bottom-0 left-0 right-0 z-40 flex justify-center px-4 pb-4 pt-2 pointer-events-none">
-          <div className="w-full max-w-2xl bg-white border-2 border-black geo-shadow-lg flex items-center pointer-events-auto">
+        <nav className={styles.navWrapper}>
+          <div className={styles.navBar}>
             {/* 개요 */}
             <button
+                className={styles.tabBtn}
+                data-active={activeTab === "overview"}
                 onClick={() => setActiveTab("overview")}
-                className={`flex-1 flex flex-col items-center justify-center py-3 gap-1 transition-colors cursor-pointer ${activeTab === "overview" ? "bg-black text-white" : "text-black hover:bg-slate-100"}`}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-              <span className="text-[9px] font-black uppercase tracking-widest">개요</span>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+              </svg>
+              <span className={styles.tabLabel}>Overview</span>
             </button>
+
             {/* 지출 */}
             <button
+                className={styles.tabBtn}
+                data-active={activeTab === "expenses"}
                 onClick={() => setActiveTab("expenses")}
-                className={`flex-1 flex flex-col items-center justify-center py-3 gap-1 transition-colors cursor-pointer ${activeTab === "expenses" ? "bg-black text-white" : "text-black hover:bg-slate-100"}`}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-              <span className="text-[9px] font-black uppercase tracking-widest">지출</span>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+              </svg>
+              <span className={styles.tabLabel}>Expenses</span>
             </button>
-            {/* 중앙 FAB - 지출 추가 */}
-            <div className="flex-none px-2">
+
+            {/* 중앙 FAB */}
+            <div className={styles.fabWrapper}>
               <button
-                  onClick={() => { setEditingExpenseIdx(null); setIsExpenseModalOpen(true); }}
-                  className="h-14 w-14 bg-black text-white border-2 border-black flex items-center justify-center hover:bg-[#E63946] hover:border-[#E63946] active:scale-95 transition-all cursor-pointer geo-shadow-sm"
+                  className={styles.fabBtn}
                   title="지출 추가"
+                  onClick={() => { setEditingExpenseIdx(null); setIsExpenseModalOpen(true); }}
               >
                 <Plus className="h-6 w-6" />
               </button>
             </div>
+
             {/* 고정 */}
             <button
+                className={styles.tabBtn}
+                data-active={activeTab === "fixed"}
                 onClick={() => setActiveTab("fixed")}
-                className={`flex-1 flex flex-col items-center justify-center py-3 gap-1 transition-colors cursor-pointer ${activeTab === "fixed" ? "bg-black text-white" : "text-black hover:bg-slate-100"}`}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-              <span className="text-[9px] font-black uppercase tracking-widest">고정</span>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+              <span className={styles.tabLabel}>Fixed</span>
             </button>
+
             {/* 할부·당겨쓰기 */}
             <button
+                className={styles.tabBtn}
+                data-active={activeTab === "installment"}
                 onClick={() => setActiveTab("installment")}
-                className={`flex-1 flex flex-col items-center justify-center py-3 gap-1 transition-colors cursor-pointer ${activeTab === "installment" ? "bg-black text-white" : "text-black hover:bg-slate-100"}`}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-              <span className="text-[9px] font-black uppercase tracking-widest">할부</span>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>
+              </svg>
+              <span className={styles.tabLabel}>Installment</span>
             </button>
           </div>
         </nav>

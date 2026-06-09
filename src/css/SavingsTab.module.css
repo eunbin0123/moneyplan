@@ -1,0 +1,666 @@
+/* ─────────────────────────────────────────────────────────
+   SavingsTab.module.css
+   SavingsTab.tsx 인라인 스타일 → 순수 CSS Module
+   ───────────────────────────────────────────────────────── */
+
+/* ── 공통 레이아웃 ── */
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* ── 공통 카드 ── */
+.card {
+  background-color: #fff;
+  border: 2px solid #000;
+  padding: 1.25rem;
+  box-shadow: 4px 4px 0 #000; /* geo-shadow */
+}
+
+.cardPad {
+  background-color: #fff;
+  border: 2px solid #000;
+  padding: 1rem;
+  box-shadow: 4px 4px 0 #000;
+}
+
+/* 왼쪽 강조 border (경조사비, 당겨쓰기 카드) */
+.cardAccent {
+  background-color: #fff;
+  border: 2px solid #000;
+  border-left: 8px solid #E63946;
+  padding: 1.25rem;
+  box-shadow: 4px 4px 0 #000;
+}
+
+/* 어두운 배경 카드 (요약) */
+.cardDark {
+  background-color: #000;
+  color: #fff;
+  border: 2px solid #000;
+  padding: 1rem;
+  box-shadow: 4px 4px 0 #000;
+}
+
+/* ── 카드 헤더 (제목 + 버튼) ── */
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #000;
+  margin-bottom: 1rem;
+}
+
+.cardHeaderSimple {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.cardTitle {
+  font-size: 0.875rem;
+  font-weight: 900;
+  color: #000;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+/* ── 월급 입력 ── */
+.salaryValue {
+  font-size: 1.5rem;
+  font-weight: 900;
+  font-family: ui-monospace, monospace;
+  color: #000;
+}
+
+.salaryEmpty {
+  color: #cbd5e1; /* slate-300 */
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.salaryRow {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.salaryInput {
+  flex: 1;
+  height: 2.5rem;
+  border: 2px solid #000;
+  padding: 0 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 900;
+  font-family: ui-monospace, monospace;
+  outline: none;
+}
+
+.salaryInput:focus {
+  border-color: #E63946;
+}
+
+/* ── 공통 소형 버튼 ── */
+.btnSmall {
+  font-size: 0.625rem;
+  font-weight: 900;
+  padding: 0.25rem 0.625rem;
+  border: 2px solid #000;
+  background-color: #fff;
+  color: #000;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.btnSmall:hover {
+  background-color: #000;
+  color: #fff;
+}
+
+.btnConfirm {
+  padding: 0.25rem 0.75rem;
+  background-color: #000;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 900;
+  border: 2px solid #000;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.btnConfirm:hover {
+  background-color: #E63946;
+}
+
+.btnCancel {
+  padding: 0.25rem 0.75rem;
+  background-color: #fff;
+  color: #000;
+  font-size: 0.75rem;
+  font-weight: 900;
+  border: 2px solid #000;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.btnCancel:hover {
+  background-color: #f1f5f9;
+}
+
+/* 추가 버튼 (헤더 우측) */
+.btnAdd {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.625rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  background-color: #000;
+  color: #fff;
+  border: 2px solid #000;
+  padding: 0.375rem 0.75rem;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
+  box-shadow: 2px 2px 0 #000; /* geo-shadow-sm */
+}
+
+.btnAdd:hover {
+  background-color: #E63946;
+  border-color: #E63946;
+}
+
+.btnAdd:active {
+  transform: translateY(1px);
+}
+
+/* 수정/삭제 인라인 버튼 */
+.btnEdit {
+  padding: 0.25rem 0.5rem;
+  background-color: #fff;
+  color: #000;
+  font-size: 0.625rem;
+  font-weight: 900;
+  border: 2px solid #000;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+  user-select: none;
+}
+
+.btnEdit:hover {
+  background-color: #000;
+  color: #fff;
+}
+
+.btnDelete {
+  padding: 0.25rem 0.5rem;
+  background-color: #fff;
+  color: #000;
+  font-size: 0.625rem;
+  font-weight: 900;
+  border: 2px solid #000;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+  user-select: none;
+}
+
+.btnDelete:hover {
+  background-color: #E63946;
+  color: #fff;
+}
+
+/* ── 요약 카드 그리드 ── */
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.summaryLabel {
+  font-size: 0.625rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #94a3b8; /* slate-400 */
+}
+
+.summaryValue {
+  font-size: 0.875rem;
+  font-weight: 900;
+  font-family: ui-monospace, monospace;
+  margin-top: 0.125rem;
+}
+
+.summaryValueRed {
+  color: #E63946;
+}
+
+.summaryValueGreen {
+  color: #34d399; /* emerald-400 */
+}
+
+.summaryValueNegative {
+  color: #E63946;
+}
+
+/* ── 분배율 프로그레스 바 ── */
+.progressWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.progressHeader {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.625rem;
+  font-weight: 900;
+  color: #94a3b8;
+}
+
+.progressTrack {
+  height: 0.75rem;
+  width: 100%;
+  background-color: #262626; /* neutral-800 */
+  border: 1px solid #525252; /* neutral-600 */
+  overflow: hidden;
+}
+
+.progressBar {
+  height: 100%;
+  transition: width 0.5s ease;
+}
+
+.progressBarNormal  { background-color: #34d399; }
+.progressBarWarning { background-color: #fbbf24; } /* amber-400 */
+.progressBarOver    { background-color: #E63946; }
+
+/* ── 통장 목록 ── */
+.accountList {
+  display: flex;
+  flex-direction: column;
+  /* divide-y divide-black/10 */
+}
+
+.accountRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 0.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: background-color 0.15s;
+  user-select: none;
+}
+
+.accountRow:last-child {
+  border-bottom: none;
+}
+
+.accountRow:hover {
+  background-color: #f8fafc; /* slate-50 */
+}
+
+.accountLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.checkBox {
+  height: 1.25rem;
+  width: 1.25rem;
+  border: 2px solid #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+
+.checkBox[data-checked="true"] {
+  background-color: #000;
+  color: #fff;
+}
+
+.checkBox[data-checked="false"] {
+  background-color: #fff;
+  color: #000;
+}
+
+.accountName {
+  font-size: 0.75rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.accountName[data-checked="true"] {
+  color: #94a3b8;
+  text-decoration: line-through;
+}
+
+.accountName[data-checked="false"] {
+  color: #000;
+}
+
+.accountAmount {
+  font-size: 0.625rem;
+  color: #64748b; /* slate-500 */
+  font-weight: 800;
+  font-family: ui-monospace, monospace;
+  margin-top: 0.125rem;
+}
+
+.accountBadge {
+  font-size: 0.5625rem;
+  font-family: ui-monospace, monospace;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 0.25rem 0.625rem;
+  border: 2px solid #000;
+}
+
+.accountBadge[data-checked="true"] {
+  background-color: #000;
+  color: #fff;
+}
+
+.accountBadge[data-checked="false"] {
+  background-color: #fff;
+  color: #94a3b8;
+}
+
+/* ── 고정지출 목록 ── */
+.fixedList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.fixedRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 0.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  gap: 0.5rem;
+}
+
+.fixedRow:last-child {
+  border-bottom: none;
+}
+
+.fixedRow:hover {
+  background-color: #f8fafc;
+}
+
+.fixedLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.fixedDay {
+  padding: 0.125rem 0.375rem;
+  background-color: #000;
+  color: #fff;
+  font-size: 0.5625rem;
+  font-weight: 900;
+  font-family: ui-monospace, monospace;
+  border: 1px solid #000;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.fixedName {
+  font-size: 0.75rem;
+  font-weight: 900;
+  color: #000;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+}
+
+.fixedRight {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.fixedAmount {
+  font-size: 0.75rem;
+  font-weight: 900;
+  color: #E63946;
+  font-family: ui-monospace, monospace;
+  white-space: nowrap;
+}
+
+/* ── 경조사비 목록 ── */
+.eventRow {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.75rem;
+  color: #000;
+  background-color: #F9F9F9;
+  padding: 0.75rem 1rem;
+  border: 2px solid #000;
+  font-weight: 700;
+  gap: 0.5rem;
+}
+
+@media (min-width: 640px) {
+  .eventRow {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+}
+
+.eventName {
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .eventName {
+    width: auto;
+  }
+}
+
+.eventRight {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  padding-top: 0.375rem;
+  border-top: 1px dashed rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+  user-select: none;
+}
+
+@media (min-width: 640px) {
+  .eventRight {
+    justify-content: flex-end;
+    width: auto;
+    padding-top: 0;
+    border-top: none;
+  }
+}
+
+.eventAmount {
+  font-weight: 900;
+  color: #E63946;
+  font-family: ui-monospace, monospace;
+}
+
+/* ── 할부 카드 ── */
+.installmentCard {
+  border: 2px solid #000;
+  padding: 0.75rem;
+  background-color: #FFF5F5;
+}
+
+.installmentTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.installmentLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.installmentName {
+  font-size: 0.75rem;
+  font-weight: 900;
+  color: #000;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+}
+
+.installmentBadge {
+  font-size: 0.5625rem;
+  font-family: ui-monospace, monospace;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 0.125rem 0.375rem;
+  border: 2px solid #E63946;
+  background-color: #E63946;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.installmentRight {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.installmentMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: #64748b;
+  font-family: ui-monospace, monospace;
+}
+
+.installmentMonthly {
+  font-weight: 900;
+  color: #E63946;
+}
+
+/* ── 당겨쓰기 카드 (구조는 할부와 동일) ── */
+.debtCard {
+  border: 2px solid #000;
+  padding: 0.75rem;
+  background-color: #FFF5F5;
+}
+
+.debtBadge {
+  font-size: 0.5625rem;
+  font-family: ui-monospace, monospace;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 0.125rem 0.375rem;
+  border: 2px solid #E63946;
+  background-color: #E63946;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+/* ── 합계 행 ── */
+.totalRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 0.875rem;
+  margin-top: 0.875rem;
+  border-top: 2px solid #000;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.totalLabel {
+  font-size: 0.75rem;
+  color: #000;
+  letter-spacing: 0.1em;
+}
+
+.totalValue {
+  font-size: 0.875rem;
+  color: #E63946;
+  font-family: ui-monospace, monospace;
+}
+
+/* ── 빈 상태 메시지 ── */
+.empty {
+  text-align: center;
+  padding: 2rem;
+  color: #94a3b8;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* ── 목록 세로 gap ── */
+.listGap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.listGapSm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.listGapMd {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
