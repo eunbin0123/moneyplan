@@ -5,9 +5,7 @@
    프로그레스 색상/잔액 부호 색상은 data-* 셀렉터로 처리
    ───────────────────────────────────────── */
 
-.container > * + * {
-  margin-top: 1.5rem; /* space-y-6 */
-}
+
 
 /* ── 탭 헤더 ── */
 .tabHeader {
@@ -591,20 +589,26 @@
   inset: 0;
   z-index: 50;
   display: flex;
-  align-items: center;
+  align-items: center;        /* 항상 center */
   justify-content: center;
   padding: 1rem;
   background-color: rgba(0, 0, 0, 0.75);
+  overflow-y: auto;           /* ← 추가: 화면보다 패널이 클 경우 overlay 스크롤 */
 }
 
 .panel {
   background-color: #fff;
   border: 4px solid #000;
   border-radius: 0;
-  padding: 1.5rem; /* p-6 */
+  padding: 0;                 /* ← padding 제거, 내부에서 처리 */
   width: 100%;
-  max-width: 24rem; /* max-w-sm */
+  max-width: 24rem;
+  max-height: 90vh;           /* ← 추가: 화면 넘침 방지 */
+  display: flex;              /* ← 추가 */
+  flex-direction: column;     /* ← 추가 */
+  overflow: hidden;           /* ← 추가 */
   color: #000;
+  margin: auto;               /* ← 추가: overflow-y: auto일 때 중앙 정렬 유지 */
 }
 
 .modalHeader {
@@ -612,10 +616,12 @@
   align-items: center;
   justify-content: space-between;
   border-bottom: 2px solid #000;
-  padding-bottom: 0.875rem;
-  margin-bottom: 1.25rem;
+  padding: 1.25rem 1.5rem;    /* ← panel padding 제거했으므로 여기서 처리 */
+  margin-bottom: 0;           /* ← 제거 */
   user-select: none;
+  flex-shrink: 0;             /* ← 추가: 헤더 고정 */
 }
+
 
 .modalTitle {
   font-size: 0.875rem;
@@ -646,8 +652,15 @@
   width: 1rem;
 }
 
+.form {
+  padding: 1.25rem 1.5rem 1.5rem; /* ← panel padding 대신 form에 적용 */
+  overflow-y: auto;           /* ← 추가: 폼 내용만 스크롤 */
+  flex: 1 1 0%;               /* ← 추가 */
+  min-height: 0;              /* ← 추가 */
+}
+
 .form > * + * {
-  margin-top: 1rem; /* space-y-4 */
+  margin-top: 1rem;
 }
 
 /* 총예산 자동 분배 박스 (다크) */
