@@ -7,6 +7,7 @@ interface OverviewTabProps {
   activeMonth: string;
   onEditCycle: (idx: number) => void;
   onOpenMemo: () => void;
+  onOpenSavings: () => void;
   onUpdateAllocations: (budget: number, fixedBudget: number, eventBudget: number, totalBudget?: number) => void;
   installments?: InstallmentItem[];
   debts?: DebtItem[];
@@ -17,6 +18,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                                                           activeMonth,
                                                           onEditCycle,
                                                           onOpenMemo,
+                                                          onOpenSavings,
                                                           onUpdateAllocations,
                                                           installments = [],
                                                           debts = [],
@@ -233,6 +235,12 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             >
               <Edit2 className="h-3 w-3 stroke-[3px]" /> 예산 조정
             </button>
+            <button
+                onClick={onOpenSavings}
+                className="inline-flex items-center justify-center gap-1.5 text-xs font-black bg-white text-black border-2 border-black px-3.5 py-1.5 rounded-none hover:bg-black hover:text-white active:translate-y-0.5 transition-colors cursor-pointer geo-shadow-sm flex-1 sm:flex-none"
+            >
+              💰 분배
+            </button>
           </div>
         </div>
 
@@ -410,7 +418,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             </div>
         )}
 
-      
+
 
         {/* ✏️ EDIT ALLOCATIONS DIALOG MODAL */}
         {isEditAllocModalOpen && (

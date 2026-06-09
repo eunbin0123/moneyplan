@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Plus } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Header } from "./components/Header";
 import { OverviewTab } from "./components/OverviewTab";
@@ -44,6 +44,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [isLoading, setIsLoading] = useState(true);
   const [isMemoOpen, setIsMemoOpen] = useState(false);
+  const [isSavingsModalOpen, setIsSavingsModalOpen] = useState(false);
 
   const firestoreUnsub = useRef<(() => void) | null>(null);
   const isRemoteUpdate = useRef(false);
@@ -479,7 +480,7 @@ export default function App() {
   }
 
   return (
-      <div className="min-h-screen bg-[#F0F0F0] pb-16">
+      <div className="min-h-screen bg-[#F0F0F0] pb-24">
         <Header
             months={months}
             currentMonth={currentMonth}
@@ -495,29 +496,6 @@ export default function App() {
         />
 
         <main className="max-w-2xl mx-auto px-4 pt-6 space-y-6">
-          <div className="grid grid-cols-5 border-2 border-black bg-white rounded-none divide-x-2 divide-black overflow-hidden geo-shadow-sm">
-            {(["overview", "expenses", "fixed", "installment", "savings"] as TabType[]).map((tab) => {
-              const labels: Record<TabType, string> = {
-                overview: "개요",
-                expenses: "지출",
-                fixed: "고정",
-                installment: "할부・당겨쓰기",
-                savings: "분배",
-              };
-              return (
-                  <button
-                      key={tab}
-                      onClick={() => setActiveTab(tab)}
-                      className={`py-3.5 text-xs font-black uppercase tracking-wider cursor-pointer transition-colors ${
-                          activeTab === tab ? "bg-black text-white" : "bg-white text-black hover:bg-[#E63946] hover:text-white"
-                      }`}
-                  >
-                    {labels[tab]}
-                  </button>
-              );
-            })}
-          </div>
-
           <AnimatePresence mode="wait">
             <motion.div
                 key={activeTab + "-" + currentMonth}
@@ -532,6 +510,7 @@ export default function App() {
                       activeMonth={currentMonth}
                       onEditCycle={(idx) => { setEditingCycleIdx(idx); setIsCycleModalOpen(true); }}
                       onOpenMemo={() => setIsMemoOpen(true)}
+                      onOpenSavings={() => setIsSavingsModalOpen(true)}
                       onUpdateAllocations={handleUpdateAllocations}
                       installments={allInstallments}
                       debts={currentMonthDebts}
@@ -646,13 +625,80 @@ export default function App() {
             defaultMonthStr={currentMonth}
         />
 
-        <button
-            onClick={() => { setEditingExpenseIdx(null); setIsExpenseModalOpen(true); }}
-            className="fixed bottom-6 right-6 z-40 h-14 w-14 bg-black text-white rounded-full flex items-center justify-center shadow-xl hover:bg-[#E63946] active:scale-95 transition-all cursor-pointer"
-            title="지출 추가"
-        >
-          <Plus className="h-6 w-6" />
-        </button>
+        {/* 분배 모달 */}
+        {isSavingsModalOpen && (
+            <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/75" onClick={() => setIsSavingsModalOpen(false)}>
+              <div className="bg-white border-t-4 sm:border-4 border-black w-full sm:max-w-lg geo-shadow-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center justify-between border-b-4 border-black px-5 py-4 sticky top-0 bg-white z-10">
+                  <h2 className="text-sm font-black text-black uppercase tracking-widest">💰 분배</h2>
+                  <button onClick={() => setIsSavingsModalOpen(false)} className="p-1.5 bg-white border-2 border-black text-black hover:bg-[#E63946] hover:text-white transition-all cursor-pointer">
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="p-5">
+                  <SavingsTab
+                      data={activeData}
+                      onToggleAccount={handleToggleAccount}
+                      onAddFixed={() => { setEditingFixedIdx(null); setIsFixedModalOpen(true); }}
+                      onEditFixed={(idx) => { setEditingFixedIdx(idx); setIsFixedModalOpen(true); }}
+                      onDeleteFixed={handleDeleteFixed}
+                      onAddEvent={() => setIsEventModalOpen(true)}
+                      onDeleteEvent={handleDeleteEvent}
+                      onUpdateSalary={handleUpdateSalary}
+                      activeSubTab="distribution"
+                  />
+                </div>
+              </div>
+            </div>
+        )}
+
+        {/* 하단 고정 탭바 */}
+        <nav className="fixed bottom-0 left-0 right-0 z-40 flex justify-center px-4 pb-4 pt-2 pointer-events-none">
+          <div className="w-full max-w-2xl bg-white border-2 border-black geo-shadow-lg flex items-center pointer-events-auto">
+            {/* 개요 */}
+            <button
+                onClick={() => setActiveTab("overview")}
+                className={`flex-1 flex flex-col items-center justify-center py-3 gap-1 transition-colors cursor-pointer ${activeTab === "overview" ? "bg-black text-white" : "text-black hover:bg-slate-100"}`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+              <span className="text-[9px] font-black uppercase tracking-widest">개요</span>
+            </button>
+            {/* 지출 */}
+            <button
+                onClick={() => setActiveTab("expenses")}
+                className={`flex-1 flex flex-col items-center justify-center py-3 gap-1 transition-colors cursor-pointer ${activeTab === "expenses" ? "bg-black text-white" : "text-black hover:bg-slate-100"}`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              <span className="text-[9px] font-black uppercase tracking-widest">지출</span>
+            </button>
+            {/* 중앙 FAB - 지출 추가 */}
+            <div className="flex-none px-2">
+              <button
+                  onClick={() => { setEditingExpenseIdx(null); setIsExpenseModalOpen(true); }}
+                  className="h-14 w-14 bg-black text-white border-2 border-black flex items-center justify-center hover:bg-[#E63946] hover:border-[#E63946] active:scale-95 transition-all cursor-pointer geo-shadow-sm"
+                  title="지출 추가"
+              >
+                <Plus className="h-6 w-6" />
+              </button>
+            </div>
+            {/* 고정 */}
+            <button
+                onClick={() => setActiveTab("fixed")}
+                className={`flex-1 flex flex-col items-center justify-center py-3 gap-1 transition-colors cursor-pointer ${activeTab === "fixed" ? "bg-black text-white" : "text-black hover:bg-slate-100"}`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <span className="text-[9px] font-black uppercase tracking-widest">고정</span>
+            </button>
+            {/* 할부·당겨쓰기 */}
+            <button
+                onClick={() => setActiveTab("installment")}
+                className={`flex-1 flex flex-col items-center justify-center py-3 gap-1 transition-colors cursor-pointer ${activeTab === "installment" ? "bg-black text-white" : "text-black hover:bg-slate-100"}`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+              <span className="text-[9px] font-black uppercase tracking-widest">할부</span>
+            </button>
+          </div>
+        </nav>
       </div>
   );
 }
