@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { X, HelpCircle, Save } from "lucide-react";
 import { ExpenseItem, FixedExpense, BudgetCycle, EventExpense, IncomeItem, InstallmentItem, DebtItem } from "../types";
+import styles from "../css/Modals.module.css";
 
 // ==========================================
 // 1. EXPENSE ADD / EDIT MODAL
@@ -79,32 +80,32 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
   };
 
   return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }} onTouchMove={(e) => e.stopPropagation()}>
-        <div className="bg-white border-4 border-black rounded-none p-6 w-full max-w-sm geo-shadow-lg" onClick={(e) => e.stopPropagation()}>
-          <div className="flex items-center justify-between border-b-2 border-black pb-3.5 mb-5">
-            <h3 className="text-sm font-black text-black">
+      <div className={styles.overlay} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }} onTouchMove={(e) => e.stopPropagation()}>
+        <div className={`${styles.panel} geo-shadow-lg`} onClick={(e) => e.stopPropagation()}>
+          <div className={styles.modalHeader}>
+            <h3 className={styles.modalTitle}>
               {initialItem ? "지출 수정" : "지출 추가"}
             </h3>
-            <button onClick={onClose} className="p-1.5 bg-white border-2 border-black text-black hover:bg-[#E63946] hover:text-white rounded-none cursor-pointer">
-              <X className="h-4 w-4" />
+            <button onClick={onClose} className={styles.closeBtn}>
+              <X className={styles.closeIcon} />
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className={styles.form}>
             <div>
-              <label className="block text-xs font-black text-black mb-1.5">날짜</label>
+              <label className={styles.label}>날짜</label>
               <input
                   type="date"
                   required
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  className="w-full h-11 border-2 border-black bg-white focus:border-[#E63946] focus:ring-1 focus:ring-[#E63946] rounded-none px-3 text-xs font-bold font-mono text-black outline-none appearance-none"
+                  className={styles.inputMonoNative}
                   style={{ fontSize: "16px" }}
               />
             </div>
 
             <div>
-              <label className="block text-xs font-black text-black mb-1.5">항목명</label>
+              <label className={styles.label}>항목명</label>
               <input
                   type="text"
                   required
@@ -114,12 +115,12 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
                   inputMode="text"
                   lang="ko"
                   autoComplete="off"
-                  className="w-full h-11 border-2 border-black bg-white focus:border-[#E63946] focus:ring-1 focus:ring-[#E63946] rounded-none px-3 text-xs font-bold text-black outline-none"
+                  className={styles.input}
               />
             </div>
 
             <div>
-              <label className="block text-xs font-black text-black mb-1.5">금액</label>
+              <label className={styles.label}>금액</label>
               <input
                   type="number"
                   required
@@ -127,13 +128,13 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
                   placeholder="0"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  className="w-full h-11 border-2 border-black bg-white focus:border-[#E63946] focus:ring-1 focus:ring-[#E63946] rounded-none px-3 text-xs font-bold font-mono text-black outline-none"
+                  className={styles.inputMono}
               />
             </div>
 
             <div>
-              <label className="block text-xs font-black text-black mb-1.5">
-                정산받을 금액 <span className="font-normal text-slate-400">(친구 몫 · 선택)</span>
+              <label className={styles.label}>
+                정산받을 금액 <span className={styles.labelOptional}>(친구 몫 · 선택)</span>
               </label>
               <input
                   type="number"
@@ -141,28 +142,21 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
                   placeholder="0"
                   value={settle}
                   onChange={(e) => setSettle(e.target.value)}
-                  className="w-full h-11 border-2 border-black bg-white focus:border-[#E63946] focus:ring-1 focus:ring-[#E63946] rounded-none px-3 text-xs font-bold font-mono text-black outline-none"
+                  className={styles.inputMono}
               />
               {settleNum > 0 && amtNum > 0 && (
-                  <p className="text-[10px] font-bold text-slate-500 mt-1.5">
-                    카드 {amtNum.toLocaleString("ko-KR")}원 · 정산 {settleNum.toLocaleString("ko-KR")}원 → <span className="text-[#E63946] font-black">내 몫 {(amtNum - settleNum).toLocaleString("ko-KR")}원</span>
+                  <p className={styles.settlePreview}>
+                    카드 {amtNum.toLocaleString("ko-KR")}원 · 정산 {settleNum.toLocaleString("ko-KR")}원 → <span className={styles.settlePreviewHighlight}>내 몫 {(amtNum - settleNum).toLocaleString("ko-KR")}원</span>
                   </p>
               )}
             </div>
 
-            <div className="flex gap-2.5 pt-2">
-              <button
-                  type="button"
-                  onClick={onClose}
-                  className="flex-1 h-11 bg-white hover:bg-slate-100 text-xs text-black font-black uppercase tracking-wider border-2 border-black rounded-none cursor-pointer geo-shadow-sm active:translate-y-0.5"
-              >
+            <div className={styles.actions}>
+              <button type="button" onClick={onClose} className={`${styles.btnCancel} geo-shadow-sm`}>
                 취소
               </button>
-              <button
-                  type="submit"
-                  className="flex-1 h-11 bg-black hover:bg-[#E63946] text-xs text-white font-black uppercase tracking-wider border-2 border-black rounded-none flex items-center justify-center gap-1 cursor-pointer geo-shadow-sm active:translate-y-0.5"
-              >
-                <Save className="h-4 w-4" /> 저장
+              <button type="submit" className={`${styles.btnSave} geo-shadow-sm`}>
+                <Save className={styles.btnIcon} /> 저장
               </button>
             </div>
           </form>
@@ -217,30 +211,30 @@ export const FixedModal: React.FC<FixedModalProps> = ({ isOpen, onClose, onSave,
   };
 
   return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75">
-        <div className="bg-white border-4 border-black rounded-none p-6 w-full max-w-sm geo-shadow-lg">
-          <div className="flex items-center justify-between border-b-2 border-black pb-3.5 mb-5">
-            <h3 className="text-sm font-black text-black">{initialItem ? "고정 지출 수정" : "고정 지출 추가"}</h3>
-            <button onClick={onClose} className="p-1.5 bg-white border-2 border-black text-black hover:bg-[#E63946] hover:text-white rounded-none cursor-pointer">
-              <X className="h-4 w-4" />
+      <div className={styles.overlay}>
+        <div className={`${styles.panel} geo-shadow-lg`}>
+          <div className={styles.modalHeader}>
+            <h3 className={styles.modalTitle}>{initialItem ? "고정 지출 수정" : "고정 지출 추가"}</h3>
+            <button onClick={onClose} className={styles.closeBtn}>
+              <X className={styles.closeIcon} />
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className={styles.form}>
             <div>
-              <label className="block text-xs font-black text-black mb-1.5">지출 명칭</label>
+              <label className={styles.label}>지출 명칭</label>
               <input
                   type="text"
                   required
                   placeholder="예: 통신비, 유튜브 구독, 피트니스 등"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full h-11 border-2 border-black bg-white focus:border-[#E63946] focus:ring-1 focus:ring-[#E63946] rounded-none px-3 text-xs font-bold text-black outline-none"
+                  className={styles.input}
               />
             </div>
 
             <div>
-              <label className="block text-xs font-black text-black mb-1.5">금액</label>
+              <label className={styles.label}>금액</label>
               <input
                   type="number"
                   required
@@ -248,12 +242,12 @@ export const FixedModal: React.FC<FixedModalProps> = ({ isOpen, onClose, onSave,
                   placeholder="예: 55000"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  className="w-full h-11 border-2 border-black bg-white focus:border-[#E63946] focus:ring-1 focus:ring-[#E63946] rounded-none px-3 text-xs font-bold font-mono text-black outline-none"
+                  className={styles.inputMono}
               />
             </div>
 
             <div>
-              <label className="block text-xs font-black text-black mb-1.5">매월 출금일</label>
+              <label className={styles.label}>매월 출금일</label>
               <input
                   type="number"
                   min="1"
@@ -261,23 +255,16 @@ export const FixedModal: React.FC<FixedModalProps> = ({ isOpen, onClose, onSave,
                   placeholder="예: 25"
                   value={day}
                   onChange={(e) => setDay(e.target.value)}
-                  className="w-full h-11 border-2 border-black bg-white focus:border-[#E63946] focus:ring-1 focus:ring-[#E63946] rounded-none px-3 text-xs font-bold font-mono text-black outline-none"
+                  className={styles.inputMono}
               />
-              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1.5 block">※ 빈칸 설정 시 &apos;날짜 미정&apos;으로 지정.</span>
+              <span className={styles.hintSlate}>※ 빈칸 설정 시 &apos;날짜 미정&apos;으로 지정.</span>
             </div>
 
-            <div className="flex gap-2.5 pt-2">
-              <button
-                  type="button"
-                  onClick={onClose}
-                  className="flex-1 h-11 bg-white hover:bg-slate-100 text-xs text-black font-black uppercase tracking-wider border-2 border-black rounded-none cursor-pointer geo-shadow-sm active:translate-y-0.5"
-              >
+            <div className={styles.actions}>
+              <button type="button" onClick={onClose} className={`${styles.btnCancel} geo-shadow-sm`}>
                 취소
               </button>
-              <button
-                  type="submit"
-                  className="flex-1 h-11 bg-black hover:bg-[#E63946] text-xs text-white font-black uppercase tracking-wider border-2 border-black rounded-none flex items-center justify-center gap-1 cursor-pointer geo-shadow-sm active:translate-y-0.5"
-              >
+              <button type="submit" className={`${styles.btnSave} geo-shadow-sm`}>
                 저장
               </button>
             </div>
@@ -324,19 +311,19 @@ export const MonthModal: React.FC<MonthModalProps> = ({ isOpen, onClose, onSave 
   };
 
   return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75">
-        <div className="bg-white border-4 border-black rounded-none p-6 w-full max-w-sm geo-shadow-lg">
-          <div className="flex items-center justify-between border-b-2 border-black pb-3.5 mb-5">
-            <h3 className="text-sm font-black text-black">새로운 지출월 추가</h3>
-            <button onClick={onClose} className="p-1.5 bg-white border-2 border-black text-black hover:bg-[#E63946] hover:text-white rounded-none cursor-pointer">
-              <X className="h-4 w-4" />
+      <div className={styles.overlay}>
+        <div className={`${styles.panel} geo-shadow-lg`}>
+          <div className={styles.modalHeader}>
+            <h3 className={styles.modalTitle}>새로운 지출월 추가</h3>
+            <button onClick={onClose} className={styles.closeBtn}>
+              <X className={styles.closeIcon} />
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-2.5">
+          <form onSubmit={handleSubmit} className={styles.form}>
+            <div className={styles.grid2}>
               <div>
-                <label className="block text-xs font-black text-black mb-1.5">연도</label>
+                <label className={styles.label}>연도</label>
                 <input
                     type="number"
                     required
@@ -344,11 +331,11 @@ export const MonthModal: React.FC<MonthModalProps> = ({ isOpen, onClose, onSave 
                     max="2099"
                     value={year}
                     onChange={(e) => setYear(e.target.value)}
-                    className="w-full h-11 border-2 border-black bg-white focus:border-[#E63946] focus:ring-1 focus:ring-[#E63946] rounded-none px-3 text-xs font-bold font-mono text-black outline-none"
+                    className={styles.inputMono}
                 />
               </div>
               <div>
-                <label className="block text-xs font-black text-black mb-1.5">월</label>
+                <label className={styles.label}>월</label>
                 <input
                     type="number"
                     required
@@ -356,13 +343,13 @@ export const MonthModal: React.FC<MonthModalProps> = ({ isOpen, onClose, onSave 
                     max="12"
                     value={month}
                     onChange={(e) => setMonth(e.target.value)}
-                    className="w-full h-11 border-2 border-black bg-white focus:border-[#E63946] focus:ring-1 focus:ring-[#E63946] rounded-none px-3 text-xs font-bold font-mono text-black outline-none"
+                    className={styles.inputMono}
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-black text-black mb-1.5">생활비 총예산</label>
+              <label className={styles.label}>생활비 총예산</label>
               <input
                   type="number"
                   required
@@ -370,22 +357,15 @@ export const MonthModal: React.FC<MonthModalProps> = ({ isOpen, onClose, onSave 
                   placeholder="600000"
                   value={budget}
                   onChange={(e) => setBudget(e.target.value)}
-                  className="w-full h-11 border-2 border-black bg-white focus:border-[#E63946] focus:ring-1 focus:ring-[#E63946] rounded-none px-3 text-xs font-bold font-mono text-black outline-none"
+                  className={styles.inputMono}
               />
             </div>
 
-            <div className="flex gap-2.5 pt-2">
-              <button
-                  type="button"
-                  onClick={onClose}
-                  className="flex-1 h-11 bg-white hover:bg-slate-100 text-xs text-black font-black uppercase tracking-wider border-2 border-black rounded-none cursor-pointer geo-shadow-sm active:translate-y-0.5"
-              >
+            <div className={styles.actions}>
+              <button type="button" onClick={onClose} className={`${styles.btnCancel} geo-shadow-sm`}>
                 취소
               </button>
-              <button
-                  type="submit"
-                  className="flex-1 h-11 bg-black hover:bg-[#E63946] text-xs text-white font-black uppercase tracking-wider border-2 border-black rounded-none flex items-center justify-center gap-1 cursor-pointer geo-shadow-sm active:translate-y-0.5"
-              >
+              <button type="submit" className={`${styles.btnSave} geo-shadow-sm`}>
                 추가하기
               </button>
             </div>
@@ -446,52 +426,52 @@ export const CycleModal: React.FC<CycleModalProps> = ({
   };
 
   return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75">
-        <div className="bg-white border-4 border-black rounded-none p-6 w-full max-w-sm geo-shadow-lg">
-          <div className="flex items-center justify-between border-b-2 border-black pb-3.5 mb-5">
-            <h3 className="text-sm font-black text-black">소비 주기 설정 변경</h3>
-            <button onClick={onClose} className="p-1.5 bg-white border-2 border-black text-black hover:bg-[#E63946] hover:text-white rounded-none cursor-pointer">
-              <X className="h-4 w-4" />
+      <div className={styles.overlay}>
+        <div className={`${styles.panel} geo-shadow-lg`}>
+          <div className={styles.modalHeader}>
+            <h3 className={styles.modalTitle}>소비 주기 설정 변경</h3>
+            <button onClick={onClose} className={styles.closeBtn}>
+              <X className={styles.closeIcon} />
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className={styles.form}>
             <div>
-              <label className="block text-xs font-black text-black mb-1.5">주기 구분 명칭</label>
+              <label className={styles.label}>주기 구분 명칭</label>
               <input
                   type="text"
                   required
                   value={label}
                   onChange={(e) => setLabel(e.target.value)}
-                  className="w-full h-11 border-2 border-black bg-white focus:border-[#E63946] focus:ring-1 focus:ring-[#E63946] rounded-none px-3 text-xs font-bold text-black outline-none"
+                  className={styles.input}
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-2.5">
+            <div className={styles.grid2}>
               <div>
-                <label className="block text-xs font-black text-black mb-1.5">시작</label>
+                <label className={styles.label}>시작</label>
                 <input
                     type="date"
                     required
                     value={start}
                     onChange={(e) => setStart(e.target.value)}
-                    className="w-full h-11 border-2 border-black bg-white focus:border-[#E63946] focus:ring-1 focus:ring-[#E63946] rounded-none px-2 text-xs font-bold font-mono text-black outline-none"
+                    className={styles.inputMonoTight}
                 />
               </div>
               <div>
-                <label className="block text-xs font-black text-black mb-1.5">종료</label>
+                <label className={styles.label}>종료</label>
                 <input
                     type="date"
                     required
                     value={end}
                     onChange={(e) => setEnd(e.target.value)}
-                    className="w-full h-11 border-2 border-black bg-white focus:border-[#E63946] focus:ring-1 focus:ring-[#E63946] rounded-none px-2 text-xs font-bold font-mono text-black outline-none"
+                    className={styles.inputMonoTight}
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-black text-black mb-1.5">주기 배정 예산</label>
+              <label className={styles.label}>주기 배정 예산</label>
               <input
                   type="number"
                   required
@@ -499,23 +479,16 @@ export const CycleModal: React.FC<CycleModalProps> = ({
                   placeholder="0"
                   value={budget}
                   onChange={(e) => setBudget(e.target.value)}
-                  className="w-full h-11 border-2 border-black bg-white focus:border-[#E63946] focus:ring-1 focus:ring-[#E63946] rounded-none px-3 text-xs font-bold font-mono text-black outline-none"
+                  className={styles.inputMono}
               />
-              <span className="text-[10px] text-[#E63946] font-bold uppercase tracking-wider mt-1.5 block">※ 이 주기에 배당할 전용 소비 한도입니다.</span>
+              <span className={styles.hintRed}>※ 이 주기에 배당할 전용 소비 한도입니다.</span>
             </div>
 
-            <div className="flex gap-2.5 pt-2">
-              <button
-                  type="button"
-                  onClick={onClose}
-                  className="flex-1 h-11 bg-white hover:bg-slate-100 text-xs text-black font-black uppercase tracking-wider border-2 border-black rounded-none cursor-pointer geo-shadow-sm active:translate-y-0.5"
-              >
+            <div className={styles.actions}>
+              <button type="button" onClick={onClose} className={`${styles.btnCancel} geo-shadow-sm`}>
                 취소
               </button>
-              <button
-                  type="submit"
-                  className="flex-1 h-11 bg-black hover:bg-[#E63946] text-xs text-white font-black uppercase tracking-wider border-2 border-black rounded-none flex items-center justify-center gap-1 cursor-pointer geo-shadow-sm active:translate-y-0.5"
-              >
+              <button type="submit" className={`${styles.btnSave} geo-shadow-sm`}>
                 저장
               </button>
             </div>
@@ -560,30 +533,30 @@ export const EventModal: React.FC<EventModalProps> = ({ isOpen, onClose, onSave 
   };
 
   return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75">
-        <div className="bg-white border-4 border-black rounded-none p-6 w-full max-w-sm geo-shadow-lg">
-          <div className="flex items-center justify-between border-b-2 border-black pb-3.5 mb-5">
-            <h3 className="text-sm font-black text-black">경조사비 추가</h3>
-            <button onClick={onClose} className="p-1.5 bg-white border-2 border-black text-black hover:bg-[#E63946] hover:text-white rounded-none cursor-pointer">
-              <X className="h-4 w-4" />
+      <div className={styles.overlay}>
+        <div className={`${styles.panel} geo-shadow-lg`}>
+          <div className={styles.modalHeader}>
+            <h3 className={styles.modalTitle}>경조사비 추가</h3>
+            <button onClick={onClose} className={styles.closeBtn}>
+              <X className={styles.closeIcon} />
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className={styles.form}>
             <div>
-              <label className="block text-xs font-black text-black mb-1.5">경조사명</label>
+              <label className={styles.label}>경조사명</label>
               <input
                   type="text"
                   required
                   placeholder="예: 어버이날 용돈, 지인 결혼식 등"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full h-11 border-2 border-black bg-white focus:border-[#E63946] focus:ring-1 focus:ring-[#E63946] rounded-none px-3 text-xs font-bold text-black outline-none"
+                  className={styles.input}
               />
             </div>
 
             <div>
-              <label className="block text-xs font-black text-black mb-1.5">금액</label>
+              <label className={styles.label}>금액</label>
               <input
                   type="number"
                   required
@@ -591,23 +564,16 @@ export const EventModal: React.FC<EventModalProps> = ({ isOpen, onClose, onSave 
                   placeholder="0"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  className="w-full h-11 border-2 border-black bg-white focus:border-[#E63946] focus:ring-1 focus:ring-[#E63946] rounded-none px-3 text-xs font-bold font-mono text-black outline-none"
+                  className={styles.inputMono}
               />
             </div>
 
-            <div className="flex gap-2.5 pt-2">
-              <button
-                  type="button"
-                  onClick={onClose}
-                  className="flex-1 h-11 bg-white hover:bg-slate-100 text-xs text-black font-black uppercase tracking-wider border-2 border-black rounded-none cursor-pointer geo-shadow-sm active:translate-y-0.5"
-              >
+            <div className={styles.actions}>
+              <button type="button" onClick={onClose} className={`${styles.btnCancel} geo-shadow-sm`}>
                 취소
               </button>
-              <button
-                  type="submit"
-                  className="flex-1 h-11 bg-black hover:bg-[#E63946] text-xs text-white font-black uppercase tracking-wider border-2 border-black rounded-none flex items-center justify-center gap-1 cursor-pointer geo-shadow-sm active:translate-y-0.5"
-              >
-                <Save className="h-4 w-4" /> 저장
+              <button type="submit" className={`${styles.btnSave} geo-shadow-sm`}>
+                <Save className={styles.btnIcon} /> 저장
               </button>
             </div>
           </form>
@@ -615,6 +581,7 @@ export const EventModal: React.FC<EventModalProps> = ({ isOpen, onClose, onSave 
       </div>
   );
 };
+
 // ===================== INCOME MODAL =====================
 interface IncomeModalProps {
   isOpen: boolean;
@@ -660,52 +627,49 @@ export const IncomeModal: React.FC<IncomeModalProps> = ({ isOpen, onClose, onSav
   const getCleanLabel = (label: string) => label.replace(/\s*\(.*?\)\s*/g, "").trim();
 
   return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75"
-           onClick={onClose}>
-        <div className="bg-white border-4 border-black w-full max-w-sm geo-shadow-lg"
-             onClick={(e) => e.stopPropagation()}>
-          <div className="flex items-center justify-between border-b-4 border-black px-5 py-4">
-            <h3 className="text-sm font-black text-black">{initialItem ? "수입 수정" : "추가 수입"}</h3>
-            <button onClick={onClose} className="p-1.5 bg-white border-2 border-black hover:bg-[#E63946] hover:text-white cursor-pointer">
-              <X className="h-4 w-4" />
+      <div className={styles.overlay} onClick={onClose}>
+        <div className={`${styles.panelFlush} geo-shadow-lg`} onClick={(e) => e.stopPropagation()}>
+          <div className={styles.modalHeaderFlush}>
+            <h3 className={styles.modalTitle}>{initialItem ? "수입 수정" : "추가 수입"}</h3>
+            <button onClick={onClose} className={styles.closeBtn}>
+              <X className={styles.closeIcon} />
             </button>
           </div>
-          <div className="p-5 space-y-4">
+          <div className={styles.incomeBody}>
             <div>
-              <label className="block text-xs font-black mb-1.5">수입 내용</label>
+              <label className={styles.label}>수입 내용</label>
               <input type="text" value={name} onChange={(e) => setName(e.target.value)}
                      placeholder="예: 부업 수입, 환급금 등"
                      lang="ko" inputMode="text"
-                     className="w-full h-11 border-2 border-black px-3 font-bold outline-none focus:border-[#E63946]"
+                     className={styles.incomeInput}
                      style={{ fontSize: "16px" }} />
             </div>
             <div>
-              <label className="block text-xs font-black mb-1.5">금액 (원)</label>
+              <label className={styles.label}>금액 (원)</label>
               <input type="number" inputMode="numeric" pattern="[0-9]*"
                      value={amount} onChange={(e) => setAmount(e.target.value)}
                      placeholder="0"
-                     className="w-full h-11 border-2 border-black px-3 font-bold font-mono outline-none focus:border-[#E63946]"
+                     className={styles.incomeInputMono}
                      style={{ fontSize: "16px" }}
                      onKeyDown={(e) => e.key === "Enter" && handleSave()} />
             </div>
             <div>
-              <label className="block text-xs font-black mb-1.5">적용 주기</label>
-              <div className="flex flex-col gap-2">
+              <label className={styles.label}>적용 주기</label>
+              <div className={styles.cycleSelectCol}>
                 {cycles.map((c, i) => (
                     <button key={i} onClick={() => setCycleIdx(i)}
-                            className={`w-full py-2.5 text-xs font-black border-2 border-black transition-all cursor-pointer ${cycleIdx === i ? "bg-black text-white" : "bg-white text-black hover:bg-slate-100"}`}>
+                            className={styles.cycleSelectBtn}
+                            data-active={cycleIdx === i}>
                       {getCleanLabel(c.label)}
                     </button>
                 ))}
               </div>
             </div>
-            <div className="flex gap-2 pt-1">
-              <button onClick={onClose}
-                      className="flex-1 h-11 bg-white text-black text-xs font-black border-2 border-black hover:bg-slate-100 cursor-pointer">
+            <div className={styles.incomeActions}>
+              <button onClick={onClose} className={styles.incomeBtnCancel}>
                 취소
               </button>
-              <button onClick={handleSave}
-                      className="flex-1 h-11 bg-black text-white text-xs font-black border-2 border-black hover:bg-[#E63946] cursor-pointer">
+              <button onClick={handleSave} className={styles.incomeBtnSave}>
                 저장
               </button>
             </div>
@@ -794,10 +758,6 @@ export const InstallmentModal: React.FC<InstallmentModalProps> = ({
     onClose();
   };
 
-  const inputCls =
-      "w-full h-11 border-2 border-black bg-white focus:border-[#E63946] focus:ring-1 focus:ring-[#E63946] rounded-none px-3 text-xs font-bold text-black outline-none";
-  const monoCls = inputCls + " font-mono";
-
   // 미리보기용 종료 월
   const endLabel = (() => {
     if (!startMonth) return "";
@@ -811,20 +771,20 @@ export const InstallmentModal: React.FC<InstallmentModalProps> = ({
   })();
 
   return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75"
+      <div className={styles.overlay}
            onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-        <div className="bg-white border-4 border-black rounded-none p-6 w-full max-w-sm geo-shadow-lg"
+        <div className={`${styles.panel} geo-shadow-lg`}
              onClick={(e) => e.stopPropagation()}>
-          <div className="flex items-center justify-between border-b-2 border-black pb-3.5 mb-5">
-            <h3 className="text-sm font-black text-black">{initialItem ? "할부 수정" : "할부 추가"}</h3>
-            <button onClick={onClose} className="p-1.5 bg-white border-2 border-black text-black hover:bg-[#E63946] hover:text-white rounded-none cursor-pointer">
-              <X className="h-4 w-4" />
+          <div className={styles.modalHeader}>
+            <h3 className={styles.modalTitle}>{initialItem ? "할부 수정" : "할부 추가"}</h3>
+            <button onClick={onClose} className={styles.closeBtn}>
+              <X className={styles.closeIcon} />
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className={styles.form}>
             <div>
-              <label className="block text-xs font-black text-black mb-1.5">항목명</label>
+              <label className={styles.label}>항목명</label>
               <input
                   type="text"
                   required
@@ -833,25 +793,25 @@ export const InstallmentModal: React.FC<InstallmentModalProps> = ({
                   onChange={(e) => setName(e.target.value)}
                   lang="ko"
                   autoComplete="off"
-                  className={inputCls}
+                  className={styles.input}
                   style={{ fontSize: "16px" }}
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className={styles.grid2Wide}>
               <div>
-                <label className="block text-xs font-black text-black mb-1.5">시작 월</label>
+                <label className={styles.label}>시작 월</label>
                 <input
                     type="month"
                     required
                     value={startMonth}
                     onChange={(e) => setStartMonth(e.target.value)}
-                    className={monoCls + " appearance-none"}
+                    className={styles.inputMonoNative}
                     style={{ fontSize: "16px" }}
                 />
               </div>
               <div>
-                <label className="block text-xs font-black text-black mb-1.5">개월 수</label>
+                <label className={styles.label}>개월 수</label>
                 <input
                     type="number"
                     required
@@ -859,14 +819,14 @@ export const InstallmentModal: React.FC<InstallmentModalProps> = ({
                     placeholder="예: 6"
                     value={months}
                     onChange={(e) => setMonths(e.target.value)}
-                    className={monoCls}
+                    className={styles.inputMono}
                     style={{ fontSize: "16px" }}
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-black text-black mb-1.5">총 결제금액</label>
+              <label className={styles.label}>총 결제금액</label>
               <input
                   type="number"
                   required
@@ -874,15 +834,15 @@ export const InstallmentModal: React.FC<InstallmentModalProps> = ({
                   placeholder="0"
                   value={total}
                   onChange={(e) => setTotal(e.target.value)}
-                  className={monoCls}
+                  className={styles.inputMono}
                   style={{ fontSize: "16px" }}
               />
             </div>
 
             <div>
-              <label className="block text-xs font-black text-black mb-1.5 flex justify-between items-center">
+              <label className={styles.labelBetween}>
                 <span>월 납부액</span>
-                <span className="text-[10px] text-slate-500 font-bold">자동 계산 · 수정 가능</span>
+                <span className={styles.labelHintInline}>자동 계산 · 수정 가능</span>
               </label>
               <input
                   type="number"
@@ -891,14 +851,14 @@ export const InstallmentModal: React.FC<InstallmentModalProps> = ({
                   placeholder="0"
                   value={monthly}
                   onChange={(e) => { setMonthly(e.target.value); setMonthlyEdited(true); }}
-                  className={monoCls}
+                  className={styles.inputMono}
                   style={{ fontSize: "16px" }}
               />
               {monthlyEdited && (
                   <button
                       type="button"
                       onClick={() => setMonthlyEdited(false)}
-                      className="mt-1.5 text-[10px] font-black text-slate-500 underline hover:text-[#E63946] cursor-pointer"
+                      className={styles.revertBtn}
                   >
                     ↻ 자동 계산으로 되돌리기
                   </button>
@@ -906,24 +866,17 @@ export const InstallmentModal: React.FC<InstallmentModalProps> = ({
             </div>
 
             {startMonth && endLabel && (
-                <div className="bg-[#F0F0F0] border-2 border-black px-3 py-2 text-[10px] font-black text-black font-mono">
+                <div className={styles.previewBoxGray}>
                   {startMonth} ~ {endLabel} 매달 반영
                 </div>
             )}
 
-            <div className="flex gap-2.5 pt-2">
-              <button
-                  type="button"
-                  onClick={onClose}
-                  className="flex-1 h-11 bg-white hover:bg-slate-100 text-xs text-black font-black uppercase tracking-wider border-2 border-black rounded-none cursor-pointer geo-shadow-sm active:translate-y-0.5"
-              >
+            <div className={styles.actions}>
+              <button type="button" onClick={onClose} className={`${styles.btnCancel} geo-shadow-sm`}>
                 취소
               </button>
-              <button
-                  type="submit"
-                  className="flex-1 h-11 bg-black hover:bg-[#E63946] text-xs text-white font-black uppercase tracking-wider border-2 border-black rounded-none flex items-center justify-center gap-1 cursor-pointer geo-shadow-sm active:translate-y-0.5"
-              >
-                <Save className="h-4 w-4" /> 저장
+              <button type="submit" className={`${styles.btnSave} geo-shadow-sm`}>
+                <Save className={styles.btnIcon} /> 저장
               </button>
             </div>
           </form>
@@ -993,39 +946,32 @@ export const DebtModal: React.FC<DebtModalProps> = ({
     onClose();
   };
 
-  const inputCls =
-      "w-full h-11 border-2 border-black bg-white focus:border-[#E63946] focus:ring-1 focus:ring-[#E63946] rounded-none px-3 text-xs font-bold text-black outline-none";
-  const monoCls = inputCls + " font-mono";
-
   return (
       <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75"
+          className={styles.overlay}
           onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
       >
         <div
-            className="bg-white border-4 border-black rounded-none p-6 w-full max-w-sm geo-shadow-lg"
+            className={`${styles.panel} geo-shadow-lg`}
             onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center justify-between border-b-2 border-black pb-3.5 mb-5">
-            <h3 className="text-sm font-black text-black flex items-center gap-2">
+          <div className={styles.modalHeader}>
+            <h3 className={styles.modalTitleFlex}>
               🔴 {initialItem ? "당겨쓰기 수정" : "당겨쓰기 추가"}
             </h3>
-            <button
-                onClick={onClose}
-                className="p-1.5 bg-white border-2 border-black text-black hover:bg-[#E63946] hover:text-white rounded-none cursor-pointer"
-            >
-              <X className="h-4 w-4" />
+            <button onClick={onClose} className={styles.closeBtn}>
+              <X className={styles.closeIcon} />
             </button>
           </div>
 
-          <p className="text-[10px] font-bold text-slate-500 bg-[#F0F0F0] border-2 border-black px-3 py-2 mb-4 leading-relaxed">
+          <p className={styles.debtNotice}>
             지난달 초과 지출 등 이번 달 생활비 예산에서 갚아야 할 금액을 등록합니다.<br />
             총예산 자동 분배 시 이 금액도 생활비에서 자동 차감됩니다.
           </p>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className={styles.form}>
             <div>
-              <label className="block text-xs font-black text-black mb-1.5">메모</label>
+              <label className={styles.label}>메모</label>
               <input
                   type="text"
                   required
@@ -1034,13 +980,13 @@ export const DebtModal: React.FC<DebtModalProps> = ({
                   onChange={(e) => setName(e.target.value)}
                   lang="ko"
                   autoComplete="off"
-                  className={inputCls}
+                  className={styles.input}
                   style={{ fontSize: "16px" }}
               />
             </div>
 
             <div>
-              <label className="block text-xs font-black text-black mb-1.5">금액</label>
+              <label className={styles.label}>금액</label>
               <input
                   type="number"
                   required
@@ -1048,55 +994,48 @@ export const DebtModal: React.FC<DebtModalProps> = ({
                   placeholder="0"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  className={monoCls}
+                  className={styles.inputMono}
                   style={{ fontSize: "16px" }}
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className={styles.grid2Wide}>
               <div>
-                <label className="block text-xs font-black text-black mb-1.5">발생 월</label>
+                <label className={styles.label}>발생 월</label>
                 <input
                     type="month"
                     required
                     value={fromMonth}
                     onChange={(e) => setFromMonth(e.target.value)}
-                    className={monoCls + " appearance-none"}
+                    className={styles.inputMonoNative}
                     style={{ fontSize: "16px" }}
                 />
               </div>
               <div>
-                <label className="block text-xs font-black text-black mb-1.5">차감 월</label>
+                <label className={styles.label}>차감 월</label>
                 <input
                     type="month"
                     required
                     value={targetMonth}
                     onChange={(e) => setTargetMonth(e.target.value)}
-                    className={monoCls + " appearance-none"}
+                    className={styles.inputMonoNative}
                     style={{ fontSize: "16px" }}
                 />
               </div>
             </div>
 
             {fromMonth && targetMonth && (
-                <div className="bg-black text-white px-3 py-2 text-[10px] font-black font-mono">
+                <div className={styles.previewBoxBlack}>
                   {fromMonth}에 발생 → {targetMonth} 예산에서 차감
                 </div>
             )}
 
-            <div className="flex gap-2.5 pt-2">
-              <button
-                  type="button"
-                  onClick={onClose}
-                  className="flex-1 h-11 bg-white hover:bg-slate-100 text-xs text-black font-black uppercase tracking-wider border-2 border-black rounded-none cursor-pointer geo-shadow-sm active:translate-y-0.5"
-              >
+            <div className={styles.actions}>
+              <button type="button" onClick={onClose} className={`${styles.btnCancel} geo-shadow-sm`}>
                 취소
               </button>
-              <button
-                  type="submit"
-                  className="flex-1 h-11 bg-black hover:bg-[#E63946] text-xs text-white font-black uppercase tracking-wider border-2 border-black rounded-none flex items-center justify-center gap-1 cursor-pointer geo-shadow-sm active:translate-y-0.5"
-              >
-                <Save className="h-4 w-4" /> 저장
+              <button type="submit" className={`${styles.btnSave} geo-shadow-sm`}>
+                <Save className={styles.btnIcon} /> 저장
               </button>
             </div>
           </form>

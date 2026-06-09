@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { MonthData, ExpenseItem } from "../types";
-import { Plus, ChevronDown, Archive, Check, TrendingUp, Edit2, CreditCard } from "lucide-react";
+import { Plus, ChevronDown, Archive, Check, TrendingUp, Edit2 } from "lucide-react";
+import styles from "../css/ExpensesTab.module.css";
 
 interface ExpensesTabProps {
     data: MonthData;
@@ -12,6 +13,8 @@ interface ExpensesTabProps {
     onAddIncome: () => void;
     onEditIncome: (id: string) => void;
     onDeleteIncome: (id: string) => void;
+    isMonthNavOpen: boolean;
+    
 }
 
 export const ExpensesTab: React.FC<ExpensesTabProps> = ({
@@ -24,6 +27,7 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
                                                             onAddIncome,
                                                             onEditIncome,
                                                             onDeleteIncome,
+                                                            isMonthNavOpen,
                                                         }) => {
     const getInitialCollapsed = () => {
         const today = new Date().toISOString().split("T")[0];
@@ -87,6 +91,7 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
         const settle = e.settleAmount || 0;      // 정산받을(친구 몫)
         const net = e.amount - settle;           // 내 몫
         const isSplit = settle > 0;
+        const checkState = !reflected ? "unreflected" : !paid ? "unpaid" : "paid";
         return (
             <div
                 key={originalIdx}
@@ -104,42 +109,36 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
                     setDragOverIdx(null);
                 }}
                 onDragEnd={() => setDragOverIdx(null)}
-                className={`flex items-center justify-between p-3.5 gap-3 transition-colors cursor-grab active:cursor-grabbing active:opacity-50 ${
-                    dragOverIdx === originalIdx ? "bg-slate-100 border-l-4 border-[#E63946]" : "hover:bg-slate-50"
-                }`}
+                className={styles.expenseItem}
+                data-dragover={dragOverIdx === originalIdx}
             >
-                <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className={styles.expenseLeft}>
                     <button
                         onClick={(evt) => { evt.stopPropagation(); onCycleStatus(originalIdx); }}
                         title={!reflected ? "미반영 (눌러서 예산반영)" : !paid ? "예산반영·결제대기 (눌러서 결제완료)" : "결제완료 (눌러서 미반영)"}
-                        className={`h-5 w-5 border-2 flex items-center justify-center transition-all shrink-0 rounded-none cursor-pointer ${
-                            !reflected
-                                ? "bg-white border-slate-300 text-transparent hover:border-[#E63946]"
-                                : !paid
-                                    ? "bg-[#E63946] border-[#E63946] text-white hover:bg-black hover:border-black"
-                                    : "bg-black border-black text-white hover:bg-slate-700"
-                        }`}
+                        className={styles.checkbox}
+                        data-state={checkState}
                     >
-                        {paid && <Check className="h-3.5 w-3.5 stroke-[3.5px]" />}
+                        {paid && <Check className={styles.checkboxCheck} />}
                     </button>
-                    <div className="min-w-0 flex-1">
-                        <p className={`text-xs font-black truncate ${reflected ? "text-black" : "text-slate-400 line-through decoration-black/40 decoration-2"}`}>
+                    <div className={styles.expenseTextWrap}>
+                        <p className={styles.expenseName} data-reflected={reflected}>
                             {e.name}
                         </p>
                         {isSplit && (
-                            <p className="text-[10px] font-bold text-slate-500 mt-0.5 truncate">
+                            <p className={styles.expenseSplit}>
                                 💳 카드 {formatCurrency(e.amount)} · 정산 -{formatCurrency(settle)}
                             </p>
                         )}
                     </div>
                 </div>
-                <div className="flex items-center gap-3 shrink-0">
-          <span className={`text-xs font-black font-mono ${reflected ? "text-black" : "text-slate-400 line-through decoration-black/40 decoration-2"}`}>
-            -{formatCurrency(net)}
-          </span>
-                    <div className="flex items-center gap-1.5">
-                        <button onClick={() => onEditExpense(originalIdx)} className="p-1 px-2.5 bg-white hover:bg-black border border-black text-[10px] text-black hover:text-white font-bold transition-all cursor-pointer rounded-none">수정</button>
-                        <button onClick={() => onDeleteExpense(originalIdx)} className="p-1 px-2.5 bg-white hover:bg-[#E63946] border border-black hover:border-[#E63946] text-[10px] text-black hover:text-white font-bold transition-all cursor-pointer rounded-none">삭제</button>
+                <div className={styles.expenseRight}>
+                    <span className={styles.expenseAmount} data-reflected={reflected}>
+                        -{formatCurrency(net)}
+                    </span>
+                    <div className={styles.expenseActions}>
+                        <button onClick={() => onEditExpense(originalIdx)} className={styles.editBtn}>수정</button>
+                        <button onClick={() => onDeleteExpense(originalIdx)} className={styles.deleteBtn}>삭제</button>
                     </div>
                 </div>
             </div>
@@ -160,9 +159,9 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
             const [, m, d] = date.split("-");
             return (
                 <div key={date}>
-                    <div className="flex items-center justify-between px-3.5 py-1.5 bg-slate-50 border-b border-black/10 sticky top-0">
-                        <span className="text-[10px] font-black font-mono text-slate-500">{parseInt(m, 10)}/{parseInt(d, 10)}</span>
-                        <span className="text-[10px] font-black font-mono text-slate-400">-{formatCurrency(dayTotal)}</span>
+                    <div className={styles.dateGroupHeader}>
+                        <span className={styles.dateGroupLabel}>{parseInt(m, 10)}/{parseInt(d, 10)}</span>
+                        <span className={styles.dateGroupTotal}>-{formatCurrency(dayTotal)}</span>
                     </div>
                     {dayExps.map(renderExpenseItem)}
                 </div>
@@ -171,47 +170,30 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
     };
 
     return (
-        <div className="space-y-4">
-            <div className="flex items-center justify-between pb-2">
-                <h2 className="text-sm font-black uppercase tracking-wider text-black">지출 내역 기록</h2>
-                <div className="flex items-center gap-2">
-                    <button
-                        onClick={onAddIncome}
-                        className="inline-flex items-center gap-1.5 bg-emerald-600 border-2 border-emerald-600 text-white hover:bg-emerald-700 active:translate-y-0.5 text-xs font-black uppercase tracking-wider px-3 py-2 rounded-none transition-all cursor-pointer geo-shadow-sm"
-                    >
-                        <TrendingUp className="h-4 w-4" /> 수입
-                    </button>
-                    <button
-                        onClick={onAddExpense}
-                        className="inline-flex items-center gap-1.5 bg-black border-2 border-black text-white hover:bg-[#E63946] hover:border-[#E63946] active:translate-y-0.5 text-xs font-black uppercase tracking-wider px-3 py-2 rounded-none transition-all cursor-pointer geo-shadow-sm"
-                    >
-                        <Plus className="h-4 w-4" /> 지출
-                    </button>
+        <div className={styles.container} style={{ "--cycle-header-top": isMonthNavOpen ? "132px" : "76px" } as React.CSSProperties}>
+            <div className={styles.header}>
+                <h2 className={styles.headerTitle}>지출 내역 기록</h2>
+                <div className={styles.headerRight}>
+                    {unpaidCount > 0 ? (
+                        <span className={styles.unpaidText}>
+                            미결제 {unpaidCount}건 · {formatCurrency(unpaidTotal)}
+                            {unpaidHasSplit && <span className={styles.unpaidNote}> (정산분 포함)</span>}
+                        </span>
+                    ) : (
+                        <span className={styles.paidText}>✓ 결제 완료</span>
+                    )}
+                    <div className={styles.headerActions}>
+                        <button onClick={onAddIncome} className={`${styles.btnIncome} geo-shadow-sm`}>
+                            <TrendingUp className={styles.btnIcon} /> 수입
+                        </button>
+                        <button onClick={onAddExpense} className={`${styles.btnExpense} geo-shadow-sm`}>
+                            <Plus className={styles.btnIcon} /> 지출
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            {/* 미결제(결제대기) 요약 — 통장에 확보해둬야 할 금액 */}
-            {unpaidCount > 0 ? (
-                <div className="flex items-center justify-between gap-3 bg-[#E63946] text-white border-2 border-black p-3.5 rounded-none geo-shadow">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                        <CreditCard className="h-5 w-5 shrink-0" />
-                        <div className="min-w-0">
-                            <p className="text-xs font-black uppercase tracking-wider">미결제 {unpaidCount}건</p>
-                            <p className="text-[10px] font-bold opacity-90 mt-0.5">{unpaidHasSplit ? " (정산분 포함)" : ""}</p>
-                        </div>
-                    </div>
-                    <span className="text-sm font-black font-mono shrink-0">{formatCurrency(unpaidTotal)}</span>
-                </div>
-            ) : (
-                <div className="flex items-center gap-2.5 bg-white text-black border-2 border-black p-3.5 rounded-none geo-shadow">
-                    <div className="h-5 w-5 bg-black text-white flex items-center justify-center shrink-0">
-                        <Check className="h-3.5 w-3.5 stroke-[3px]" />
-                    </div>
-                    <p className="text-xs font-black uppercase tracking-wider">전부 결제 완료</p>
-                </div>
-            )}
-
-            <div className="space-y-3.5">
+            <div className={styles.cycleList}>
                 {data.cycles.map((c, ci) => {
                     const cycleExps = getCycleExpenses(c.start, c.end);
                     const spent = getCycleSpent(c.start, c.end);
@@ -221,29 +203,26 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
                     const carryIn = c.carryIn ?? 0;
 
                     return (
-                        <div key={ci} className="bg-white border-2 border-black rounded-none geo-shadow">
-                            <div
-                                onClick={() => toggleCollapse(ci)}
-                                className="flex items-center justify-between p-4 bg-[#F9F9F9] hover:bg-slate-100 border-b-2 border-black cursor-pointer select-none transition-colors sticky top-[120px] z-10"
-                            >
-                                <div className="flex items-center gap-2.5 min-w-0">
-                                    <ChevronDown className={`h-4 w-4 text-black transition-transform duration-200 ${isOpen ? "rotate-0" : "-rotate-90"}`} />
-                                    <div className="min-w-0">
-                                        <div className="flex items-center gap-2 flex-wrap">
-                                            <span className="text-xs font-black uppercase tracking-wider text-black">{getCleanLabel(c.label)}</span>
-                                            <span className="text-[10px] font-mono text-black font-extrabold bg-white px-1.5 py-0.5 border border-black">
-                        ({dlabel(c.start)} ~ {dlabel(c.end)})
-                      </span>
+                        <div key={ci} className={`${styles.cycleCard} geo-shadow`}>
+                            <div onClick={() => toggleCollapse(ci)} className={styles.cycleHeader}>
+                                <div className={styles.cycleHeaderLeft}>
+                                    <ChevronDown className={styles.chevron} data-open={isOpen} />
+                                    <div className={styles.cycleHeaderInfo}>
+                                        <div className={styles.cycleLabelRow}>
+                                            <span className={styles.cycleLabel}>{getCleanLabel(c.label)}</span>
+                                            <span className={styles.cycleDateRange}>
+                                                ({dlabel(c.start)} ~ {dlabel(c.end)})
+                                            </span>
                                         </div>
-                                        <div className="flex items-center gap-3 mt-1 flex-wrap">
-                                            <span className="text-[10px] text-slate-500 font-bold">내 예산 <span className="text-black font-black">{formatCurrency(baseBudget)}</span></span>
-                                            {(c as any).incomeAmount > 0 && <span className="text-[10px] font-bold">수입 <span className="font-black text-emerald-600">+{formatCurrency((c as any).incomeAmount)}</span></span>}
-                                            <span className="text-[10px] text-slate-500 font-bold">이월 <span className={`font-black ${carryIn > 0 ? "text-emerald-600" : "text-slate-300"}`}>+{formatCurrency(carryIn)}</span></span>
-                                            <span className="text-[10px] text-slate-500 font-bold">사용예산 <span className="text-black font-black">{formatCurrency(c.budget)}</span></span>
+                                        <div className={styles.cycleStatsRow}>
+                                            <span className={styles.cycleStat}>내 예산 <span className={styles.cycleStatValue}>{formatCurrency(baseBudget)}</span></span>
+                                            {(c as any).incomeAmount > 0 && <span className={styles.cycleStatIncome}>수입 <span className={styles.cycleStatIncomeValue}>+{formatCurrency((c as any).incomeAmount)}</span></span>}
+                                            <span className={styles.cycleStat}>이월 <span className={styles.carryInValue} data-positive={carryIn > 0}>+{formatCurrency(carryIn)}</span></span>
+                                            <span className={styles.cycleStat}>사용예산 <span className={styles.cycleStatValue}>{formatCurrency(c.budget)}</span></span>
                                         </div>
                                     </div>
                                 </div>
-                                <div className={`text-xs font-black font-mono shrink-0 ${bal < 0 ? "text-[#E63946]" : "text-black"}`}>
+                                <div className={styles.cycleBalance} data-negative={bal < 0}>
                                     {bal < 0 ? "-" : ""}{formatCurrency(Math.abs(bal))}
                                 </div>
                             </div>
@@ -252,21 +231,21 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
                                 <div>
                                     {/* 수입 내역 */}
                                     {(data.incomes || []).filter((inc) => inc.cycleIdx === ci).map((inc) => (
-                                        <div key={inc.id} className="flex items-center justify-between px-3.5 py-2.5 bg-emerald-50 border-b border-emerald-200">
-                                            <div className="flex items-center gap-2">
-                                                <TrendingUp className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
-                                                <span className="text-xs font-black text-emerald-700">{inc.name}</span>
+                                        <div key={inc.id} className={styles.incomeRow}>
+                                            <div className={styles.incomeLeft}>
+                                                <TrendingUp className={styles.incomeIcon} />
+                                                <span className={styles.incomeName}>{inc.name}</span>
                                             </div>
-                                            <div className="flex items-center gap-2 shrink-0">
-                                                <span className="text-xs font-black font-mono text-emerald-600">+{formatCurrency(inc.amount)}</span>
-                                                <button onClick={() => onEditIncome(inc.id)} className="p-1 hover:bg-emerald-200 border border-emerald-300 transition-all cursor-pointer"><Edit2 className="h-3 w-3 text-emerald-700" /></button>
-                                                <button onClick={() => onDeleteIncome(inc.id)} className="p-1 hover:bg-red-100 border border-red-200 transition-all cursor-pointer text-red-400 hover:text-red-600 text-[10px] font-black">✕</button>
+                                            <div className={styles.incomeRight}>
+                                                <span className={styles.incomeAmount}>+{formatCurrency(inc.amount)}</span>
+                                                <button onClick={() => onEditIncome(inc.id)} className={styles.incomeEditBtn}><Edit2 className={styles.incomeEditIcon} /></button>
+                                                <button onClick={() => onDeleteIncome(inc.id)} className={styles.incomeDeleteBtn}>✕</button>
                                             </div>
                                         </div>
                                     ))}
                                     {cycleExps.length === 0 ? (
-                                        <div className="p-8 text-center text-slate-400 text-xs font-medium uppercase tracking-widest bg-white">
-                                            <Archive className="h-8 w-8 text-black mx-auto mb-2.5 stroke-1" />
+                                        <div className={styles.emptyState}>
+                                            <Archive className={styles.emptyIcon} />
                                             지출 내역이 없습니다.
                                         </div>
                                     ) : (
@@ -284,21 +263,18 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
                     const isOpen = !collapsed[-1];
 
                     return (
-                        <div className="bg-white border-2 border-black rounded-none geo-shadow border-dashed">
-                            <div
-                                onClick={() => toggleCollapse(-1)}
-                                className="flex items-center justify-between p-4 bg-[#FFF5F5] hover:bg-slate-100 border-b-2 border-black border-dashed cursor-pointer select-none transition-colors"
-                            >
-                                <div className="flex items-center gap-2.5 min-w-0">
-                                    <ChevronDown className={`h-4 w-4 text-black transition-transform duration-200 ${isOpen ? "rotate-0" : "-rotate-90"}`} />
-                                    <div className="min-w-0">
-                                        <span className="text-xs font-black uppercase tracking-wider text-[#E63946]">미분류 지출</span>
-                                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-1">
+                        <div className={`${styles.unclassifiedCard} geo-shadow`}>
+                            <div onClick={() => toggleCollapse(-1)} className={styles.unclassifiedHeader}>
+                                <div className={styles.cycleHeaderLeft}>
+                                    <ChevronDown className={styles.chevron} data-open={isOpen} />
+                                    <div className={styles.cycleHeaderInfo}>
+                                        <span className={styles.unclassifiedLabel}>미분류 지출</span>
+                                        <p className={styles.unclassifiedSub}>
                                             {unclassifiedExps.length}개 항목 | 지출 {formatCurrency(spent)}
                                         </p>
                                     </div>
                                 </div>
-                                <div className="text-xs font-black font-mono text-[#E63946]">-{formatCurrency(spent)}</div>
+                                <div className={styles.unclassifiedBalance}>-{formatCurrency(spent)}</div>
                             </div>
 
                             {isOpen && (

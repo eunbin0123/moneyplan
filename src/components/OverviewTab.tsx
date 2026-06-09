@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { MonthData, InstallmentItem, DebtItem } from "../types";
 import { Edit2, ArrowUpRight, TrendingUp, DollarSign, BookOpen, AlertCircle, X, Save } from "lucide-react";
+import styles from "../css/OverviewTab.module.css";
 
 interface OverviewTabProps {
   data: MonthData;
@@ -98,11 +99,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         .reduce((sum, item) => sum + (item.amount - (item.settleAmount || 0)), 0);
   };
 
-  const getPercentageColor = (pct: number) => {
-    if (pct >= 100) return "bg-[#E63946]";
-    if (pct >= 80) return "bg-amber-400";
-    return "bg-black";
-  };
+  // 소진율 → 색상 레벨 (CSS data-level 셀렉터에서 사용)
+  const getLevel = (pct: number) => (pct >= 100 ? "over" : pct >= 80 ? "warn" : "normal");
 
   const getShortMonthLabel = (key: string) => {
     const [, month] = key.split("-");
@@ -218,63 +216,55 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   };
 
   return (
-      <div className="space-y-6">
+      <div className={styles.container}>
         {/* Tab Header with Actions */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3.5 border-b-2 border-black gap-2.5 sm:gap-0">
+        <div className={styles.tabHeader}>
           <div>
-            <h2 className="text-sm sm:text-base font-black text-black flex items-center gap-2 justify-center sm:justify-start select-none">
+            <h2 className={styles.tabTitle}>
               📊 {getShortMonthLabel(activeMonth)} Dashboard
             </h2>
-
           </div>
-          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-
-            <button
-                onClick={() => setIsEditAllocModalOpen(true)}
-                className="inline-flex items-center justify-center gap-1.5 text-xs font-black bg-black text-white border-2 border-black px-3.5 py-1.5 rounded-none hover:bg-[#E63946] hover:border-[#E63946] active:translate-y-0.5 transition-colors cursor-pointer geo-shadow-sm flex-1 sm:flex-none"
-            >
-              <Edit2 className="h-3 w-3 stroke-[3px]" /> 예산 조정
+          <div className={styles.tabActions}>
+            <button onClick={() => setIsEditAllocModalOpen(true)} className={`${styles.btnBudget} geo-shadow-sm`}>
+              <Edit2 className={styles.btnBudgetIcon} /> 예산 조정
             </button>
-            <button
-                onClick={onOpenSavings}
-                className="inline-flex items-center justify-center gap-1.5 text-xs font-black bg-white text-black border-2 border-black px-3.5 py-1.5 rounded-none hover:bg-black hover:text-white active:translate-y-0.5 transition-colors cursor-pointer geo-shadow-sm flex-1 sm:flex-none"
-            >
+            <button onClick={onOpenSavings} className={`${styles.btnSavings} geo-shadow-sm`}>
               💰 분배
             </button>
           </div>
         </div>
 
         {/* 2 Grid Elements: 남은 생활비 예산 & 전체 사용내역 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className={styles.cardGrid}>
           {/* Card 1: 남은 생활비 예산 */}
-          <div className="bg-white border-4 border-black p-4 sm:p-5.5 rounded-none geo-shadow-lg flex flex-col justify-between">
+          <div className={`${styles.cardLight} geo-shadow-lg`}>
             <div>
-              <div className="flex items-center gap-2 mb-3">
-                <span className="h-2.5 w-2.5 bg-black" />
-                <h3 className="text-xs font-black text-black">남은 생활비 예산</h3>
+              <div className={styles.cardHeadRow}>
+                <span className={styles.dotBlack} />
+                <h3 className={styles.cardTitleBlack}>남은 생활비 예산</h3>
               </div>
 
-              <div className="space-y-3.5 my-5 border-t border-b border-black/10 py-5">
+              <div className={styles.specBox}>
                 {/* 내 예산 + 이월금 = 사용예산 */}
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-slate-500 font-bold">내 예산</span>
-                  <span className="font-mono font-black text-black">{formatCurrency(baseLivingBudget)}</span>
+                <div className={styles.specRow}>
+                  <span className={styles.specLabel}>내 예산</span>
+                  <span className={styles.specValue}>{formatCurrency(baseLivingBudget)}</span>
                 </div>
-                <div className="flex justify-between items-center text-xs text-emerald-600 font-bold">
+                <div className={styles.specRowCarry}>
                   <span>이월금 (+)</span>
-                  <span className="font-mono">+{formatCurrency(carryFromPrevMonth)}</span>
+                  <span className={styles.specValueMono}>+{formatCurrency(carryFromPrevMonth)}</span>
                 </div>
-                <div className="flex justify-between items-center text-xs border-t border-slate-100 pt-2 pb-1">
-                  <span className="text-slate-600 font-black">사용 예산</span>
-                  <span className="font-mono font-black text-black">{formatCurrency(effectiveMonthlyBudget)}</span>
+                <div className={styles.specRowSubtotal}>
+                  <span className={styles.specLabelStrong}>사용 예산</span>
+                  <span className={styles.specValue}>{formatCurrency(effectiveMonthlyBudget)}</span>
                 </div>
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-slate-500 font-bold">지출 (-)</span>
-                  <span className="font-mono font-black text-black">{formatCurrency(totalLivingSpent)}</span>
+                <div className={styles.specRow}>
+                  <span className={styles.specLabel}>지출 (-)</span>
+                  <span className={styles.specValue}>{formatCurrency(totalLivingSpent)}</span>
                 </div>
-                <div className="flex justify-between items-center pt-3 border-t border-dashed border-black/20">
-                  <span className="text-slate-900 font-black text-sm">남은 생활비</span>
-                  <span className={`text-base font-black font-mono tracking-tight ${remainingLiving < 0 ? "text-[#E63946] bg-[#E63946]/10 px-1.5 py-0.5" : "text-emerald-600"}`}>
+                <div className={styles.specRowTotal}>
+                  <span className={styles.specRowTotalLabel}>남은 생활비</span>
+                  <span className={styles.remainAmount} data-negative={remainingLiving < 0}>
                     {formatCurrency(remainingLiving)}
                   </span>
                 </div>
@@ -282,14 +272,15 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             </div>
 
             {/* Living Budget Progress Bar */}
-            <div className="space-y-2">
-              <div className="flex justify-between items-center text-[10px] font-black text-slate-500">
+            <div className={styles.progressWrap}>
+              <div className={styles.progressLabelRow}>
                 <span>수행 소진율</span>
-                <span className="font-mono">{livingPct}%</span>
+                <span className={styles.specValueMono}>{livingPct}%</span>
               </div>
-              <div className="h-5 w-full bg-slate-100 border-2 border-black rounded-none overflow-hidden p-[2px]">
+              <div className={styles.progressTrack}>
                 <div
-                    className={`h-full rounded-none transition-all duration-500 ease-out ${getPercentageColor(livingPct)}`}
+                    className={styles.progressFill}
+                    data-level={getLevel(livingPct)}
                     style={{ width: `${Math.min(livingPct, 100)}%` }}
                 />
               </div>
@@ -297,59 +288,56 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           </div>
 
           {/* Card 2: 전체 사용내역 */}
-          <div className="bg-black text-white border-4 border-black p-4 sm:p-5.5 rounded-none geo-shadow-lg flex flex-col justify-between">
+          <div className={`${styles.cardDark} geo-shadow-lg`}>
             <div>
-              <div className="flex items-center gap-2 mb-3">
-                <span className="h-2.5 w-2.5 bg-[#E63946]" />
-                <h3 className="text-xs font-black text-[#E63946]">전체 사용내역 (총 지출 합산)</h3>
+              <div className={styles.cardHeadRow}>
+                <span className={styles.dotRed} />
+                <h3 className={styles.cardTitleRed}>전체 사용내역 (총 지출 합산)</h3>
               </div>
 
-              <div className="space-y-3.5 my-5 border-t border-b border-white/20 py-5">
-                <div className="flex justify-between items-center text-xs text-slate-300">
+              <div className={styles.specBoxDark}>
+                <div className={styles.specRowDark}>
                   <span>일반 생활비 지출</span>
-                  <span className="font-mono font-bold">{formatCurrency(totalLivingSpent)}</span>
+                  <span className={styles.specValueDark}>{formatCurrency(totalLivingSpent)}</span>
                 </div>
-                <div className="flex justify-between items-center text-xs text-slate-300">
+                <div className={styles.specRowDark}>
                   <span>월 정기 고정비 지출</span>
-                  <span className="font-mono font-bold">{formatCurrency(totalFixedSpent)}</span>
+                  <span className={styles.specValueDark}>{formatCurrency(totalFixedSpent)}</span>
                 </div>
-                <div className="flex justify-between items-center text-xs text-slate-300">
+                <div className={styles.specRowDark}>
                   <span>비정기 경조사비 지출</span>
-                  <span className="font-mono font-bold">{formatCurrency(totalEventSpent)}</span>
+                  <span className={styles.specValueDark}>{formatCurrency(totalEventSpent)}</span>
                 </div>
-                <div className="flex justify-between items-center text-xs text-slate-300">
+                <div className={styles.specRowDark}>
                   <span>이번 달 할부금</span>
-                  <span className="font-mono font-bold">{formatCurrency(installmentChargeThisMonth)}</span>
+                  <span className={styles.specValueDark}>{formatCurrency(installmentChargeThisMonth)}</span>
                 </div>
                 {debtChargeThisMonth > 0 && (
-                    <div className="flex justify-between items-center text-xs text-slate-300">
+                    <div className={styles.specRowDark}>
                       <span>당겨쓰기 차감</span>
-                      <span className="font-mono font-bold">{formatCurrency(debtChargeThisMonth)}</span>
+                      <span className={styles.specValueDark}>{formatCurrency(debtChargeThisMonth)}</span>
                     </div>
                 )}
-                <div className="flex justify-between items-center pt-3 border-t border-dashed border-white/20">
-                  <span className="font-black text-white text-sm">총 지출액 합계</span>
-                  <div className="text-right">
-                    <span className="text-base font-black font-mono text-[#E63946] tracking-tight">{formatCurrency(totalCombinedSpent)}</span>
+                <div className={styles.specRowTotalDark}>
+                  <span className={styles.specRowTotalDarkLabel}>총 지출액 합계</span>
+                  <div style={{ textAlign: "right" }}>
+                    <span className={styles.totalSpentAmount}>{formatCurrency(totalCombinedSpent)}</span>
                   </div>
                 </div>
               </div>
             </div>
-
-
           </div>
         </div>
 
         {/* Cycles Breakdown */}
-
-        <div className="bg-white border-2 border-black p-5 rounded-none geo-shadow">
-          <div className="flex items-center justify-between pb-3.5 border-b-2 border-black mb-5">
+        <div className={`${styles.cyclesCard} geo-shadow`}>
+          <div className={styles.cyclesHeader}>
             <div>
-              <h3 className="text-sm font-black uppercase tracking-widest text-black">주기별 예산 잔액</h3>
+              <h3 className={styles.cyclesHeaderTitle}>주기별 예산 잔액</h3>
             </div>
           </div>
 
-          <div className="space-y-6">
+          <div className={styles.cyclesList}>
             {data.cycles.map((c, idx) => {
               const spent = getCycleSpent(c.start, c.end);
               const bal = c.budget - spent; // c.budget is now effective budget inclusive of carryIn
@@ -358,39 +346,36 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               const baseBudget = c.baseBudget ?? c.budget;
 
               return (
-                  <div key={idx} className="group pb-1">
-                    <div className="flex flex-wrap justify-between items-center gap-x-2 gap-y-1 mb-2 select-none">
-                      <div className="flex flex-wrap items-center gap-1.5 min-w-0">
-                        <span className="text-xs font-black uppercase tracking-wider text-black shrink-0">{getCleanLabel(c.label)}</span>
-                        <span className="text-[10px] font-mono text-slate-500 font-extrabold bg-slate-50 px-1.5 py-0.5 border border-black/10 shrink-0">
-                      ({dlabel(c.start)} ~ {dlabel(c.end)})
-                    </span>
-                        <button
-                            onClick={() => onEditCycle(idx)}
-                            className="text-slate-500 hover:text-[#E63946] hover:bg-slate-100 border border-slate-300 hover:border-[#E63946] px-1 py-0.5 transition-all cursor-pointer font-bold text-[10px] rounded-none flex items-center gap-0.5"
-                            title="주기 수정"
-                        >
+                  <div key={idx} className={styles.cycleItem}>
+                    <div className={styles.cycleTopRow}>
+                      <div className={styles.cycleTopLeft}>
+                        <span className={styles.cycleLabel}>{getCleanLabel(c.label)}</span>
+                        <span className={styles.cycleDate}>
+                          ({dlabel(c.start)} ~ {dlabel(c.end)})
+                        </span>
+                        <button onClick={() => onEditCycle(idx)} className={styles.cycleEditBtn} title="주기 수정">
                           ✏️ 수정
                         </button>
                       </div>
-                      <span className={`text-xs font-black font-mono shrink-0 ${bal < 0 ? "text-[#E63946]" : "text-emerald-600"}`}>
-                    {bal < 0 ? "-" : ""}
+                      <span className={styles.cycleBalance} data-negative={bal < 0}>
+                        {bal < 0 ? "-" : ""}
                         {formatCurrency(Math.abs(bal))}
-                  </span>
+                      </span>
                     </div>
 
-                    <div className="h-4 w-full bg-[#F0F0F0] border border-black rounded-none overflow-hidden p-[1px] mb-1.5">
+                    <div className={styles.cycleBarTrack}>
                       <div
-                          className={`h-full rounded-none transition-all duration-300 ${getPercentageColor(pct)}`}
+                          className={styles.cycleBarFill}
+                          data-level={getLevel(pct)}
                           style={{ width: `${Math.min(pct, 100)}%` }}
                       />
                     </div>
 
-                    <div className="flex items-center gap-3 text-[10px] font-bold text-slate-500 select-none flex-wrap">
-                      <span>내 예산 <span className="font-black text-black">{formatCurrency(baseBudget)}</span></span>
-                      {(c as any).incomeAmount > 0 && <span>수입 <span className="font-black text-emerald-600">+{formatCurrency((c as any).incomeAmount)}</span></span>}
-                      <span>이월 <span className={`font-black ${carryIn > 0 ? "text-emerald-600" : "text-slate-300"}`}>+{formatCurrency(carryIn)}</span></span>
-                      <span>사용예산 <span className="font-black text-black">{formatCurrency(c.budget)}</span></span>
+                    <div className={styles.cycleStats}>
+                      <span>내 예산 <span className={styles.cycleStatStrong}>{formatCurrency(baseBudget)}</span></span>
+                      {(c as any).incomeAmount > 0 && <span>수입 <span className={styles.cycleStatIncome}>+{formatCurrency((c as any).incomeAmount)}</span></span>}
+                      <span>이월 <span className={styles.cycleStatCarry} data-positive={carryIn > 0}>+{formatCurrency(carryIn)}</span></span>
+                      <span>사용예산 <span className={styles.cycleStatStrong}>{formatCurrency(c.budget)}</span></span>
                     </div>
                   </div>
               );
@@ -400,50 +385,42 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
 
         {/* Memo Card Preview */}
         {data.memo && data.memo.trim() && (
-            <div className="bg-white border-2 border-black p-5 rounded-none geo-shadow border-l-[8px] border-l-[#E63946]">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-xs font-black text-black flex items-center gap-2">
-                  <BookOpen className="h-4 w-4 text-[#E63946]" /> 이번 달 주요 메모
+            <div className={`${styles.memoCard} geo-shadow`}>
+              <div className={styles.memoHeader}>
+                <h3 className={styles.memoTitle}>
+                  <BookOpen className={styles.memoIcon} /> 이번 달 주요 메모
                 </h3>
-                <button
-                    onClick={onOpenMemo}
-                    className="text-[10px] bg-black text-white px-2 py-1 hover:bg-[#E63946] transition-colors cursor-pointer"
-                >
+                <button onClick={onOpenMemo} className={styles.memoEditBtn}>
                   상세 편집 &rarr;
                 </button>
               </div>
-              <div className="text-xs text-black font-bold tracking-tight leading-relaxed whitespace-pre-wrap pl-3 py-1 border-l-2 border-black">
+              <div className={styles.memoBody}>
                 {data.memo}
               </div>
             </div>
         )}
 
-
-
         {/* ✏️ EDIT ALLOCATIONS DIALOG MODAL */}
         {isEditAllocModalOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75">
-              <div className="bg-white border-4 border-black rounded-none p-6 w-full max-w-sm geo-shadow-lg text-black">
-                <div className="flex items-center justify-between border-b-2 border-black pb-3.5 mb-5 select-none">
-                  <h3 className="text-sm font-black text-black">가구 예산 배정액 조율</h3>
-                  <button
-                      onClick={() => setIsEditAllocModalOpen(false)}
-                      className="p-1.5 bg-white border-2 border-black text-black hover:bg-[#E63946] hover:text-white rounded-none cursor-pointer"
-                  >
-                    <X className="h-4 w-4" />
+            <div className={styles.overlay}>
+              <div className={`${styles.panel} geo-shadow-lg`}>
+                <div className={styles.modalHeader}>
+                  <h3 className={styles.modalTitle}>가구 예산 배정액 조율</h3>
+                  <button onClick={() => setIsEditAllocModalOpen(false)} className={styles.closeBtn}>
+                    <X className={styles.closeIcon} />
                   </button>
                 </div>
 
-                <form onSubmit={handleSaveAllocations} className="space-y-4">
+                <form onSubmit={handleSaveAllocations} className={styles.form}>
                   {/* ── 총예산 모드 ── */}
-                  <div className="bg-black text-white p-4 border-2 border-black space-y-3">
-                    <p className="text-xs font-black text-[#E63946] uppercase tracking-widest flex items-center gap-1.5">
+                  <div className={styles.totalBudgetBox}>
+                    <p className={styles.totalBudgetTitle}>
                       ✦ 총예산 자동 분배 모드
                     </p>
                     <div>
-                      <label className="block text-xs font-black text-white mb-1.5">
+                      <label className={styles.labelLight}>
                         이달 총 지출 한도
-                        <span className="ml-1 text-[10px] text-slate-400 font-bold normal-case tracking-normal">(비워두면 아래 수동 입력 사용)</span>
+                        <span className={styles.labelLightHint}>(비워두면 아래 수동 입력 사용)</span>
                       </label>
                       <input
                           type="number"
@@ -451,7 +428,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                           placeholder="예) 1000000"
                           value={inputTotalBudget}
                           onChange={(e) => setInputTotalBudget(e.target.value)}
-                          className="w-full h-11 border-2 border-white bg-white focus:border-[#E63946] focus:ring-1 focus:ring-[#E63946] rounded-none px-3 text-xs font-bold font-mono text-black outline-none"
+                          className={styles.inputDark}
                       />
                     </div>
 
@@ -467,16 +444,16 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                       const base = Math.floor(living / cycleCount);
                       const remainder = living - base * cycleCount;
                       return (
-                          <div className="text-[10px] font-mono bg-white/10 border border-white/20 p-3 space-y-1.5 text-slate-200">
-                            <div className="flex justify-between"><span>총 한도</span><span className="text-white font-black">{tb.toLocaleString("ko-KR")}원</span></div>
-                            <div className="flex justify-between"><span>― 고정비</span><span>-{fx.toLocaleString("ko-KR")}원</span></div>
-                            <div className="flex justify-between"><span>― 경조사비</span><span>-{ev.toLocaleString("ko-KR")}원</span></div>
-                            {instCharge > 0 && <div className="flex justify-between"><span>― 할부금</span><span>-{instCharge.toLocaleString("ko-KR")}원</span></div>}
-                            {debtCharge > 0 && <div className="flex justify-between"><span>― 당겨쓰기</span><span>-{debtCharge.toLocaleString("ko-KR")}원</span></div>}
-                            <div className="flex justify-between border-t border-white/20 pt-1.5 text-white font-black">
+                          <div className={styles.previewCalc}>
+                            <div className={styles.previewRow}><span>총 한도</span><span className={styles.previewValueStrong}>{tb.toLocaleString("ko-KR")}원</span></div>
+                            <div className={styles.previewRow}><span>― 고정비</span><span>-{fx.toLocaleString("ko-KR")}원</span></div>
+                            <div className={styles.previewRow}><span>― 경조사비</span><span>-{ev.toLocaleString("ko-KR")}원</span></div>
+                            {instCharge > 0 && <div className={styles.previewRow}><span>― 할부금</span><span>-{instCharge.toLocaleString("ko-KR")}원</span></div>}
+                            {debtCharge > 0 && <div className={styles.previewRow}><span>― 당겨쓰기</span><span>-{debtCharge.toLocaleString("ko-KR")}원</span></div>}
+                            <div className={styles.previewRowDivider}>
                               <span>생활비 예산</span><span>{living.toLocaleString("ko-KR")}원</span>
                             </div>
-                            <div className="flex justify-between text-emerald-400">
+                            <div className={styles.previewRowResult}>
                               <span>→ 주기당 ({cycleCount}등분)</span>
                               <span>{base.toLocaleString("ko-KR")}원 {remainder > 0 ? `/ 마지막 +${remainder.toLocaleString("ko-KR")}` : ""}</span>
                             </div>
@@ -485,12 +462,12 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                     })()}
                   </div>
 
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">또는 수동으로 직접 입력</p>
+                  <p className={styles.divider}>또는 수동으로 직접 입력</p>
 
                   <div>
-                    <label className="block text-xs font-black text-black mb-1.5 flex justify-between items-center select-none">
+                    <label className={styles.labelBetween}>
                       <span>생활비 예산 (수동)</span>
-                      <span className="text-[10px] text-slate-500 font-bold">총예산 입력 시 자동 계산됨</span>
+                      <span className={styles.labelHint}>총예산 입력 시 자동 계산됨</span>
                     </label>
                     <input
                         type="text"
@@ -507,51 +484,40 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                               })()
                               : formatCurrency(Number(inputBudget))
                         }
-                        className="w-full h-11 border-2 border-black bg-slate-100 rounded-none px-3 text-xs font-bold font-mono text-slate-700 outline-none select-none cursor-not-allowed"
+                        className={styles.inputReadonly}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-black text-black mb-1.5">
-                      고정지출 예산
-                    </label>
+                    <label className={styles.label}>고정지출 예산</label>
                     <input
                         type="number"
                         required
                         min="0"
                         value={inputFixedBudget}
                         onChange={(e) => setInputFixedBudget(e.target.value)}
-                        className="w-full h-11 border-2 border-black bg-white focus:border-[#E63946] focus:ring-1 focus:ring-[#E63946] rounded-none px-3 text-xs font-bold font-mono text-black outline-none"
+                        className={styles.inputMono}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-black text-black mb-1.5">
-                      경조사비 예산
-                    </label>
+                    <label className={styles.label}>경조사비 예산</label>
                     <input
                         type="number"
                         required
                         min="0"
                         value={inputEventBudget}
                         onChange={(e) => setInputEventBudget(e.target.value)}
-                        className="w-full h-11 border-2 border-black bg-white focus:border-[#E63946] focus:ring-1 focus:ring-[#E63946] rounded-none px-3 text-xs font-bold font-mono text-black outline-none"
+                        className={styles.inputMono}
                     />
                   </div>
 
-                  <div className="flex gap-2.5 pt-2">
-                    <button
-                        type="button"
-                        onClick={() => setIsEditAllocModalOpen(false)}
-                        className="flex-1 h-11 bg-white hover:bg-slate-100 text-xs text-black font-black uppercase tracking-wider border-2 border-black rounded-none cursor-pointer geo-shadow-sm active:translate-y-0.5"
-                    >
+                  <div className={styles.actions}>
+                    <button type="button" onClick={() => setIsEditAllocModalOpen(false)} className={`${styles.btnCancel} geo-shadow-sm`}>
                       취소
                     </button>
-                    <button
-                        type="submit"
-                        className="flex-1 h-11 bg-black hover:bg-[#E63946] text-xs text-white font-black uppercase tracking-wider border-2 border-black rounded-none flex items-center justify-center gap-1 cursor-pointer geo-shadow-sm active:translate-y-0.5"
-                    >
-                      <Save className="h-4 w-4" /> 저장
+                    <button type="submit" className={`${styles.btnSave} geo-shadow-sm`}>
+                      <Save className={styles.btnIcon} /> 저장
                     </button>
                   </div>
                 </form>

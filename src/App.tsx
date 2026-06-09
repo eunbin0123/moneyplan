@@ -10,6 +10,7 @@ import { initialBudgetState, makeDefaultMonth } from "./initialData";
 import { ExpenseModal, FixedModal, MonthModal, CycleModal, EventModal, IncomeModal, InstallmentModal, DebtModal } from "./components/Modals";
 import { calculateBudgetWithCarryOver } from "./utils/budgetCalculator";
 import { saveToFirestore, loadFromFirestore, subscribeToFirestore } from "./utils/firestore";
+// @ts-ignore
 import styles from "./css/App.module.css";
 
 type TabType = "overview" | "expenses" | "fixed" | "installment" | "savings";
@@ -45,6 +46,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [isLoading, setIsLoading] = useState(true);
   const [isMemoOpen, setIsMemoOpen] = useState(false);
+  const [isMonthNavOpen, setIsMonthNavOpen] = useState(false);
   const [isSavingsModalOpen, setIsSavingsModalOpen] = useState(false);
 
   const firestoreUnsub = useRef<(() => void) | null>(null);
@@ -485,6 +487,8 @@ export default function App() {
             shortMonthLabel={getShortMonthLabel(currentMonth)}
             isMemoOpen={isMemoOpen}
             onToggleMemo={() => setIsMemoOpen(prev => !prev)}
+            isMonthNavOpen={isMonthNavOpen}          
+            onToggleMonthNav={() => setIsMonthNavOpen(prev => !prev)}  
         />
 
         <main className={styles.main}>
@@ -519,6 +523,8 @@ export default function App() {
                       onAddIncome={() => { setEditingIncomeId(null); setIsIncomeModalOpen(true); }}
                       onEditIncome={(id) => { setEditingIncomeId(id); setIsIncomeModalOpen(true); }}
                       onDeleteIncome={handleDeleteIncome}
+                      isMonthNavOpen={isMonthNavOpen}
+                      
                   />
               )}
               {activeTab === "fixed" && (

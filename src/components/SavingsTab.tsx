@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { MonthData, InstallmentItem, DebtItem } from "../types";
 import { Check, Calendar, CalendarRange, Sparkles, Plus, CreditCard } from "lucide-react";
+// @ts-ignore
 import styles from "../css/SavingsTab.module.css";
 
 interface SavingsTabProps {
