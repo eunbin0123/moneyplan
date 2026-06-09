@@ -410,30 +410,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             </div>
         )}
 
-        {/* Static Rule book */}
-        <div className="bg-black text-white border-2 border-black p-5 rounded-none geo-shadow-sm">
-          <h3 className="text-xs font-black text-[#E63946] uppercase mb-4 flex items-center gap-2">
-            <AlertCircle className="h-4 w-4" /> 나의 가계부 철칙
-          </h3>
-          <ul className="space-y-3 font-medium">
-            <li className="flex items-start gap-2.5 text-xs text-slate-300 leading-normal">
-              <span className="h-2 w-2 bg-[#E63946] mt-1 shrink-0" />
-              <span>📊 <strong>3대 자금 분할 운영</strong>: 생활비, 고정지출 16만원, 비정기 경조사비 20만원을 별개 풀로 철저 분류.</span>
-            </li>
-            <li className="flex items-start gap-2.5 text-xs text-slate-300 leading-normal">
-              <span className="h-2 w-2 bg-white mt-1 shrink-0" />
-              <span>📌 <strong>소진 제어 루틴</strong>: 자금 군별 한도가 소급 초과될 경우, 차등 긴급 조정 실행.</span>
-            </li>
-            <li className="flex items-start gap-2.5 text-xs text-slate-300 leading-normal">
-              <span className="h-2 w-2 bg-white mt-1 shrink-0" />
-              <span>🚫 <strong>당겨쓰기 절대 금지</strong>: 주기 예산 한도가 소멸되면 긴급 예산 조율 우선.</span>
-            </li>
-            <li className="flex items-start gap-2.5 text-xs text-slate-300 leading-normal">
-              <span className="h-2 w-2 bg-white mt-1 shrink-0" />
-              <span>💳 <strong>즉시 결제 즉시 기입</strong>: 소액 지출이더라도 결제시 오차 없이 바로 등록.</span>
-            </li>
-          </ul>
-        </div>
+      
 
         {/* ✏️ EDIT ALLOCATIONS DIALOG MODAL */}
         {isEditAllocModalOpen && (

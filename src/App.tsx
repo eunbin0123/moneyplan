@@ -70,20 +70,35 @@ export default function App() {
       try {
         const remote = await loadFromFirestore();
         if (remote && remote.months.length > 0) {
-          isRemoteUpdate.current = true;
-          setMonths(remote.months);
-          setBudgetState(remote.budgetState);
-          setCurrentMonth(findCurrentMonth(remote.months));
+          const { newMonths, newBudgetState } = ensureMonthsUpToThreeAhead(remote.months, remote.budgetState);
+          const monthsChanged = newMonths.length !== remote.months.length;
+          // 새 달이 추가된 경우 isRemoteUpdate를 true로 막지 않아야 Firestore에 저장됨
+          if (!monthsChanged) isRemoteUpdate.current = true;
+          setMonths(newMonths);
+          setBudgetState(newBudgetState);
+          setCurrentMonth(findCurrentMonth(newMonths));
+        } else {
+          // 로컬 데이터로 보정
+          const { newMonths, newBudgetState } = ensureMonthsUpToThreeAhead(months, budgetState);
+          setMonths(newMonths);
+          setBudgetState(newBudgetState);
         }
       } catch (e) {
         console.error("Firestore 로드 실패:", e);
+        // 오류 시 로컬 상태 기준으로 보정
+        const { newMonths, newBudgetState } = ensureMonthsUpToThreeAhead(months, budgetState);
+        setMonths(newMonths);
+        setBudgetState(newBudgetState);
       } finally {
         setIsLoading(false);
       }
       firestoreUnsub.current = subscribeToFirestore((remoteMonths, remoteBudget) => {
-        isRemoteUpdate.current = true;
-        setMonths(remoteMonths);
-        setBudgetState(remoteBudget);
+        // subscribe로 원격 업데이트 받을 때도 이번달~+3개월 보장
+        const { newMonths, newBudgetState } = ensureMonthsUpToThreeAhead(remoteMonths, remoteBudget);
+        const monthsChanged = newMonths.length !== remoteMonths.length;
+        if (!monthsChanged) isRemoteUpdate.current = true;
+        setMonths(newMonths);
+        setBudgetState(newBudgetState);
       });
     };
     init();
@@ -391,6 +406,32 @@ export default function App() {
     });
   };
 
+  // 이번 달 기준 +3개월까지 자동으로 달 데이터를 생성/보장
+  const ensureMonthsUpToThreeAhead = (
+      currentMonths: string[],
+      currentBudgetState: BudgetState
+  ): { newMonths: string[]; newBudgetState: BudgetState } => {
+    const today = new Date();
+    const requiredKeys: string[] = [];
+    for (let i = 0; i <= 3; i++) {
+      const d = new Date(today.getFullYear(), today.getMonth() + i, 1);
+      requiredKeys.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
+    }
+    let newMonths = [...currentMonths];
+    let newBudgetState = { ...currentBudgetState };
+    let changed = false;
+    for (const key of requiredKeys) {
+      if (!newMonths.includes(key)) {
+        const [y, m] = key.split("-").map(Number);
+        newMonths.push(key);
+        newBudgetState[key] = makeDefaultMonth(y, m);
+        changed = true;
+      }
+    }
+    if (changed) newMonths.sort();
+    return { newMonths, newBudgetState };
+  };
+
   const handleSaveMonth = (year: number, month: number, budget: number) => {
     const key = `${year}-${String(month).padStart(2, "0")}`;
     if (budgetState[key]) { alert("이미 동일한 지출월 데이터가 존재합니다."); return; }
@@ -443,7 +484,6 @@ export default function App() {
             months={months}
             currentMonth={currentMonth}
             onSelectMonth={setCurrentMonth}
-            onAddMonth={() => setIsMonthModalOpen(true)}
             onDeleteMonth={handleDeleteMonth}
             memoStates={memoStates}
             memo={activeData.memo}

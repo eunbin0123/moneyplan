@@ -57,21 +57,22 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
         return y * 12 + (m - 1);
     };
 
-    const instStatus = (it: InstallmentItem) => {
-        if (!activeMonth) return { state: "none" as const, n: 0 };
+    const instStatus = (it: InstallmentItem): { active: boolean; n: number } => {
+        if (!activeMonth) return { active: false, n: 0 };
         const start = monthIdx(it.startMonth);
         const cur = monthIdx(activeMonth);
-        if (cur < start) return { state: "upcoming" as const, n: 0 };
-        if (cur >= start + it.months) return { state: "done" as const, n: it.months };
-        return { state: "active" as const, n: cur - start + 1 };
+        if (cur < start || cur >= start + it.months) return { active: false, n: 0 };
+        return { active: true, n: cur - start + 1 };
     };
 
-    const sortedInstallments = [...installments].sort((a, b) =>
-        a.startMonth === b.startMonth ? a.name.localeCompare(b.name) : a.startMonth < b.startMonth ? -1 : 1
-    );
+    const sortedInstallments = [...installments]
+        .filter((it) => instStatus(it).active)
+        .sort((a, b) =>
+            a.startMonth === b.startMonth ? a.name.localeCompare(b.name) : a.startMonth < b.startMonth ? -1 : 1
+        );
 
     const totalInstallmentThisMonth = installments.reduce(
-        (sum, it) => sum + (instStatus(it).state === "active" ? it.monthlyAmount : 0), 0
+        (sum, it) => sum + (instStatus(it).active ? it.monthlyAmount : 0), 0
     );
 
     const livingBudget = data.effectiveMonthlyBudget ?? data.budget;
@@ -326,18 +327,13 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
                             <div className="space-y-2">
                                 {sortedInstallments.map((it) => {
                                     const st = instStatus(it);
-                                    const badge =
-                                        st.state === "active" ? { txt: `이번 달 ${st.n}/${it.months}회차`, cls: "bg-[#E63946] text-white border-[#E63946]" } :
-                                            st.state === "upcoming" ? { txt: "예정", cls: "bg-white text-slate-400 border-black" } :
-                                                st.state === "done" ? { txt: "완료", cls: "bg-black text-white border-black" } :
-                                                    { txt: "-", cls: "bg-white text-slate-400 border-black" };
                                     return (
-                                        <div key={it.id} className={`border-2 border-black px-3 py-3 ${st.state === "active" ? "bg-[#FFF5F5]" : "bg-[#F9F9F9]"}`}>
+                                        <div key={it.id} className="border-2 border-black px-3 py-3 bg-[#FFF5F5]">
                                             <div className="flex items-center justify-between gap-2">
                                                 <div className="flex items-center gap-2 min-w-0 flex-1">
                                                     <span className="text-xs font-black text-black truncate uppercase tracking-tight">{it.name}</span>
-                                                    <span className={`text-[9px] font-mono font-black uppercase tracking-widest px-1.5 py-0.5 border-2 shrink-0 ${badge.cls}`}>
-                                                        {badge.txt}
+                                                    <span className="text-[9px] font-mono font-black uppercase tracking-widest px-1.5 py-0.5 border-2 bg-[#E63946] text-white border-[#E63946] shrink-0">
+                                                        {st.n}/{it.months}회차
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center gap-2 shrink-0 select-none">
