@@ -178,12 +178,24 @@ export default function App() {
     });
   };
 
-  const handleToggleExpense = (idx: number) => {
+  // 지출 상태 3단계 순환: 미반영(빈칸) → 예산반영·결제대기(빨강) → 결제완료(검정) → 미반영
+  const handleCycleExpenseStatus = (idx: number) => {
     setBudgetState((prev) => {
       const copy = { ...prev };
       const mD = { ...copy[currentMonth] };
       const exps = [...mD.expenses];
-      exps[idx] = { ...exps[idx], checked: exps[idx].checked === false ? true : false };
+      const cur = exps[idx];
+      const reflected = cur.checked !== false;
+      const paid = cur.paid === true;
+      let next;
+      if (!reflected) {
+        next = { ...cur, checked: true, paid: false };   // 미반영 → 반영(대기)
+      } else if (!paid) {
+        next = { ...cur, checked: true, paid: true };    // 반영 → 결제완료
+      } else {
+        next = { ...cur, checked: false, paid: false };  // 완료 → 미반영
+      }
+      exps[idx] = next;
       mD.expenses = exps;
       copy[currentMonth] = mD;
       return copy;
@@ -491,7 +503,7 @@ export default function App() {
                       onAddExpense={() => { setEditingExpenseIdx(null); setIsExpenseModalOpen(true); }}
                       onEditExpense={(idx) => { setEditingExpenseIdx(idx); setIsExpenseModalOpen(true); }}
                       onDeleteExpense={handleDeleteExpense}
-                      onToggleExpense={handleToggleExpense}
+                      onCycleStatus={handleCycleExpenseStatus}
                       onReorderExpense={handleReorderExpense}
                       onAddIncome={() => { setEditingIncomeId(null); setIsIncomeModalOpen(true); }}
                       onEditIncome={(id) => { setEditingIncomeId(id); setIsIncomeModalOpen(true); }}

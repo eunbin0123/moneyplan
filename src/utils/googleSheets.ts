@@ -41,19 +41,19 @@ export async function createGoogleSheet(accessToken: string): Promise<string> {
 
   const data = await response.json();
   const spreadsheetId = data.spreadsheetId;
-  
+
   if (spreadsheetId) {
     saveSpreadsheetId(spreadsheetId);
   }
-  
+
   return spreadsheetId;
 }
 
 export async function syncToGoogleSheet(
-  accessToken: string,
-  spreadsheetId: string,
-  months: string[],
-  budgetState: BudgetState
+    accessToken: string,
+    spreadsheetId: string,
+    months: string[],
+    budgetState: BudgetState
 ): Promise<void> {
   const computedState = calculateBudgetWithCarryOver(months, budgetState);
   const sortedMonths = [...months].sort();
@@ -69,9 +69,9 @@ export async function syncToGoogleSheet(
   sortedMonths.forEach((m) => {
     const calc = computedState[m];
     if (!calc) return;
-    
+
     const effL = calc.effectiveMonthlyBudget;
-    
+
     // Living
     overviewRows.push([
       m,
@@ -113,13 +113,13 @@ export async function syncToGoogleSheet(
       calc.totalCombinedRemaining,
       calc.totalCombinedBudget > 0 ? `${Math.round((calc.totalCombinedSpent / calc.totalCombinedBudget) * 100)}%` : "0%",
     ]);
-    
+
     overviewRows.push([]); // spacer row
   });
 
   // 2. Prepare "지출 내역" Grid
   const expenseRows: (string | number)[][] = [
-    ["연월", "날짜", "주기 기간", "주기 구분", "지출 내역", "금액(원)", "상태"],
+    ["연월", "날짜", "주기 기간", "주기 구분", "지출 내역", "금액(원)", "결제상태"],
   ];
 
 
@@ -132,7 +132,7 @@ export async function syncToGoogleSheet(
       const matchedCycle = calc.cycles.find((c) => e.date >= c.start && e.date <= c.end);
       const cycleText = matchedCycle ? matchedCycle.label.replace(/\s*\(.*?\)\s*/g, "").trim() : "해당 없음";
       const cycleRange = matchedCycle ? `${matchedCycle.start} ~ ${matchedCycle.end}` : "-";
-      
+
       expenseRows.push([
         m,
         e.date,
@@ -140,7 +140,7 @@ export async function syncToGoogleSheet(
         cycleText,
         e.name,
         e.amount,
-        e.checked !== false ? "반영완료" : "반영제외",
+        e.paid === true ? "결제완료" : "결제대기",
       ]);
     });
   });

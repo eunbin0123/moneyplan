@@ -173,9 +173,9 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           (e) => e.date >= c.start && e.date <= c.end
       );
       if (cycleExps.length > 0) {
-        csvContent += `"날짜","지출 내역","금액","지출 제외 상태"\n`;
+        csvContent += `"날짜","지출 내역","금액","상태"\n`;
         cycleExps.forEach((e) => {
-          csvContent += `"${e.date}","${e.name}","${formatCurrency(e.amount)}","${e.checked === false ? "제외됨" : "반영됨"}"\n`;
+          csvContent += `"${e.date}","${e.name}","${formatCurrency(e.amount)}","${e.checked === false ? "미반영" : (e.paid === true ? "결제완료" : "결제대기")}"\n`;
         });
       } else {
         csvContent += `"- 이 주기에 기록된 생활비 지출 내역이 없습니다."\n`;

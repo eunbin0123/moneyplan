@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import { MonthData, ExpenseItem } from "../types";
-import { Plus, ChevronDown, Archive, Check, TrendingUp, Edit2 } from "lucide-react";
+import { Plus, ChevronDown, Archive, Check, TrendingUp, Edit2, CreditCard } from "lucide-react";
 
 interface ExpensesTabProps {
     data: MonthData;
     onAddExpense: () => void;
     onEditExpense: (idx: number) => void;
     onDeleteExpense: (idx: number) => void;
-    onToggleExpense: (idx: number) => void;
+    onCycleStatus: (idx: number) => void;
     onReorderExpense: (fromIdx: number, toIdx: number) => void;
     onAddIncome: () => void;
     onEditIncome: (id: string) => void;
@@ -19,7 +19,7 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
                                                             onAddExpense,
                                                             onEditExpense,
                                                             onDeleteExpense,
-                                                            onToggleExpense,
+                                                            onCycleStatus,
                                                             onReorderExpense,
                                                             onAddIncome,
                                                             onEditIncome,
@@ -74,8 +74,15 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
     const getCleanLabel = (label: string) => label.replace(/\s*\(.*?\)\s*/g, "").trim();
     const formatCurrency = (amount: number) => Math.round(amount).toLocaleString("ko-KR") + "원";
 
+    // 미결제(결제대기) 집계: 예산반영(checked)된 항목 중 아직 결제 안 한 것 = 통장에 확보해둬야 할 돈
+    const unpaidItems = data.expenses.filter((e) => e.checked !== false && e.paid !== true);
+    const unpaidTotal = unpaidItems.reduce((sum, e) => sum + e.amount, 0);
+    const unpaidCount = unpaidItems.length;
+
     const renderExpenseItem = (e: any) => {
         const originalIdx = e._idx ?? data.expenses.findIndex((item) => item === e);
+        const reflected = e.checked !== false;   // 예산 반영 여부
+        const paid = e.paid === true;            // 결제완료 여부
         return (
             <div
                 key={originalIdx}
@@ -99,21 +106,26 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
             >
                 <div className="flex items-center gap-3 min-w-0 flex-1">
                     <button
-                        onClick={(evt) => { evt.stopPropagation(); onToggleExpense(originalIdx); }}
-                        className={`h-5 w-5 border-2 border-black flex items-center justify-center transition-all shrink-0 rounded-none cursor-pointer ${
-                            e.checked !== false ? "bg-black text-white hover:bg-[#E63946] hover:text-white" : "bg-white text-black hover:bg-slate-100"
+                        onClick={(evt) => { evt.stopPropagation(); onCycleStatus(originalIdx); }}
+                        title={!reflected ? "미반영 (눌러서 예산반영)" : !paid ? "예산반영·결제대기 (눌러서 결제완료)" : "결제완료 (눌러서 미반영)"}
+                        className={`h-5 w-5 border-2 flex items-center justify-center transition-all shrink-0 rounded-none cursor-pointer ${
+                            !reflected
+                                ? "bg-white border-slate-300 text-transparent hover:border-[#E63946]"
+                                : !paid
+                                    ? "bg-[#E63946] border-[#E63946] text-white hover:bg-black hover:border-black"
+                                    : "bg-black border-black text-white hover:bg-slate-700"
                         }`}
                     >
-                        {e.checked !== false && <Check className="h-3.5 w-3.5 stroke-[3.5px]" />}
+                        {paid && <Check className="h-3.5 w-3.5 stroke-[3.5px]" />}
                     </button>
                     <div className="min-w-0 flex-1">
-                        <p className={`text-xs font-black truncate transition-all ${e.checked !== false ? "text-black" : "text-slate-400 line-through decoration-black/40 decoration-2"}`}>
+                        <p className={`text-xs font-black truncate ${reflected ? "text-black" : "text-slate-400 line-through decoration-black/40 decoration-2"}`}>
                             {e.name}
                         </p>
                     </div>
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
-          <span className={`text-xs font-black font-mono transition-all ${e.checked !== false ? "text-black" : "text-slate-400 line-through decoration-black/40 decoration-2"}`}>
+          <span className={`text-xs font-black font-mono ${reflected ? "text-black" : "text-slate-400 line-through decoration-black/40 decoration-2"}`}>
             -{formatCurrency(e.amount)}
           </span>
                     <div className="flex items-center gap-1.5">
@@ -168,6 +180,27 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
                     </button>
                 </div>
             </div>
+
+            {/* 미결제(결제대기) 요약 — 통장에 확보해둬야 할 금액 */}
+            {unpaidCount > 0 ? (
+                <div className="flex items-center justify-between gap-3 bg-[#E63946] text-white border-2 border-black p-3.5 rounded-none geo-shadow">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                        <CreditCard className="h-5 w-5 shrink-0" />
+                        <div className="min-w-0">
+                            <p className="text-xs font-black uppercase tracking-wider">미결제 {unpaidCount}건</p>
+                            <p className="text-[10px] font-bold opacity-90 mt-0.5">통장에 확보해둬야 할 금액</p>
+                        </div>
+                    </div>
+                    <span className="text-sm font-black font-mono shrink-0">{formatCurrency(unpaidTotal)}</span>
+                </div>
+            ) : (
+                <div className="flex items-center gap-2.5 bg-white text-black border-2 border-black p-3.5 rounded-none geo-shadow">
+                    <div className="h-5 w-5 bg-black text-white flex items-center justify-center shrink-0">
+                        <Check className="h-3.5 w-3.5 stroke-[3px]" />
+                    </div>
+                    <p className="text-xs font-black uppercase tracking-wider">미결제 없음 · 전부 결제 완료</p>
+                </div>
+            )}
 
             <div className="space-y-3.5">
                 {data.cycles.map((c, ci) => {

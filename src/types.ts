@@ -33,6 +33,7 @@ export interface ExpenseItem {
   amount: number;
   editable?: boolean;
   checked?: boolean;
+  paid?: boolean;     // 카드 결제(정산) 완료 여부 — 예산반영(checked)과는 별개
 }
 
 export interface IncomeItem {
