@@ -15,16 +15,21 @@
   align-items: center;
   justify-content: center;
   padding: 1rem;
-  background-color: rgba(0, 0, 0, 0.75); /* bg-black/75 */
+  background-color: rgba(0, 0, 0, 0.75);
+  overflow-y: auto;           /* 패널이 화면보다 길어지면 overlay 스크롤 */
 }
 
 .panel {
   background-color: #fff;
   border: 4px solid #000;
   border-radius: 0;
-  padding: 1.5rem; /* p-6 */
   width: 100%;
-  max-width: 24rem; /* max-w-sm */
+  max-width: 24rem;
+  max-height: 90vh;           /* 화면 넘침 방지 */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  margin: auto;               /* overlay overflow-y: auto 일 때 중앙 유지 */
 }
 
 /* IncomeModal 전용: 패딩 없이 헤더/바디가 직접 패딩 */
@@ -33,6 +38,11 @@
   border: 4px solid #000;
   width: 100%;
   max-width: 24rem;
+  max-height: 90vh;           /* 화면 넘침 방지 */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  margin: auto;
 }
 
 /* ── 모달 헤더 ── */
@@ -41,8 +51,8 @@
   align-items: center;
   justify-content: space-between;
   border-bottom: 2px solid #000;
-  padding-bottom: 0.875rem; /* pb-3.5 */
-  margin-bottom: 1.25rem; /* mb-5 */
+  padding: 1.25rem 1.5rem 0.875rem; /* panel padding 제거로 여기서 처리 */
+  flex-shrink: 0;             /* 헤더 고정 */
 }
 
 /* IncomeModal 전용 헤더 */
@@ -51,12 +61,13 @@
   align-items: center;
   justify-content: space-between;
   border-bottom: 4px solid #000;
-  padding: 1rem 1.25rem; /* py-4 px-5 */
+  padding: 1rem 1.25rem;
+  flex-shrink: 0;             /* 헤더 고정 */
 }
 
 .modalTitle,
 .modalTitleFlex {
-  font-size: 0.875rem; /* text-sm */
+  font-size: 0.875rem;
   font-weight: 900;
   color: #000;
 }
@@ -68,7 +79,7 @@
 }
 
 .closeBtn {
-  padding: 0.375rem; /* p-1.5 */
+  padding: 0.375rem;
   background-color: #fff;
   border: 2px solid #000;
   color: #000;
@@ -92,7 +103,10 @@
 
 /* ── 폼 / 필드 ── */
 .form {
-  /* space-y-4 */
+  padding: 1.25rem 1.5rem 1.5rem; /* panel padding 제거로 여기서 처리 */
+  overflow-y: auto;           /* 폼 내용이 길면 폼만 스크롤 */
+  flex: 1 1 0%;
+  min-height: 0;              /* flex 자식 스크롤 필수 */
 }
 
 .form > * + * {
@@ -100,20 +114,23 @@
 }
 
 .incomeBody {
-  padding: 1.25rem; /* p-5 */
+  padding: 1.25rem;
+  overflow-y: auto;           /* income 바디도 스크롤 */
+  flex: 1 1 0%;
+  min-height: 0;
 }
 
 .incomeBody > * + * {
-  margin-top: 1rem; /* space-y-4 */
+  margin-top: 1rem;
 }
 
 .label,
 .labelBetween {
   display: block;
-  font-size: 0.75rem; /* text-xs */
+  font-size: 0.75rem;
   font-weight: 900;
   color: #000;
-  margin-bottom: 0.375rem; /* mb-1.5 */
+  margin-bottom: 0.375rem;
 }
 
 .labelBetween {
@@ -123,13 +140,13 @@
 }
 
 .labelOptional {
-  font-weight: 400; /* font-normal */
-  color: #94a3b8; /* slate-400 */
+  font-weight: 400;
+  color: #94a3b8;
 }
 
 .labelHintInline {
-  font-size: 0.625rem; /* text-[10px] */
-  color: #64748b; /* slate-500 */
+  font-size: 0.625rem;
+  color: #64748b;
   font-weight: 700;
 }
 
@@ -139,11 +156,11 @@
 .inputMonoNative,
 .inputMonoTight {
   width: 100%;
-  height: 2.75rem; /* h-11 */
+  height: 2.75rem;
   border: 2px solid #000;
   background-color: #fff;
   border-radius: 0;
-  padding-left: 0.75rem; /* px-3 */
+  padding-left: 0.75rem;
   padding-right: 0.75rem;
   font-size: 0.75rem;
   font-weight: 700;
@@ -155,8 +172,8 @@
 .inputMono:focus,
 .inputMonoNative:focus,
 .inputMonoTight:focus {
-  border-color: #E63946; /* focus:border-[#E63946] */
-  box-shadow: 0 0 0 1px #E63946; /* focus:ring-1 focus:ring-[#E63946] */
+  border-color: #E63946;
+  box-shadow: 0 0 0 1px #E63946;
 }
 
 .inputMono,
@@ -165,19 +182,17 @@
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
-/* date/month 네이티브 picker 화살표 숨김 (appearance-none) */
 .inputMonoNative {
   -webkit-appearance: none;
   appearance: none;
 }
 
-/* CycleModal 날짜 input: px-2 */
 .inputMonoTight {
   padding-left: 0.5rem;
   padding-right: 0.5rem;
 }
 
-/* IncomeModal 전용 input (focus ring 없음) */
+/* IncomeModal 전용 input */
 .incomeInput,
 .incomeInputMono {
   width: 100%;
@@ -202,24 +217,24 @@
 .grid2 {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.625rem; /* gap-2.5 */
+  gap: 0.625rem;
 }
 
 .grid2Wide {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem; /* gap-3 */
+  gap: 0.75rem;
 }
 
 /* ── 보조 텍스트 / 안내 ── */
 .hintSlate {
   display: block;
   font-size: 0.625rem;
-  color: #94a3b8; /* slate-400 */
+  color: #94a3b8;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  margin-top: 0.375rem; /* mt-1.5 */
+  margin-top: 0.375rem;
 }
 
 .hintRed {
@@ -236,7 +251,7 @@
 .settlePreview {
   font-size: 0.625rem;
   font-weight: 700;
-  color: #64748b; /* slate-500 */
+  color: #64748b;
   margin-top: 0.375rem;
 }
 
@@ -266,7 +281,7 @@
 .previewBoxGray {
   background-color: #F0F0F0;
   border: 2px solid #000;
-  padding: 0.5rem 0.75rem; /* py-2 px-3 */
+  padding: 0.5rem 0.75rem;
   font-size: 0.625rem;
   font-weight: 900;
   color: #000;
@@ -290,8 +305,8 @@
   background-color: #F0F0F0;
   border: 2px solid #000;
   padding: 0.5rem 0.75rem;
-  margin-bottom: 1rem; /* mb-4 */
-  line-height: 1.625; /* leading-relaxed */
+  margin-bottom: 1rem;
+  line-height: 1.625;
 }
 
 /* ── IncomeModal 주기 선택 ── */
@@ -303,7 +318,7 @@
 
 .cycleSelectBtn {
   width: 100%;
-  padding-top: 0.625rem; /* py-2.5 */
+  padding-top: 0.625rem;
   padding-bottom: 0.625rem;
   font-size: 0.75rem;
   font-weight: 900;
@@ -318,7 +333,7 @@
 }
 
 .cycleSelectBtn[data-active="false"]:hover {
-  background-color: #f1f5f9; /* slate-100 */
+  background-color: #f1f5f9;
 }
 
 .cycleSelectBtn[data-active="true"] {
@@ -329,8 +344,8 @@
 /* ── 액션 버튼 행 ── */
 .actions {
   display: flex;
-  gap: 0.625rem; /* gap-2.5 */
-  padding-top: 0.5rem; /* pt-2 */
+  gap: 0.625rem;
+  padding-top: 0.5rem;
 }
 
 .btnCancel,
@@ -358,7 +373,7 @@
 
 .btnCancel:active,
 .btnSave:active {
-  transform: translateY(0.125rem); /* active:translate-y-0.5 */
+  transform: translateY(0.125rem);
 }
 
 .btnSave {
@@ -379,11 +394,11 @@
   width: 1rem;
 }
 
-/* ── IncomeModal 전용 액션 (uppercase/그림자 없음) ── */
+/* ── IncomeModal 전용 액션 ── */
 .incomeActions {
   display: flex;
   gap: 0.5rem;
-  padding-top: 0.25rem; /* pt-1 */
+  padding-top: 0.25rem;
 }
 
 .incomeBtnCancel,
