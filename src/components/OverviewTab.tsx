@@ -196,13 +196,12 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               <span style={{ fontSize: "0.6875rem", letterSpacing: "0.08em", color: "var(--c-text-faint)", fontWeight: 500 }}>TODAY</span>
               {(() => {
                 const d = new Date();
-                const yo = ["日", "月", "火", "水", "木", "金", "土"][d.getDay()];
                 const pad = (n: number) => String(n).padStart(2, "0");
                 const todayStr = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
                 const cyc = data.cycles.find((c) => c.start <= todayStr && todayStr <= c.end);
                 return (
                     <>
-                      <span>{`${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일 (${yo})`}</span>
+                      <span>{`${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일`}</span>
                       {cyc && (
                           <span style={{ fontSize: "0.6875rem", color: "var(--c-text-muted)", fontWeight: 500 }}>· {getCleanLabel(cyc.label)}</span>
                       )}
