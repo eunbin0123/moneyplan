@@ -426,7 +426,6 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
                                         <div className={styles.installmentTop}>
                                             <div className={styles.installmentLeft}>
                                                 <span className={styles.installmentName}>{d.name}</span>
-                                                <span className={styles.debtBadge}>{d.fromMonth} 발생</span>
                                             </div>
                                             <div className={styles.installmentRight}>
                                                 <button

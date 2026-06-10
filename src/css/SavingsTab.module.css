@@ -52,10 +52,10 @@
 .btnAdd:hover { background-color: var(--c-red); }
 .btnAdd:active { transform: translateY(1px); }
 
-.btnEdit { padding: 0.3125rem 0.625rem; background-color: var(--c-bg-soft); color: var(--c-deepgreen); font-size: var(--fs-xs); font-weight: var(--fw-medium); border: none; border-radius: var(--radius-pill); cursor: pointer; transition: var(--t-base); user-select: none; }
-.btnEdit:hover { background-color: var(--c-deepgreen); color: var(--c-card); }
-.btnDelete { padding: 0.3125rem 0.625rem; background-color: var(--c-bg-soft); color: var(--c-deepgreen); font-size: var(--fs-xs); font-weight: var(--fw-medium); border: none; border-radius: var(--radius-pill); cursor: pointer; transition: var(--t-base); user-select: none; }
-.btnDelete:hover { background-color: var(--c-red); color: var(--c-card); }
+.btnEdit { padding: 0.3125rem 0.75rem; background-color: var(--c-card); color: var(--c-deepgreen); font-size: var(--fs-xs); font-weight: var(--fw-medium); border: var(--hairline); border-radius: var(--radius-pill); cursor: pointer; transition: var(--t-base); user-select: none; }
+.btnEdit:hover { background-color: var(--c-green); color: var(--c-card); border-color: transparent; }
+.btnDelete { padding: 0.3125rem 0.75rem; background-color: var(--c-card); color: var(--c-deepgreen); font-size: var(--fs-xs); font-weight: var(--fw-medium); border: var(--hairline); border-radius: var(--radius-pill); cursor: pointer; transition: var(--t-base); user-select: none; }
+.btnDelete:hover { background-color: var(--c-red); color: var(--c-card); border-color: transparent; }
 
 /* ── 요약 카드 그리드 ── */
 .summaryGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1rem; }

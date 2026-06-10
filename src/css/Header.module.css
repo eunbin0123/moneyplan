@@ -153,4 +153,12 @@
 .monthDeleteBtn:hover { background-color: var(--c-red); color: var(--c-card); border-color: transparent; }
 .monthDeleteIcon { height: 0.625rem; width: 0.625rem; }
 
-.memoBody { padding: 1.5rem; max-height: 70vh; overflow-y: auto; }
+.memoBody { padding: 1.25rem; max-height: 70vh; overflow-y: auto; }
+
+/* ── 모바일 미세조정 ── */
+@media (max-width: 480px) {
+  .panelHeader { padding: 1rem 1.25rem; }
+  .panelTitle { font-size: var(--fs-sm); }
+  .memoBody { padding: 1rem; }
+  .pickerBody { padding: 1.25rem; }
+}
