@@ -1,431 +1,153 @@
 /* ─────────────────────────────────────────
-   Modals.module.css
-   Modals.tsx 인라인(Tailwind) → 순수 CSS Module
-   7개 모달이 공유하는 골격을 공통 클래스로 묶음
-   geo-shadow 계열은 글로벌 클래스로 JSX에 유지
-   (모바일 줌 방지용 inline style fontSize:16px 는 그대로 유지)
+   Modals.module.css — 모던 웜 리스타일 (클래스명 동일)
+   7개 모달 공통 골격
    ───────────────────────────────────────── */
 
 /* ── 오버레이 / 패널 ── */
 .overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 50;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position: fixed; inset: 0; z-index: 50;
+  display: flex; align-items: center; justify-content: center;
   padding: 1rem;
   background-color: var(--c-overlay);
-  overflow-y: auto;           /* 패널이 화면보다 길어지면 overlay 스크롤 */
+  backdrop-filter: blur(2px);
+  overflow-y: auto;
 }
-
-.panel {
-  background-color: var(--c-paper);
-  border: var(--border-thick);
-  border-radius: 0;
-  width: 100%;
-  max-width: 24rem;
-  max-height: 90vh;           /* 화면 넘침 방지 */
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  margin: auto;               /* overlay overflow-y: auto 일 때 중앙 유지 */
-}
-
-/* IncomeModal 전용: 패딩 없이 헤더/바디가 직접 패딩 */
+.panel,
 .panelFlush {
-  background-color: var(--c-paper);
-  border: var(--border-thick);
-  width: 100%;
-  max-width: 24rem;
-  max-height: 90vh;           /* 화면 넘침 방지 */
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  background-color: var(--c-card);
+  border: none;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-float);
+  width: 100%; max-width: 24rem; max-height: 90vh;
+  display: flex; flex-direction: column; overflow: hidden;
   margin: auto;
 }
 
 /* ── 모달 헤더 ── */
-.modalHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 2px solid var(--c-ink);
-  padding: 1.25rem 1.5rem 0.875rem; /* panel padding 제거로 여기서 처리 */
-  flex-shrink: 0;             /* 헤더 고정 */
-}
-
-/* IncomeModal 전용 헤더 */
+.modalHeader,
 .modalHeaderFlush {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 4px solid var(--c-ink);
-  padding: 1rem 1.25rem;
-  flex-shrink: 0;             /* 헤더 고정 */
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: var(--hairline);
+  padding: 1.25rem 1.5rem;
+  flex-shrink: 0;
 }
-
 .modalTitle,
-.modalTitleFlex {
-  font-size: var(--fs-base);
-  font-weight: var(--fw-black);
-  color: var(--c-ink);
-}
-
-.modalTitleFlex {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
+.modalTitleFlex { font-size: var(--fs-base); font-weight: var(--fw-bold); color: var(--c-deepgreen); }
+.modalTitleFlex { display: flex; align-items: center; gap: 0.5rem; }
 
 .closeBtn {
   padding: 0.375rem;
-  background-color: var(--c-paper);
-  border: var(--border-base);
-  color: var(--c-ink);
-  border-radius: 0;
+  background-color: var(--c-bg-soft);
+  border: none;
+  color: var(--c-deepgreen);
+  border-radius: var(--radius-pill);
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex; align-items: center; justify-content: center;
   transition: var(--t-colors);
 }
-
-.closeBtn:hover {
-  background-color: var(--c-accent);
-  color: var(--c-paper);
-}
-
-.closeIcon {
-  height: 1rem;
-  width: 1rem;
-}
+.closeBtn:hover { background-color: var(--c-red); color: var(--c-card); }
+.closeIcon { height: 1rem; width: 1rem; }
 
 /* ── 폼 / 필드 ── */
-.form {
-  padding: 1.25rem 1.5rem 1.5rem; /* panel padding 제거로 여기서 처리 */
-  overflow-y: auto;           /* 폼 내용이 길면 폼만 스크롤 */
-  flex: 1 1 0%;
-  min-height: 0;              /* flex 자식 스크롤 필수 */
-}
-
-.form > * + * {
-  margin-top: 1rem;
-}
-
-.incomeBody {
-  padding: 1.25rem;
-  overflow-y: auto;           /* income 바디도 스크롤 */
-  flex: 1 1 0%;
-  min-height: 0;
-}
-
-.incomeBody > * + * {
-  margin-top: 1rem;
-}
+.form { padding: 1.25rem 1.5rem 1.5rem; overflow-y: auto; flex: 1 1 0%; min-height: 0; }
+.form > * + * { margin-top: 1rem; }
+.incomeBody { padding: 1.5rem; overflow-y: auto; flex: 1 1 0%; min-height: 0; }
+.incomeBody > * + * { margin-top: 1rem; }
 
 .label,
-.labelBetween {
-  display: block;
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-black);
-  color: var(--c-ink);
-  margin-bottom: 0.375rem;
-}
-
-.labelBetween {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.labelOptional {
-  font-weight: 400;
-  color: var(--c-text-faint);
-}
-
-.labelHintInline {
-  font-size: var(--fs-xs);
-  color: var(--c-text-muted);
-  font-weight: var(--fw-bold);
-}
+.labelBetween { display: block; font-size: var(--fs-sm); font-weight: var(--fw-bold); color: var(--c-deepgreen); margin-bottom: 0.375rem; }
+.labelBetween { display: flex; justify-content: space-between; align-items: center; }
+.labelOptional { font-weight: 400; color: var(--c-text-faint); }
+.labelHintInline { font-size: var(--fs-xs); color: var(--c-text-muted); font-weight: var(--fw-medium); }
 
 /* ── input 공통 ── */
 .input,
 .inputMono,
 .inputMonoNative,
-.inputMonoTight {
-  width: 100%;
-  height: 2.75rem;
-  border: var(--border-base);
-  background-color: var(--c-paper);
-  border-radius: 0;
-  padding-left: 0.75rem;
-  padding-right: 0.75rem;
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-bold);
-  color: var(--c-ink);
-  outline: none;
-}
-
-.input:focus,
-.inputMono:focus,
-.inputMonoNative:focus,
-.inputMonoTight:focus {
-  border-color: var(--c-accent);
-  box-shadow: 0 0 0 1px var(--c-accent);
-}
-
-.inputMono,
-.inputMonoNative,
-.inputMonoTight {
-  font-family: var(--ff-mono);
-}
-
-.inputMonoNative {
-  -webkit-appearance: none;
-  appearance: none;
-}
-
-.inputMonoTight {
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
-}
-
-/* IncomeModal 전용 input */
+.inputMonoTight,
 .incomeInput,
 .incomeInputMono {
   width: 100%;
-  height: 2.75rem;
-  border: var(--border-base);
-  padding-left: 0.75rem;
-  padding-right: 0.75rem;
-  font-weight: var(--fw-bold);
+  height: 2.875rem;
+  border: var(--hairline);
+  background-color: var(--c-bg-soft);
+  border-radius: var(--radius-md);
+  padding: 0 0.875rem;
+  font-size: var(--fs-base);
+  font-weight: var(--fw-medium);
+  color: var(--c-deepgreen);
   outline: none;
+  transition: var(--t-base);
 }
-
+.input:focus,
+.inputMono:focus,
+.inputMonoNative:focus,
+.inputMonoTight:focus,
 .incomeInput:focus,
 .incomeInputMono:focus {
-  border-color: var(--c-accent);
+  border-color: var(--c-red);
+  box-shadow: 0 0 0 3px var(--c-accent-10);
+  background-color: var(--c-card);
 }
-
-.incomeInputMono {
-  font-family: var(--ff-mono);
-}
+.inputMono,
+.inputMonoNative,
+.inputMonoTight,
+.incomeInputMono { font-variant-numeric: tabular-nums; }
+.inputMonoNative { -webkit-appearance: none; appearance: none; }
+.inputMonoTight { padding-left: 0.625rem; padding-right: 0.625rem; }
 
 /* ── 2열 그리드 ── */
-.grid2 {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.625rem;
-}
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.625rem; }
+.grid2Wide { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
 
-.grid2Wide {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem;
-}
+/* ── 보조 텍스트 ── */
+.hintSlate { display: block; font-size: var(--fs-xs); color: var(--c-text-faint); font-weight: var(--fw-medium); letter-spacing: 0; margin-top: 0.375rem; }
+.hintRed { display: block; font-size: var(--fs-xs); color: var(--c-red); font-weight: var(--fw-medium); letter-spacing: 0; margin-top: 0.375rem; }
 
-/* ── 보조 텍스트 / 안내 ── */
-.hintSlate {
-  display: block;
-  font-size: var(--fs-xs);
-  color: var(--c-text-faint);
-  font-weight: var(--fw-bold);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-top: 0.375rem;
-}
+.settlePreview { font-size: var(--fs-xs); font-weight: var(--fw-medium); color: var(--c-text-muted); margin-top: 0.375rem; }
+.settlePreviewHighlight { color: var(--c-red); font-weight: var(--fw-bold); }
 
-.hintRed {
-  display: block;
-  font-size: var(--fs-xs);
-  color: var(--c-accent);
-  font-weight: var(--fw-bold);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-top: 0.375rem;
-}
-
-/* ExpenseModal 정산 미리보기 */
-.settlePreview {
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-bold);
-  color: var(--c-text-muted);
-  margin-top: 0.375rem;
-}
-
-.settlePreviewHighlight {
-  color: var(--c-accent);
-  font-weight: var(--fw-black);
-}
-
-/* InstallmentModal 자동계산 되돌리기 버튼 */
-.revertBtn {
-  margin-top: 0.375rem;
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-black);
-  color: var(--c-text-muted);
-  text-decoration: underline;
-  cursor: pointer;
-  background: none;
-  border: none;
-  padding: 0;
-}
-
-.revertBtn:hover {
-  color: var(--c-accent);
-}
+.revertBtn { margin-top: 0.375rem; font-size: var(--fs-xs); font-weight: var(--fw-bold); color: var(--c-text-muted); text-decoration: underline; cursor: pointer; background: none; border: none; padding: 0; }
+.revertBtn:hover { color: var(--c-red); }
 
 /* 미리보기 박스 */
-.previewBoxGray {
-  background-color: var(--c-bg-soft);
-  border: var(--border-base);
-  padding: 0.5rem 0.75rem;
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-black);
-  color: var(--c-ink);
-  font-family: var(--ff-mono);
-}
+.previewBoxGray { background-color: var(--c-bg-soft); border: none; border-radius: var(--radius-md); padding: 0.625rem 0.875rem; font-size: var(--fs-xs); font-weight: var(--fw-bold); color: var(--c-deepgreen); font-variant-numeric: tabular-nums; }
+.previewBoxBlack { background-color: var(--c-deepgreen); color: var(--c-card); border-radius: var(--radius-md); padding: 0.625rem 0.875rem; font-size: var(--fs-xs); font-weight: var(--fw-bold); font-variant-numeric: tabular-nums; }
 
-.previewBoxBlack {
-  background-color: var(--c-ink);
-  color: var(--c-paper);
-  padding: 0.5rem 0.75rem;
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-black);
-  font-family: var(--ff-mono);
-}
+.debtNotice { font-size: var(--fs-xs); font-weight: var(--fw-medium); color: var(--c-text-muted); background-color: var(--c-bg-soft); border: none; border-radius: var(--radius-md); padding: 0.75rem 0.875rem; margin-bottom: 1rem; line-height: 1.7; }
 
-/* DebtModal 안내 문구 */
-.debtNotice {
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-bold);
-  color: var(--c-text-muted);
-  background-color: var(--c-bg-soft);
-  border: var(--border-base);
-  padding: 0.5rem 0.75rem;
-  margin-bottom: 1rem;
-  line-height: 1.625;
-}
-
-/* ── IncomeModal 주기 선택 ── */
-.cycleSelectCol {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.cycleSelectBtn {
-  width: 100%;
-  padding-top: 0.625rem;
-  padding-bottom: 0.625rem;
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-black);
-  border: var(--border-base);
-  transition: var(--t-base);
-  cursor: pointer;
-}
-
-.cycleSelectBtn[data-active="false"] {
-  background-color: var(--c-paper);
-  color: var(--c-ink);
-}
-
-.cycleSelectBtn[data-active="false"]:hover {
-  background-color: var(--c-bg-muted);
-}
-
-.cycleSelectBtn[data-active="true"] {
-  background-color: var(--c-ink);
-  color: var(--c-paper);
-}
+/* ── 주기 선택 ── */
+.cycleSelectCol { display: flex; flex-direction: column; gap: 0.5rem; }
+.cycleSelectBtn { width: 100%; padding: 0.6875rem 0; font-size: var(--fs-sm); font-weight: var(--fw-bold); border: var(--hairline); border-radius: var(--radius-md); transition: var(--t-base); cursor: pointer; }
+.cycleSelectBtn[data-active="false"] { background-color: var(--c-card); color: var(--c-deepgreen); }
+.cycleSelectBtn[data-active="false"]:hover { background-color: var(--c-bg-soft); }
+.cycleSelectBtn[data-active="true"] { background-color: var(--c-deepgreen); color: var(--c-card); border-color: transparent; }
 
 /* ── 액션 버튼 행 ── */
-.actions {
-  display: flex;
-  gap: 0.625rem;
-  padding-top: 0.5rem;
-}
-
+.actions { display: flex; gap: 0.625rem; padding-top: 0.5rem; }
 .btnCancel,
-.btnSave {
-  flex: 1 1 0%;
-  height: 2.75rem;
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-black);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border: var(--border-base);
-  border-radius: 0;
-  cursor: pointer;
-  transition: var(--t-colors);
-}
-
-.btnCancel {
-  background-color: var(--c-paper);
-  color: var(--c-ink);
-}
-
-.btnCancel:hover {
-  background-color: var(--c-bg-muted);
-}
-
-.btnCancel:active,
-.btnSave:active {
-  transform: translateY(0.125rem);
-}
-
-.btnSave {
-  background-color: var(--c-ink);
-  color: var(--c-paper);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.25rem;
-}
-
-.btnSave:hover {
-  background-color: var(--c-accent);
-}
-
-.btnIcon {
-  height: 1rem;
-  width: 1rem;
-}
-
-/* ── IncomeModal 전용 액션 ── */
-.incomeActions {
-  display: flex;
-  gap: 0.5rem;
-  padding-top: 0.25rem;
-}
-
+.btnSave,
 .incomeBtnCancel,
 .incomeBtnSave {
-  flex: 1 1 0%;
-  height: 2.75rem;
+  flex: 1 1 0%; height: 2.875rem;
   font-size: var(--fs-sm);
-  font-weight: var(--fw-black);
-  border: var(--border-base);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0;
+  border: none;
+  border-radius: var(--radius-pill);
   cursor: pointer;
-  transition: var(--t-colors);
+  transition: var(--t-base);
 }
+.btnCancel,
+.incomeBtnCancel { background-color: var(--c-bg-soft); color: var(--c-deepgreen); }
+.btnCancel:hover,
+.incomeBtnCancel:hover { background-color: var(--c-purplegrey); }
+.btnCancel:active,
+.btnSave:active { transform: translateY(1px); }
+.btnSave,
+.incomeBtnSave { background-color: var(--c-deepgreen); color: var(--c-card); display: flex; align-items: center; justify-content: center; gap: 0.375rem; }
+.btnSave:hover,
+.incomeBtnSave:hover { background-color: var(--c-red); }
+.btnIcon { height: 1rem; width: 1rem; }
 
-.incomeBtnCancel {
-  background-color: var(--c-paper);
-  color: var(--c-ink);
-}
-
-.incomeBtnCancel:hover {
-  background-color: var(--c-bg-muted);
-}
-
-.incomeBtnSave {
-  background-color: var(--c-ink);
-  color: var(--c-paper);
-}
-
-.incomeBtnSave:hover {
-  background-color: var(--c-accent);
-}
+.incomeActions { display: flex; gap: 0.5rem; padding-top: 0.25rem; }

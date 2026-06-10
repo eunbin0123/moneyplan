@@ -1,211 +1,97 @@
 /* ─────────────────────────────────────────
-   App.module.css
-   App.tsx 인라인 스타일 → 순수 CSS Module
+   App.module.css — 모던 웜 리스타일 (클래스명 동일)
    ───────────────────────────────────────── */
 
-/* ── 루트 래퍼 ── */
-.root {
-  min-height: 100vh;
-  background-color: var(--c-bg-soft);
-  padding-bottom: 6rem; /* pb-24 */
-}
+.root { min-height: 100vh; background-color: var(--c-bg-soft); padding-bottom: 6rem; }
 
-/* ── 로딩 화면 ── */
-.loadingScreen {
-  min-height: 100vh;
-  background-color: var(--c-bg-soft);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.loadingInner {
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
+.loadingScreen { min-height: 100vh; background-color: var(--c-bg-soft); display: flex; align-items: center; justify-content: center; }
+.loadingInner { text-align: center; display: flex; flex-direction: column; gap: 0.75rem; }
 .loadingSpinner {
-  height: 2rem;
-  width: 2rem;
-  border: var(--border-thick);
-  border-top-color: transparent;
+  height: 2rem; width: 2rem;
+  border: 2.5px solid var(--c-purplegrey);
+  border-top-color: var(--c-deepgreen);
   border-radius: var(--radius-pill);
   animation: spin 0.7s linear infinite;
   margin: 0 auto;
 }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loadingText { font-size: var(--fs-sm); font-weight: var(--fw-medium); color: var(--c-text-muted); letter-spacing: 0; }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.loadingText {
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-black);
-  color: var(--c-ink);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-
-/* ── 메인 콘텐츠 영역 ── */
-.main {
-  max-width: 42rem; /* max-w-2xl */
-  margin: 0 auto;
-  padding: 1.5rem 1rem 0;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
+.main { max-width: 42rem; margin: 0 auto; padding: 1.5rem 1rem 0; display: flex; flex-direction: column; gap: 1.5rem; }
 
 /* ── 분배 모달 오버레이 ── */
 .savingsOverlay {
-  position: fixed;
-  inset: 0;
-  z-index: 50;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position: fixed; inset: 0; z-index: 50;
+  display: flex; align-items: center; justify-content: center;
   padding: 1rem;
   background-color: var(--c-overlay);
+  backdrop-filter: blur(2px);
 }
-
 .savingsPanel {
-  background-color: var(--c-paper);
-  border: var(--border-thick);
-  width: 100%;
-  max-width: 32rem;
-  max-height: 85vh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  background-color: var(--c-card);
+  border: none;
+  width: 100%; max-width: 32rem; max-height: 85vh;
+  display: flex; flex-direction: column; overflow: hidden;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-float);
 }
-
 .savingsPanelHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 4px solid var(--c-ink);
-  padding: 1rem 1.25rem;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: var(--hairline);
+  padding: 1.25rem 1.5rem;
   flex-shrink: 0;
-  background-color: var(--c-paper);
+  background-color: var(--c-card);
 }
-
-.savingsPanelTitle {
-  font-size: var(--fs-base);
-  font-weight: var(--fw-black);
-  color: var(--c-ink);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-
+.savingsPanelTitle { font-size: var(--fs-base); font-weight: var(--fw-bold); color: var(--c-deepgreen); letter-spacing: 0; }
 .savingsPanelClose {
   padding: 0.375rem;
-  background-color: var(--c-paper);
-  border: var(--border-base);
-  color: var(--c-ink);
+  background-color: var(--c-bg-soft);
+  border: none;
+  color: var(--c-deepgreen);
   cursor: pointer;
   transition: var(--t-colors);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--radius-pill);
 }
+.savingsPanelClose:hover { background-color: var(--c-red); color: var(--c-card); }
+.savingsPanelCloseIcon { height: 1rem; width: 1rem; }
+.savingsPanelBody { padding: 1.5rem; flex: 1 1 0%; overflow-y: auto; min-height: 0; }
 
-.savingsPanelClose:hover {
-  background-color: var(--c-accent);
-  color: var(--c-paper);
-}
-
-.savingsPanelCloseIcon {
-  height: 1rem;
-  width: 1rem;
-}
-
-.savingsPanelBody {
-  padding: 1.25rem;
-  flex: 1 1 0%;
-  overflow-y: auto;
-  min-height: 0;
-}
-
-/* ── 하단 탭바 네비게이션 ── */
-.navWrapper {
-  width: 100vw;
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 40;
-  display: flex;
-  justify-content: center;
-  pointer-events: none;
-}
-
+/* ── 하단 탭바 ── */
+.navWrapper { width: 100vw; position: fixed; bottom: 0; left: 0; right: 0; z-index: 40; display: flex; justify-content: center; pointer-events: none; }
 .navBar {
-  width: 100%;
-  max-width: 42rem;
-  background-color: var(--c-paper);
-  display: flex;
-  align-items: center;
+  width: 100%; max-width: 42rem;
+  background-color: var(--c-card);
+  display: flex; align-items: center;
   pointer-events: auto;
+  box-shadow: 0 -6px 24px rgba(42, 58, 43, 0.06);
+  border-top: var(--hairline);
 }
-
-/* ── 탭 버튼 (공통) ── */
 .tabBtn {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
   padding: 0.75rem 0 1.65rem 0;
   gap: 0.25rem;
-  cursor: pointer;
-  border: none;
-  background: transparent;
-  color: color-mix(in srgb, var(--c-deepgreen) 40%, transparent);
+  cursor: pointer; border: none; background: transparent;
+  color: color-mix(in srgb, var(--c-deepgreen) 38%, transparent);
   transition: var(--t-colors);
 }
+.tabBtn:hover { background-color: var(--c-bg-soft); }
+.tabBtn[data-active="true"] { color: var(--c-deepgreen); }
+.tabLabel { font-size: var(--fs-tiny); font-weight: var(--fw-bold); letter-spacing: 0; }
 
-.tabBtn:hover {
-  background-color: var(--c-bg-muted);
-}
-
-/* 활성 탭: data-active="true" */
-.tabBtn[data-active="true"] {
-  color: var(--c-deepgreen);}
-
-.tabLabel {
-  font-size: var(--fs-tiny);
-  font-weight: var(--fw-black);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-
-/* ── 중앙 FAB (지출 추가) ── */
-.fabWrapper {
-  flex: none;
-  padding: 0 0.5rem;
-}
-
+/* ── 중앙 FAB ── */
+.fabWrapper { flex: none; padding: 0 0.5rem; }
 .fabBtn {
-  transform: translateY(-10px);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  height: 3.5rem;
-  width: 3.5rem;
-  background-color: var(--c-yellow);
-  color: var(--c-paper);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  transform: translateY(-12px);
+  box-shadow: 0 8px 20px rgba(42, 58, 43, 0.18);
+  height: 3.5rem; width: 3.5rem;
+  background-color: var(--c-deepgreen);
+  color: var(--c-card);
+  display: flex; align-items: center; justify-content: center;
   cursor: pointer;
-  transition: background-color 0.15s, border-color 0.15s, transform 0.1s;
-  border-radius: 100px;
+  transition: background-color 0.18s, transform 0.12s;
+  border-radius: var(--radius-pill);
 }
-
-.fabBtn:hover {
-  background-color: var(--c-red);
-}
-
-.fabBtn:active {
-  transform: translateY(-8px) scale(0.95);
-}
+.fabBtn:hover { background-color: var(--c-red); }
+.fabBtn:active { transform: translateY(-9px) scale(0.95); }

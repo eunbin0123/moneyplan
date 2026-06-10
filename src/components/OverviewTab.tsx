@@ -93,11 +93,6 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
 
   const getLevel = (pct: number) => (pct >= 100 ? "over" : pct >= 80 ? "warn" : "normal");
 
-  const getShortMonthLabel = (key: string) => {
-    const [, month] = key.split("-");
-    return `${parseInt(month, 10)}월`;
-  };
-
   const getCleanLabel = (label: string) => {
     return label.replace(/\s*\(.*?\)\s*/g, "").trim();
   };
@@ -140,7 +135,24 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         {/* Tab Header */}
         <div className={styles.tabHeader}>
           <div>
-            <h2 className={styles.tabTitle}>{getShortMonthLabel(activeMonth)}</h2>
+            <h2 className={styles.tabTitle}>
+              <span style={{ fontSize: "0.6875rem", letterSpacing: "0.08em", color: "var(--c-text-faint)", fontWeight: 500 }}>TODAY</span>
+              {(() => {
+                const d = new Date();
+                const yo = ["日", "月", "火", "水", "木", "金", "土"][d.getDay()];
+                const pad = (n: number) => String(n).padStart(2, "0");
+                const todayStr = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+                const cyc = data.cycles.find((c) => c.start <= todayStr && todayStr <= c.end);
+                return (
+                    <>
+                      <span>{`${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일 ${yo}`}</span>
+                      {cyc && (
+                          <span style={{ fontSize: "0.6875rem", color: "var(--c-text-muted)", fontWeight: 500 }}>· {getCleanLabel(cyc.label)}</span>
+                      )}
+                    </>
+                );
+              })()}
+            </h2>
           </div>
         </div>
 

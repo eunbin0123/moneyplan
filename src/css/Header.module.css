@@ -1,352 +1,156 @@
 /* ─────────────────────────────────────────
-   Header.module.css
-   Header.tsx 인라인(Tailwind) → 순수 CSS Module
-   geo-shadow 계열은 글로벌 클래스로 JSX에 유지
-   동적 분기는 data-* / :disabled 셀렉터로 처리
+   Header.module.css — 모던 웜 리스타일 (클래스명 동일)
    ───────────────────────────────────────── */
 
-/* ── 헤더 바 ── */
-.header {
-  background-color: var(--c-paper);
-  box-shadow: 0 2px 4px rgba(76, 66, 99, 0.05);  position: sticky;
-  top: 0;
-  z-index: 40;
-}
+.header { background-color: var(--c-card); box-shadow: 0 2px 12px rgba(42, 58, 43, 0.04); position: sticky; top: 0; z-index: 40; }
+.headerInner { max-width: 56rem; margin: 0 auto; padding: 1rem; }
 
-.headerInner {
-  max-width: 56rem; /* max-w-4xl */
-  margin: 0 auto;
-  padding: 1rem; /* px-4 py-4 */
-}
+.topRow { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0; }
+.topRow[data-nav-open="true"] { margin-bottom: 1rem; }
 
-.topRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0; /* 네비 닫힘 시 여백 없음 */
-}
+.brand { display: flex; align-items: center; gap: 0.75rem; }
+.logoBox { height: 2.5rem; width: 2.5rem; color: var(--c-purple); display: flex; align-items: center; justify-content: center; flex-shrink: 0; cursor: pointer; }
+.logoIcon { height: 1.25rem; width: 1.25rem; }
+.title { font-size: var(--fs-lg); font-weight: var(--fw-bold); color: var(--c-deepgreen); user-select: none; }
 
-/* 달 네비가 열렸을 때만 아래 여백 (mb-4) */
-.topRow[data-nav-open="true"] {
-  margin-bottom: 1rem;
-}
+.topActions { display: flex; align-items: center; gap: 0.5rem; }
 
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 8.75rem;/* gap-3 */
-}
-
-.logoBox {
-  height: 2.5rem; /* h-10 */
-  width: 2.5rem;
-  color: #4C4263;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  cursor: pointer; /* 달 네비 토글 버튼 */
-}
-
-.logoIcon {
-  height: 1.25rem; /* h-5 */
-  width: 1.25rem;
-}
-
-.title {
-  font-size: var(--fs-lg); /* text-lg */
-  font-weight: var(--fw-medium); /* font-extrabold */
-  color: var(--c-deepgreen);
-  user-select: none;
-}
-
-.topActions {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-/* 메모 토글 버튼 */
 .memoBtn {
   position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 2.25rem; /* h-9 */
-  width: 2.25rem;
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 2.25rem; width: 2.25rem;
   transition: var(--t-base);
   cursor: pointer;
-  border-radius: 6px;
+  border-radius: var(--radius-pill);
+  border: none;
 }
-
-.memoBtn[data-open="false"] {
-  background-color: var(--c-paper);
-  color: var(--c-deepgreen);
-  border-color: var(--c-deepgreen);
-}
-
-.memoBtn[data-open="false"]:hover {
-  background-color: var(--c-red);
-  color: var(--c-paper);
-}
-
-.memoBtn[data-open="true"] {
-  background-color: var(--c-red);
-  color: var(--c-paper);
-  border-color: var(--c-red);
-}
-
-.memoBtnIcon {
-  height: 1rem; /* h-4 */
-  width: 1rem;
-}
-
+.memoBtn[data-open="false"] { background-color: var(--c-bg-soft); color: var(--c-deepgreen); }
+.memoBtn[data-open="false"]:hover { background-color: var(--c-red); color: var(--c-card); }
+.memoBtn[data-open="true"] { background-color: var(--c-red); color: var(--c-card); }
+.memoBtnIcon { height: 1rem; width: 1rem; }
 .memoBadge {
-  position: absolute;
-  top: -0.25rem; /* -top-1 */
-  right: -0.25rem;
-  height: 0.625rem; /* h-2.5 */
-  width: 0.625rem;
+  position: absolute; top: -0.125rem; right: -0.125rem;
+  height: 0.5rem; width: 0.5rem;
   background-color: var(--c-red);
-  border: 2px solid var(--c-paper);
-  border-radius: var(--radius-pill); /* rounded-full */
+  border: 2px solid var(--c-card);
+  border-radius: var(--radius-pill);
 }
 
 /* ── 달 이동 네비 ── */
-.monthNav {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
+.monthNav { display: flex; align-items: center; gap: 0.5rem; }
 .navArrow {
-  height: 2.5rem;
-  width: 2.5rem;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  height: 2.5rem; width: 2.5rem; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
   transition: var(--t-base);
   color: var(--c-deepgreen);
   cursor: pointer;
-  border-radius: 6px;
+  border-radius: var(--radius-pill);
+  border: none; background: var(--c-bg-soft);
 }
-
-.navArrow:not(:disabled):hover {
-  background-color: var(--c-red);
-  color: var(--c-paper);
-}
-
-.navArrow:not(:disabled):active {
-  transform: translateY(0.125rem); /* active:translate-y-0.5 */
-}
-
-.navArrow:disabled {
-  background-color: var(--c-bg-muted); /* slate-100 */
-  color: var(--c-border-soft); /* slate-300 */
-  cursor: not-allowed;
-}
-
-.navArrowIcon {
-  height: 1.25rem;
-  width: 1.25rem;
-}
+.navArrow:not(:disabled):hover { background-color: var(--c-red); color: var(--c-card); }
+.navArrow:not(:disabled):active { transform: translateY(1px); }
+.navArrow:disabled { background-color: var(--c-bg-soft); color: var(--c-skyblue); cursor: not-allowed; }
+.navArrowIcon { height: 1.25rem; width: 1.25rem; }
 
 .monthBtn {
-  flex: 1 1 0%; /* flex-1 */
-  height: 2.5rem;
-  background-color: var(--c-paper);
+  flex: 1 1 0%; height: 2.5rem;
+  background-color: var(--c-bg-soft);
   color: var(--c-deepgreen);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  font-weight: var(--fw-black);
-  letter-spacing: 0.05em; /* tracking-wider */
-  text-transform: uppercase;
+  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+  font-weight: var(--fw-bold);
+  letter-spacing: 0;
   font-size: var(--fs-base);
   transition: var(--t-base);
   cursor: pointer;
-  box-shadow: 0px 4px 20px rgba(76, 66, 99, 0.05);
-  border-radius: 6px;
+  border-radius: var(--radius-pill);
+  border: none;
 }
+.monthBtn:hover { background-color: var(--c-red); color: var(--c-card); }
+.monthBtn:active { transform: translateY(1px); }
+.monthBtnIcon { height: 1rem; width: 1rem; }
 
-.monthBtn:hover {
-  background-color: var(--c-red);
-  color: var(--c-paper);
-  
-}
-
-.monthBtn:active {
-  transform: translateY(0.125rem);
-}
-
-.monthBtnIcon {
-  height: 1rem;
-  width: 1rem;
-}
-
-/* ── 모달 공통 (피커 / 메모) ── */
+/* ── 모달 공통 ── */
 .overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 50;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position: fixed; inset: 0; z-index: 50;
+  display: flex; align-items: center; justify-content: center;
   padding: 1rem;
-  background-color: var(--c-overlay); /* bg-black/75 */
+  background-color: var(--c-overlay);
+  backdrop-filter: blur(2px);
 }
-
 .panel {
-  background-color: var(--c-paper);
-  border: var(--border-thick);
-  width: 100%;
-  max-width: 32rem; /* max-w-lg */
+  background-color: var(--c-card);
+  border: none;
+  width: 100%; max-width: 32rem;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-float);
+  overflow: hidden;
 }
-
-.panelHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 4px solid var(--c-ink);
-  padding: 1rem 1.25rem; /* py-4 px-5 */
-}
-
-.panelTitle {
-  font-size: var(--fs-base);
-  font-weight: var(--fw-black);
-  color: var(--c-ink);
-  text-transform: uppercase;
-  letter-spacing: 0.1em; /* tracking-widest */
-}
-
-.panelHeaderActions {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
+.panelHeader { display: flex; align-items: center; justify-content: space-between; border-bottom: var(--hairline); padding: 1.25rem 1.5rem; }
+.panelTitle { font-size: var(--fs-base); font-weight: var(--fw-bold); color: var(--c-deepgreen); letter-spacing: 0; }
+.panelHeaderActions { display: flex; align-items: center; gap: 0.5rem; }
 
 .closeBtn {
-  padding: 0.375rem; /* p-1.5 */
-  background-color: var(--c-paper);
-  border: var(--border-base);
-  color: var(--c-ink);
+  padding: 0.375rem;
+  background-color: var(--c-bg-soft);
+  border: none;
+  color: var(--c-deepgreen);
   transition: var(--t-base);
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--radius-pill);
 }
-
-.closeBtn:hover {
-  background-color: var(--c-red);
-  color: var(--c-paper);
-}
-
-.closeIcon {
-  height: 1rem;
-  width: 1rem;
-}
+.closeBtn:hover { background-color: var(--c-red); color: var(--c-card); }
+.closeIcon { height: 1rem; width: 1rem; }
 
 /* ── 달 선택 피커 ── */
-.pickerBody {
-  padding: 1.25rem; /* p-5 */
-  max-height: 70vh;
-  overflow-y: auto;
-}
-
-.pickerBody > * + * {
-  margin-top: 1.25rem; /* space-y-5 */
-}
+.pickerBody { padding: 1.5rem; max-height: 70vh; overflow-y: auto; }
+.pickerBody > * + * { margin-top: 1.25rem; }
 
 .yearLabel {
   font-size: var(--fs-sm);
-  font-weight: var(--fw-black);
-  font-family: var(--ff-mono);
-  color: var(--c-ink);
-  margin-bottom: 0.625rem; /* mb-2.5 */
-  background-color: var(--c-bg-muted); /* slate-100 */
-  border: var(--border-base);
-  padding: 0.25rem 0.625rem; /* py-1 px-2.5 */
+  font-weight: var(--fw-bold);
+  font-variant-numeric: tabular-nums;
+  color: var(--c-deepgreen);
+  margin-bottom: 0.75rem;
+  background-color: var(--c-bg-soft);
+  border: none;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-pill);
   display: inline-block;
 }
 
-.monthGrid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr)); /* grid-cols-4 */
-  gap: 0.5rem;
-}
-
-.monthCell {
-  position: relative;
-}
-
+.monthGrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.5rem; }
+.monthCell { position: relative; }
 .monthCellBtn {
-  width: 100%;
-  height: 3rem; /* h-12 */
-  border: var(--border-base);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.25rem;
+  width: 100%; height: 3rem;
+  border: var(--hairline);
+  display: flex; align-items: center; justify-content: center; gap: 0.25rem;
   font-size: var(--fs-sm);
-  font-weight: var(--fw-black);
-  letter-spacing: 0.05em;
+  font-weight: var(--fw-bold);
+  letter-spacing: 0;
   transition: var(--t-base);
   cursor: pointer;
+  border-radius: var(--radius-md);
 }
+.monthCellBtn[data-active="false"] { background-color: var(--c-card); color: var(--c-deepgreen); }
+.monthCellBtn[data-active="false"]:hover { background-color: var(--c-bg-soft); }
+.monthCellBtn[data-active="true"] { background-color: var(--c-deepgreen); color: var(--c-card); border-color: transparent; }
 
-.monthCellBtn[data-active="false"] {
-  background-color: var(--c-paper);
-  color: var(--c-ink);
-}
-
-.monthCellBtn[data-active="false"]:hover {
-  background-color: var(--c-bg-muted);
-}
-
-.monthCellBtn[data-active="true"] {
-  background-color: var(--c-ink);
-  color: var(--c-paper);
-}
-
-.monthMemoDot {
-  height: 0.375rem; /* h-1.5 */
-  width: 0.375rem;
-  background-color: var(--c-red);
-}
+.monthMemoDot { height: 0.375rem; width: 0.375rem; background-color: var(--c-red); border-radius: 50%; }
 
 .monthDeleteBtn {
-  position: absolute;
-  top: -0.5rem; /* -top-2 */
-  right: -0.5rem;
-  height: 1.25rem; /* h-5 */
-  width: 1.25rem;
-  background-color: var(--c-paper);
-  border: var(--border-base);
-  color: var(--c-ink);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position: absolute; top: -0.5rem; right: -0.5rem;
+  height: 1.25rem; width: 1.25rem;
+  background-color: var(--c-card);
+  border: var(--hairline);
+  color: var(--c-deepgreen);
+  display: flex; align-items: center; justify-content: center;
   transition: var(--t-base);
   cursor: pointer;
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-soft);
 }
+.monthDeleteBtn:hover { background-color: var(--c-red); color: var(--c-card); border-color: transparent; }
+.monthDeleteIcon { height: 0.625rem; width: 0.625rem; }
 
-.monthDeleteBtn:hover {
-  background-color: var(--c-red);
-  color: var(--c-paper);
-  border-color: var(--c-red);
-}
-
-.monthDeleteIcon {
-  height: 0.625rem; /* h-2.5 */
-  width: 0.625rem;
-}
-
-/* ── 메모 모달 본문 ── */
-.memoBody {
-  padding: 1.25rem;
-  max-height: 70vh;
-  overflow-y: auto;
-}
+.memoBody { padding: 1.5rem; max-height: 70vh; overflow-y: auto; }

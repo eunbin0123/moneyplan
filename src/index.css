@@ -1,42 +1,36 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700;800&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Space Grotesk", "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-sans: "Plus Jakarta Sans", "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Plus Jakarta Sans", "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
 }
 
 body {
   font-family: var(--font-sans);
-  background-color: #F0F0F0; /* crisp, clean geometric canvas gray */
-  color: #000000; /* pure solid heavy carbon black */
+  background-color: var(--c-bg-soft);   /* 따뜻한 오프화이트 캔버스 */
+  color: var(--c-deepgreen);            /* 기본 글씨 */
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
+/* 숫자는 자리 맞춤(고정폭 숫자) — 모노 없이 정렬 유지 */
+.num, [class*="Amount"], [class*="amount"], [class*="Balance"], [class*="balance"] {
+  font-variant-numeric: tabular-nums;
+}
 
 .accent-bg {
-  background-color: #E63946;
+  background-color: var(--c-red);
 }
 
-/* Custom geometric minimal scrollbars */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-::-webkit-scrollbar-track {
-  background: #F0F0F0;
-  border-left: 2px solid #000000;
-}
+/* 스크롤바 — 모던 웜 톤 */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: #000000;
+  background: rgba(42, 58, 43, 0.18);
+  border-radius: 99px;
 }
-::-webkit-scrollbar-thumb:hover {
-  background: #E63946;
-}
+::-webkit-scrollbar-thumb:hover { background: rgba(42, 58, 43, 0.30); }
 
-
-
-/* iOS 사파리 줌인 방지 - 모든 input/textarea 16px 이상 */
-input, textarea, select {
-  font-size: 16px !important;
-}
+/* iOS 사파리 줌인 방지 */
+input, textarea, select { font-size: 16px !important; }
