@@ -221,19 +221,20 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         <div className={styles.tabHeader}>
           <div>
             <h2 className={styles.tabTitle}>
-              📊 {getShortMonthLabel(activeMonth)} Dashboard
+              {getShortMonthLabel(activeMonth)}
             </h2>
-          </div>
-          <div className={styles.tabActions}>
-            <button onClick={() => setIsEditAllocModalOpen(true)} className={`${styles.btnBudget} `}>
-              <Edit2 className={styles.btnBudgetIcon} /> 예산 조정
-            </button>
-            <button onClick={onOpenSavings} className={`${styles.btnSavings} `}>
-              💰 분배
-            </button>
-          </div>
-        </div>
 
+          </div>
+          
+        </div>
+        <div className={styles.tabActions}>
+          <button onClick={() => setIsEditAllocModalOpen(true)} className={`${styles.btnBudget} `}>
+            예산 조정
+          </button>
+          <button onClick={onOpenSavings} className={`${styles.btnSavings} `}>
+            분배
+          </button>
+        </div>
         {/* 2 Grid Elements: 남은 생활비 예산 & 전체 사용내역 */}
         <div className={styles.cardGrid}>
           {/* Card 1: 남은 생활비 예산 */}

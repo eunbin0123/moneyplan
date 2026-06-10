@@ -634,7 +634,7 @@ export default function App() {
                   onClick={(e) => e.stopPropagation()}
               >
                 <div className={styles.savingsPanelHeader}>
-                  <h2 className={styles.savingsPanelTitle}>💰 분배</h2>
+                  <h2 className={styles.savingsPanelTitle}>분배</h2>
                   <button
                       className={styles.savingsPanelClose}
                       onClick={() => setIsSavingsModalOpen(false)}

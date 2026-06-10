@@ -99,11 +99,12 @@
   
   
   --c-red: #B86865;
+  --c-deepgreen: #2A3A2B;
   --c-purple: #4c4263;
   --c-yellow: #B8B593;
   --c-green: #468005;
-  --c-blue: #64748b;  /* 보조 텍스트 */
-  --c-skyblue: #cbd5e1; /* 옅은 보더 */
-
+  --c-blue: #64748b; 
+  --c-skyblue: #cbd5e1; 
+  --c-purplegrey: #EAE7EE;
 
 }

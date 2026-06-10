@@ -162,7 +162,7 @@
   cursor: pointer;
   border: none;
   background: transparent;
-  color: var(--c-ink);
+  color: color-mix(in srgb, var(--c-deepgreen) 40%, transparent);
   transition: var(--t-colors);
 }
 
@@ -172,9 +172,7 @@
 
 /* 활성 탭: data-active="true" */
 .tabBtn[data-active="true"] {
-  background-color: var(--c-ink);
-  color: var(--c-paper);
-}
+  color: var(--c-deepgreen);}
 
 .tabLabel {
   font-size: var(--fs-tiny);
@@ -190,11 +188,12 @@
 }
 
 .fabBtn {
+  transform: translateY(-10px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
   height: 3.5rem;
   width: 3.5rem;
-  background-color: var(--c-ink);
+  background-color: var(--c-yellow);
   color: var(--c-paper);
-  border: var(--border-base);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -204,10 +203,9 @@
 }
 
 .fabBtn:hover {
-  background-color: var(--c-accent);
-  border-color: var(--c-accent);
+  background-color: var(--c-red);
 }
 
 .fabBtn:active {
-  transform: scale(0.95);
+  transform: translateY(-8px) scale(0.95);
 }

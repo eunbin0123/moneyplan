@@ -608,7 +608,7 @@
 
 .totalValue {
   font-size: var(--fs-base);
-  color: var(--c-accent);
+  color: var(--c-red);
   font-family: var(--ff-mono);
 }
 

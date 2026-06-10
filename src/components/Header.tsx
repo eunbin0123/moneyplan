@@ -77,9 +77,9 @@ export const Header: React.FC<HeaderProps> = ({
                             >
                                 <Wallet className={styles.logoIcon} />
                             </button>
-                            <h1 className={styles.title}>☆EB's Money☆</h1>
+                            
                         </div>
-
+                        <h1 className={styles.title}>EB's MONEY</h1>
                         <div className={styles.topActions}>
                             <button
                                 onClick={onToggleMemo}
