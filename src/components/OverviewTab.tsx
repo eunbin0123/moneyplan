@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { MonthData, InstallmentItem, DebtItem } from "../types";
-import { Edit2, ArrowUpRight, TrendingUp, DollarSign, BookOpen, AlertCircle, X, Save } from "lucide-react";
+import { BookOpen, X, Save } from "lucide-react";
 import styles from "../css/OverviewTab.module.css";
 
 interface OverviewTabProps {
@@ -23,12 +23,9 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                                                           onUpdateAllocations,
                                                           installments = [],
                                                           debts = [],
-
                                                         }) => {
   // Modal toggle state
   const [isEditAllocModalOpen, setIsEditAllocModalOpen] = useState(false);
-  const [isAddingLabelOpen, setIsAddingLabelOpen] = useState(false);
-  const [existingIdInput, setExistingIdInput] = useState("");
 
   // Modal form states
   const [inputTotalBudget, setInputTotalBudget] = useState("");
@@ -45,9 +42,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
     }
   }, [isEditAllocModalOpen, data]);
 
-  // Calculations for 3 Managed Categories:
-
-  // 1. 생활비 (Living Expenses)
+  // 1. 생활비 (Living Expenses) Calculations
   const baseLivingBudget = data.budget;
   const carryFromPrevMonth = data.carryFromPrevMonth ?? 0;
   const effectiveMonthlyBudget = data.effectiveMonthlyBudget ?? baseLivingBudget;
@@ -58,21 +53,19 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   const remainingLiving = effectiveMonthlyBudget - totalLivingSpent;
   const livingPct = effectiveMonthlyBudget > 0 ? Math.round((totalLivingSpent / effectiveMonthlyBudget) * 100) : 0;
 
-  // 2. 고정지출 (Fixed Expenses)
+  // 2. 고정지출 (Fixed Expenses) Calculations
   const fixedAllocBudget = data.fixedBudget ?? 160000;
-  const totalFixedSpent = data.fixed
-      .reduce((sum, item) => sum + item.amount, 0);
+  const totalFixedSpent = data.fixed.reduce((sum, item) => sum + item.amount, 0);
   const remainingFixed = fixedAllocBudget - totalFixedSpent;
   const fixedPct = fixedAllocBudget > 0 ? Math.round((totalFixedSpent / fixedAllocBudget) * 100) : 0;
 
-  // 3. 경조사비 (Special Event Expenses)
+  // 3. 경조사비 (Special Event Expenses) Calculations
   const eventAllocBudget = data.eventBudget ?? 200000;
-  const totalEventSpent = (data.events || [])
-      .reduce((sum, item) => sum + item.amount, 0);
+  const totalEventSpent = (data.events || []).reduce((sum, item) => sum + item.amount, 0);
   const remainingEvent = eventAllocBudget - totalEventSpent;
   const eventPct = eventAllocBudget > 0 ? Math.round((totalEventSpent / eventAllocBudget) * 100) : 0;
 
-  // 5. 할부 (Installments) — 시작월부터 개월 수만큼 매달 반영
+  // 4. 할부 (Installments) Charges
   const monthIdx = (key: string) => {
     const [y, m] = key.split("-").map(Number);
     return y * 12 + (m - 1);
@@ -83,23 +76,21 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
     return sum + (cur >= start && cur < start + it.months ? it.monthlyAmount : 0);
   }, 0);
 
-  // 6. 당겨쓰기 (Debt repayment this month)
+  // 5. 당겨쓰기 (Debt repayment) Charges
   const debtChargeThisMonth = (debts || []).reduce((sum, d) => sum + d.amount, 0);
 
-  // 4. 통합 (Combined/Aggregate)
+  // 6. 통합 집계 (Combined / Aggregate)
   const totalCombinedBudget = effectiveMonthlyBudget + fixedAllocBudget + eventAllocBudget;
   const totalCombinedSpent = totalLivingSpent + totalFixedSpent + totalEventSpent + installmentChargeThisMonth + debtChargeThisMonth;
   const totalCombinedRemaining = totalCombinedBudget - totalCombinedSpent;
   const combinedPct = totalCombinedBudget > 0 ? Math.round((totalCombinedSpent / totalCombinedBudget) * 100) : 0;
 
-  // Helper to calculate spent for target cycle
   const getCycleSpent = (start: string, end: string) => {
     return data.expenses
         .filter((e) => e.date >= start && e.date <= end && e.checked !== false)
         .reduce((sum, item) => sum + (item.amount - (item.settleAmount || 0)), 0);
   };
 
-  // 소진율 → 색상 레벨 (CSS data-level 셀렉터에서 사용)
   const getLevel = (pct: number) => (pct >= 100 ? "over" : pct >= 80 ? "warn" : "normal");
 
   const getShortMonthLabel = (key: string) => {
@@ -135,10 +126,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
     if (isNaN(fx) || fx < 0 || isNaN(ev) || ev < 0) return;
 
     if (!isNaN(tb) && tb > 0) {
-      // totalBudget 모드: 생활비는 자동 역산, budget=0 으로 전달 (계산기가 재계산)
       onUpdateAllocations(0, fx, ev, tb);
     } else {
-      // 기존 수동 모드
       const bg = parseInt(inputBudget, 10);
       if (isNaN(bg) || bg < 0) return;
       onUpdateAllocations(bg, fx, ev, undefined);
@@ -146,99 +135,28 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
     setIsEditAllocModalOpen(false);
   };
 
-  const handleExportToExcel = () => {
-    let csvContent = "\uFEFF";
-
-    csvContent += `"${getShortMonthLabel(activeMonth)} 스마트 가계부 백업 리포트"\n`;
-    csvContent += `"출력 일시","${new Date().toLocaleString("ko-KR")}"\n\n`;
-
-    csvContent += `"구분","종합 예산","실제 지출액","남은 잔액","소비 비율"\n`;
-    csvContent += `"생활비(주기별 합산)","${formatCurrency(effectiveMonthlyBudget)}","${formatCurrency(totalLivingSpent)}","${formatCurrency(remainingLiving)}","${livingPct}%"\n`;
-    csvContent += `"고정 지출","${formatCurrency(fixedAllocBudget)}","${formatCurrency(totalFixedSpent)}","${formatCurrency(remainingFixed)}","${fixedPct}%"\n`;
-    csvContent += `"경조사비","${formatCurrency(eventAllocBudget)}","${formatCurrency(totalEventSpent)}","${formatCurrency(remainingEvent)}","${eventPct}%"\n`;
-    csvContent += `"전체 가계부 합계","${formatCurrency(totalCombinedBudget)}","${formatCurrency(totalCombinedSpent)}","${formatCurrency(totalCombinedRemaining)}","${combinedPct}%"\n\n`;
-
-    csvContent += `"[1] 생활비 주기별 상세 내역"\n`;
-    data.cycles.forEach((c) => {
-      const startL = dlabel(c.start);
-      const endL = dlabel(c.end);
-      const spentObj = getCycleSpent(c.start, c.end);
-      const remaining = c.budget - spentObj;
-      const pct = c.budget > 0 ? Math.round((spentObj / c.budget) * 100) : 0;
-
-      csvContent += `\n"주기명","기간","지정 예산","지출 합계","남은 잔고","지출 비율"\n`;
-      csvContent += `"${getCleanLabel(c.label)}","${startL} ~ ${endL}","${formatCurrency(c.budget)}","${formatCurrency(spentObj)}","${formatCurrency(remaining)}","${pct}%"\n`;
-
-      const cycleExps = data.expenses.filter(
-          (e) => e.date >= c.start && e.date <= c.end
-      );
-      if (cycleExps.length > 0) {
-        csvContent += `"날짜","지출 내역","금액","상태"\n`;
-        cycleExps.forEach((e) => {
-          csvContent += `"${e.date}","${e.name}","${formatCurrency(e.amount)}","${e.checked === false ? "미반영" : (e.paid === true ? "결제완료" : "결제대기")}"\n`;
-        });
-      } else {
-        csvContent += `"- 이 주기에 기록된 생활비 지출 내역이 없습니다."\n`;
-      }
-    });
-    csvContent += `\n`;
-
-    csvContent += `"[2] 고정 지출 목록"\n`;
-    if (data.fixed && data.fixed.length > 0) {
-      csvContent += `"일자/납부일","지출명","예정 금액"\n`;
-      data.fixed.forEach((f) => {
-        csvContent += `"${f.day || "매월"}","${f.name}","${formatCurrency(f.amount)}"\n`;
-      });
-    } else {
-      csvContent += `"- 등록된 고정 지출 내역이 없습니다."\n`;
-    }
-    csvContent += `\n`;
-
-    csvContent += `"[3] 경조사비 목록"\n`;
-    if (data.events && data.events.length > 0) {
-      csvContent += `"순번","구분/경조사명","금액"\n`;
-      data.events.forEach((ev, idx) => {
-        csvContent += `"${idx + 1}","${ev.name}","${formatCurrency(ev.amount)}"\n`;
-      });
-    } else {
-      csvContent += `"- 등록된 경조사비 내역이 없습니다."\n`;
-    }
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `smart_budget_report_${activeMonth}.csv`);
-    link.style.visibility = "hidden";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   return (
       <div className={styles.container}>
-        {/* Tab Header with Actions */}
+        {/* Tab Header */}
         <div className={styles.tabHeader}>
           <div>
-            <h2 className={styles.tabTitle}>
-              {getShortMonthLabel(activeMonth)}
-            </h2>
-
+            <h2 className={styles.tabTitle}>{getShortMonthLabel(activeMonth)}</h2>
           </div>
-          
         </div>
+
         <div className={styles.tabActions}>
-          <button onClick={() => setIsEditAllocModalOpen(true)} className={`${styles.btnBudget} `}>
+          <button onClick={() => setIsEditAllocModalOpen(true)} className={styles.btnBudget}>
             예산 조정
           </button>
-          <button onClick={onOpenSavings} className={`${styles.btnSavings} `}>
+          <button onClick={onOpenSavings} className={styles.btnSavings}>
             분배
           </button>
         </div>
-        {/* 2 Grid Elements: 남은 생활비 예산 & 전체 사용내역 */}
+
+        {/* 2 Grid Elements */}
         <div className={styles.cardGrid}>
           {/* Card 1: 남은 생활비 예산 */}
-          <div className={`${styles.cardLight} `}>
+          <div className={styles.cardLight}>
             <div>
               <div className={styles.cardHeadRow}>
                 <span className={styles.dotBlack} />
@@ -246,7 +164,6 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               </div>
 
               <div className={styles.specBox}>
-                {/* 내 예산 + 이월금 = 사용예산 */}
                 <div className={styles.specRow}>
                   <span className={styles.specLabel}>내 예산</span>
                   <span className={styles.specValue}>{formatCurrency(baseLivingBudget)}</span>
@@ -266,13 +183,13 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 <div className={styles.specRowTotal}>
                   <span className={styles.specRowTotalLabel}>남은 생활비</span>
                   <span className={styles.remainAmount} data-negative={remainingLiving < 0}>
-                    {formatCurrency(remainingLiving)}
-                  </span>
+                  {formatCurrency(remainingLiving)}
+                </span>
                 </div>
               </div>
             </div>
 
-            {/* Living Budget Progress Bar */}
+            {/* Progress Bar */}
             <div className={styles.progressWrap}>
               <div className={styles.progressLabelRow}>
                 <span>수행 소진율</span>
@@ -289,7 +206,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           </div>
 
           {/* Card 2: 전체 사용내역 */}
-          <div className={`${styles.cardLight} `}>
+          <div className={styles.cardLight}>
             <div>
               <div className={styles.cardHeadRow}>
                 <span className={styles.dotBlack} />
@@ -330,18 +247,17 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           </div>
 
           {/* Cycles Breakdown */}
-          <div className={`${styles.cardLight} `}>
+          <div className={styles.cardLight}>
             <div>
               <div className={styles.cardHeadRow}>
                 <span className={styles.dotBlack} />
                 <h3 className={styles.cardTitleBlack}>주기별 예산 잔액</h3>
               </div>
 
-
               <div className={styles.specBox}>
                 {data.cycles.map((c, idx) => {
                   const spent = getCycleSpent(c.start, c.end);
-                  const bal = c.budget - spent; // c.budget is now effective budget inclusive of carryIn
+                  const bal = c.budget - spent;
                   const pct = c.budget > 0 ? Math.round((spent / c.budget) * 100) : 0;
                   const carryIn = c.carryIn ?? 0;
                   const baseBudget = c.baseBudget ?? c.budget;
@@ -383,12 +299,11 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 })}
               </div>
             </div>
-
-            
           </div>
+
           {/* Memo Card Preview */}
           {data.memo && data.memo.trim() && (
-              <div className={`${styles.memoCard} `}>
+              <div className={styles.memoCard}>
                 <div className={styles.memoHeader}>
                   <h3 className={styles.memoTitle}>
                     <BookOpen className={styles.memoIcon} /> 이번 달 주요 메모
@@ -397,20 +312,15 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                     상세 편집 &rarr;
                   </button>
                 </div>
-                <div className={styles.memoBody}>
-                  {data.memo}
-                </div>
+                <div className={styles.memoBody}>{data.memo}</div>
               </div>
           )}
         </div>
 
-       
-        
-
-        {/* ✏️ EDIT ALLOCATIONS DIALOG MODAL */}
+        {/* ✏️ 고도화 디자인 적용된 예산 배정액 조율 모달 */}
         {isEditAllocModalOpen && (
             <div className={styles.overlay}>
-              <div className={`${styles.panel} `}>
+              <div className={styles.panel}>
                 <div className={styles.modalHeader}>
                   <h3 className={styles.modalTitle}>가구 예산 배정액 조율</h3>
                   <button onClick={() => setIsEditAllocModalOpen(false)} className={styles.closeBtn}>
@@ -419,11 +329,9 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 </div>
 
                 <form onSubmit={handleSaveAllocations} className={styles.form}>
-                  {/* ── 총예산 모드 ── */}
+                  {/* ── 총예산 자동 분배 모드 카드화 ── */}
                   <div className={styles.totalBudgetBox}>
-                    <p className={styles.totalBudgetTitle}>
-                      ✦ 총예산 자동 분배 모드
-                    </p>
+                    <p className={styles.totalBudgetTitle}>✦ 총예산 자동 분배 모드</p>
                     <div>
                       <label className={styles.labelLight}>
                         이달 총 지출 한도
@@ -432,14 +340,14 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                       <input
                           type="number"
                           min="0"
-                          placeholder="예) 1000000"
+                          placeholder="예) 1200000"
                           value={inputTotalBudget}
                           onChange={(e) => setInputTotalBudget(e.target.value)}
                           className={styles.inputDark}
                       />
                     </div>
 
-                    {/* 자동 역산 미리보기 */}
+                    {/* 자동 역산 미리보기 (영수증 스타일 컴포넌트화) */}
                     {inputTotalBudget && parseInt(inputTotalBudget, 10) > 0 && (() => {
                       const tb = parseInt(inputTotalBudget, 10);
                       const fx = parseInt(inputFixedBudget, 10) || 0;
@@ -452,17 +360,40 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                       const remainder = living - base * cycleCount;
                       return (
                           <div className={styles.previewCalc}>
-                            <div className={styles.previewRow}><span>총 한도</span><span className={styles.previewValueStrong}>{tb.toLocaleString("ko-KR")}원</span></div>
-                            <div className={styles.previewRow}><span>― 고정비</span><span>-{fx.toLocaleString("ko-KR")}원</span></div>
-                            <div className={styles.previewRow}><span>― 경조사비</span><span>-{ev.toLocaleString("ko-KR")}원</span></div>
-                            {instCharge > 0 && <div className={styles.previewRow}><span>― 할부금</span><span>-{instCharge.toLocaleString("ko-KR")}원</span></div>}
-                            {debtCharge > 0 && <div className={styles.previewRow}><span>― 당겨쓰기</span><span>-{debtCharge.toLocaleString("ko-KR")}원</span></div>}
+                            <div className={styles.previewRow}>
+                              <span>총 한도</span>
+                              <span className={styles.previewValueStrong}>{tb.toLocaleString("ko-KR")}원</span>
+                            </div>
+                            <div className={styles.previewRow}>
+                              <span>― 고정비</span>
+                              <span>-{fx.toLocaleString("ko-KR")}원</span>
+                            </div>
+                            <div className={styles.previewRow}>
+                              <span>― 경조사비</span>
+                              <span>-{ev.toLocaleString("ko-KR")}원</span>
+                            </div>
+                            {instCharge > 0 && (
+                                <div className={styles.previewRow}>
+                                  <span>― 할부금</span>
+                                  <span>-{instCharge.toLocaleString("ko-KR")}원</span>
+                                </div>
+                            )}
+                            {debtCharge > 0 && (
+                                <div className={styles.previewRow}>
+                                  <span>― 당겨쓰기</span>
+                                  <span>-{debtCharge.toLocaleString("ko-KR")}원</span>
+                                </div>
+                            )}
                             <div className={styles.previewRowDivider}>
-                              <span>생활비 예산</span><span>{living.toLocaleString("ko-KR")}원</span>
+                              <span>생활비 예산</span>
+                              <span>{living.toLocaleString("ko-KR")}원</span>
                             </div>
                             <div className={styles.previewRowResult}>
                               <span>→ 주기당 ({cycleCount}등분)</span>
-                              <span>{base.toLocaleString("ko-KR")}원 {remainder > 0 ? `/ 마지막 +${remainder.toLocaleString("ko-KR")}` : ""}</span>
+                              <span>
+                          {base.toLocaleString("ko-KR")}원{" "}
+                                {remainder > 0 ? `/ 마지막 +${remainder.toLocaleString("ko-KR")}` : ""}
+                        </span>
                             </div>
                           </div>
                       );
@@ -520,11 +451,11 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                   </div>
 
                   <div className={styles.actions}>
-                    <button type="button" onClick={() => setIsEditAllocModalOpen(false)} className={`${styles.btnCancel}`}>
+                    <button type="button" onClick={() => setIsEditAllocModalOpen(false)} className={styles.btnCancel}>
                       취소
                     </button>
-                    <button type="submit" className={`${styles.btnSave} `}>
-                      저장
+                    <button type="submit" className={styles.btnSave}>
+                      <Save className={styles.btnIcon} /> 저장
                     </button>
                   </div>
                 </form>
