@@ -113,10 +113,13 @@
 
 /* ── 상단 2-카드 그리드 ── */
 .cardGrid {
-  display: grid;
-  grid-template-columns: 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 1.25rem; /* gap-5 */
+  padding: 1.25rem 0;
 }
+
+
 
 @media (min-width: 768px) {
   .cardGrid {

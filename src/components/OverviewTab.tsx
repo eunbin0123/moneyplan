@@ -327,78 +327,80 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Cycles Breakdown */}
-        <div className={`${styles.cyclesCard} `}>
-          <div className={styles.cyclesHeader}>
-            <div>
-              <h3 className={styles.cyclesHeaderTitle}>주기별 예산 잔액</h3>
+          {/* Cycles Breakdown */}
+          <div className={`${styles.cyclesCard} `}>
+            <div className={styles.cyclesHeader}>
+              <div>
+                <h3 className={styles.cyclesHeaderTitle}>주기별 예산 잔액</h3>
+              </div>
             </div>
-          </div>
 
-          <div className={styles.cyclesList}>
-            {data.cycles.map((c, idx) => {
-              const spent = getCycleSpent(c.start, c.end);
-              const bal = c.budget - spent; // c.budget is now effective budget inclusive of carryIn
-              const pct = c.budget > 0 ? Math.round((spent / c.budget) * 100) : 0;
-              const carryIn = c.carryIn ?? 0;
-              const baseBudget = c.baseBudget ?? c.budget;
+            <div className={styles.cyclesList}>
+              {data.cycles.map((c, idx) => {
+                const spent = getCycleSpent(c.start, c.end);
+                const bal = c.budget - spent; // c.budget is now effective budget inclusive of carryIn
+                const pct = c.budget > 0 ? Math.round((spent / c.budget) * 100) : 0;
+                const carryIn = c.carryIn ?? 0;
+                const baseBudget = c.baseBudget ?? c.budget;
 
-              return (
-                  <div key={idx} className={styles.cycleItem}>
-                    <div className={styles.cycleTopRow}>
-                      <div className={styles.cycleTopLeft}>
-                        <span className={styles.cycleLabel}>{getCleanLabel(c.label)}</span>
-                        <span className={styles.cycleDate}>
+                return (
+                    <div key={idx} className={styles.cycleItem}>
+                      <div className={styles.cycleTopRow}>
+                        <div className={styles.cycleTopLeft}>
+                          <span className={styles.cycleLabel}>{getCleanLabel(c.label)}</span>
+                          <span className={styles.cycleDate}>
                           ({dlabel(c.start)} ~ {dlabel(c.end)})
                         </span>
-                        <button onClick={() => onEditCycle(idx)} className={styles.cycleEditBtn} title="주기 수정">
-                          ✏️ 수정
-                        </button>
-                      </div>
-                      <span className={styles.cycleBalance} data-negative={bal < 0}>
+                          <button onClick={() => onEditCycle(idx)} className={styles.cycleEditBtn} title="주기 수정">
+                            ✏️ 수정
+                          </button>
+                        </div>
+                        <span className={styles.cycleBalance} data-negative={bal < 0}>
                         {bal < 0 ? "-" : ""}
-                        {formatCurrency(Math.abs(bal))}
+                          {formatCurrency(Math.abs(bal))}
                       </span>
-                    </div>
+                      </div>
 
-                    <div className={styles.cycleBarTrack}>
-                      <div
-                          className={styles.cycleBarFill}
-                          data-level={getLevel(pct)}
-                          style={{ width: `${Math.min(pct, 100)}%` }}
-                      />
-                    </div>
+                      <div className={styles.cycleBarTrack}>
+                        <div
+                            className={styles.cycleBarFill}
+                            data-level={getLevel(pct)}
+                            style={{ width: `${Math.min(pct, 100)}%` }}
+                        />
+                      </div>
 
-                    <div className={styles.cycleStats}>
-                      <span>내 예산 <span className={styles.cycleStatStrong}>{formatCurrency(baseBudget)}</span></span>
-                      {(c as any).incomeAmount > 0 && <span>수입 <span className={styles.cycleStatIncome}>+{formatCurrency((c as any).incomeAmount)}</span></span>}
-                      <span>이월 <span className={styles.cycleStatCarry} data-positive={carryIn > 0}>+{formatCurrency(carryIn)}</span></span>
-                      <span>사용예산 <span className={styles.cycleStatStrong}>{formatCurrency(c.budget)}</span></span>
+                      <div className={styles.cycleStats}>
+                        <span>내 예산 <span className={styles.cycleStatStrong}>{formatCurrency(baseBudget)}</span></span>
+                        {(c as any).incomeAmount > 0 && <span>수입 <span className={styles.cycleStatIncome}>+{formatCurrency((c as any).incomeAmount)}</span></span>}
+                        <span>이월 <span className={styles.cycleStatCarry} data-positive={carryIn > 0}>+{formatCurrency(carryIn)}</span></span>
+                        <span>사용예산 <span className={styles.cycleStatStrong}>{formatCurrency(c.budget)}</span></span>
+                      </div>
                     </div>
-                  </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
+          {/* Memo Card Preview */}
+          {data.memo && data.memo.trim() && (
+              <div className={`${styles.memoCard} `}>
+                <div className={styles.memoHeader}>
+                  <h3 className={styles.memoTitle}>
+                    <BookOpen className={styles.memoIcon} /> 이번 달 주요 메모
+                  </h3>
+                  <button onClick={onOpenMemo} className={styles.memoEditBtn}>
+                    상세 편집 &rarr;
+                  </button>
+                </div>
+                <div className={styles.memoBody}>
+                  {data.memo}
+                </div>
+              </div>
+          )}
         </div>
 
-        {/* Memo Card Preview */}
-        {data.memo && data.memo.trim() && (
-            <div className={`${styles.memoCard} `}>
-              <div className={styles.memoHeader}>
-                <h3 className={styles.memoTitle}>
-                  <BookOpen className={styles.memoIcon} /> 이번 달 주요 메모
-                </h3>
-                <button onClick={onOpenMemo} className={styles.memoEditBtn}>
-                  상세 편집 &rarr;
-                </button>
-              </div>
-              <div className={styles.memoBody}>
-                {data.memo}
-              </div>
-            </div>
-        )}
+       
+        
 
         {/* ✏️ EDIT ALLOCATIONS DIALOG MODAL */}
         {isEditAllocModalOpen && (
