@@ -37,28 +37,28 @@
 
 /* ── 공통 카드 ── */
 .card {
-  background-color: #fff;
-  border: 2px solid #000;
+  background-color: var(--c-paper);
+  border: var(--border-base);
   padding: 1.25rem;
 }
 
 .cardPad {
-  background-color: #fff;
-  border: 2px solid #000;
+  background-color: var(--c-paper);
+  border: var(--border-base);
   padding: 1rem;
 }
 
 .cardAccent {
-  background-color: #fff;
-  border: 2px solid #000;
+  background-color: var(--c-paper);
+  border: var(--border-base);
   padding: 1.25rem;
 }
 
 /* 어두운 배경 카드 (요약) */
 .cardDark {
-  background-color: #000;
-  color: #fff;
-  border: 2px solid #000;
+  background-color: var(--c-ink);
+  color: var(--c-paper);
+  border: var(--border-base);
   padding: 1rem;
 }
 
@@ -68,7 +68,7 @@
   align-items: center;
   justify-content: space-between;
   padding-bottom: 0.75rem;
-  border-bottom: 2px solid #000;
+  border-bottom: 2px solid var(--c-ink);
   margin-bottom: 1rem;
 }
 
@@ -80,9 +80,9 @@
 }
 
 .cardTitle {
-  font-size: 0.875rem;
-  font-weight: 900;
-  color: #000;
+  font-size: var(--fs-base);
+  font-weight: var(--fw-black);
+  color: var(--c-ink);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   display: flex;
@@ -92,16 +92,16 @@
 
 /* ── 월급 입력 ── */
 .salaryValue {
-  font-size: 1.5rem;
-  font-weight: 900;
-  font-family: ui-monospace, monospace;
-  color: #000;
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-black);
+  font-family: var(--ff-mono);
+  color: var(--c-ink);
 }
 
 .salaryEmpty {
-  color: #cbd5e1;
-  font-size: 1rem;
-  font-weight: 900;
+  color: var(--c-border-soft);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-black);
 }
 
 .salaryRow {
@@ -112,65 +112,65 @@
 .salaryInput {
   flex: 1;
   height: 2.5rem;
-  border: 2px solid #000;
+  border: var(--border-base);
   padding: 0 0.75rem;
-  font-size: 0.875rem;
-  font-weight: 900;
-  font-family: ui-monospace, monospace;
+  font-size: var(--fs-base);
+  font-weight: var(--fw-black);
+  font-family: var(--ff-mono);
   outline: none;
 }
 
 .salaryInput:focus {
-  border-color: #E63946;
+  border-color: var(--c-accent);
 }
 
 /* ── 공통 소형 버튼 ── */
 .btnSmall {
-  font-size: 0.625rem;
-  font-weight: 900;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-black);
   padding: 0.25rem 0.625rem;
-  border: 2px solid #000;
-  background-color: #fff;
-  color: #000;
+  border: var(--border-base);
+  background-color: var(--c-paper);
+  color: var(--c-ink);
   cursor: pointer;
-  transition: background-color 0.15s, color 0.15s;
+  transition: var(--t-colors);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .btnSmall:hover {
-  background-color: #000;
-  color: #fff;
+  background-color: var(--c-ink);
+  color: var(--c-paper);
 }
 
 .btnConfirm {
   padding: 0.25rem 0.75rem;
-  background-color: #000;
-  color: #fff;
-  font-size: 0.75rem;
-  font-weight: 900;
-  border: 2px solid #000;
+  background-color: var(--c-ink);
+  color: var(--c-paper);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-black);
+  border: var(--border-base);
   cursor: pointer;
   transition: background-color 0.15s;
 }
 
 .btnConfirm:hover {
-  background-color: #E63946;
+  background-color: var(--c-accent);
 }
 
 .btnCancel {
   padding: 0.25rem 0.75rem;
-  background-color: #fff;
-  color: #000;
-  font-size: 0.75rem;
-  font-weight: 900;
-  border: 2px solid #000;
+  background-color: var(--c-paper);
+  color: var(--c-ink);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-black);
+  border: var(--border-base);
   cursor: pointer;
   transition: background-color 0.15s;
 }
 
 .btnCancel:hover {
-  background-color: #f1f5f9;
+  background-color: var(--c-bg-muted);
 }
 
 /* 추가 버튼 (헤더 우측) */
@@ -178,21 +178,21 @@
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
-  font-size: 0.625rem;
-  font-weight: 900;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-black);
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  background-color: #000;
-  color: #fff;
-  border: 2px solid #000;
+  background-color: var(--c-ink);
+  color: var(--c-paper);
+  border: var(--border-base);
   padding: 0.375rem 0.75rem;
   cursor: pointer;
   transition: background-color 0.15s, border-color 0.15s;
 }
 
 .btnAdd:hover {
-  background-color: #E63946;
-  border-color: #E63946;
+  background-color: var(--c-accent);
+  border-color: var(--c-accent);
 }
 
 .btnAdd:active {
@@ -202,36 +202,36 @@
 /* 수정/삭제 인라인 버튼 */
 .btnEdit {
   padding: 0.25rem 0.5rem;
-  background-color: #fff;
-  color: #000;
-  font-size: 0.625rem;
-  font-weight: 900;
-  border: 2px solid #000;
+  background-color: var(--c-paper);
+  color: var(--c-ink);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-black);
+  border: var(--border-base);
   cursor: pointer;
-  transition: background-color 0.15s, color 0.15s;
+  transition: var(--t-colors);
   user-select: none;
 }
 
 .btnEdit:hover {
-  background-color: #000;
-  color: #fff;
+  background-color: var(--c-ink);
+  color: var(--c-paper);
 }
 
 .btnDelete {
   padding: 0.25rem 0.5rem;
-  background-color: #fff;
-  color: #000;
-  font-size: 0.625rem;
-  font-weight: 900;
-  border: 2px solid #000;
+  background-color: var(--c-paper);
+  color: var(--c-ink);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-black);
+  border: var(--border-base);
   cursor: pointer;
-  transition: background-color 0.15s, color 0.15s;
+  transition: var(--t-colors);
   user-select: none;
 }
 
 .btnDelete:hover {
-  background-color: #E63946;
-  color: #fff;
+  background-color: var(--c-accent);
+  color: var(--c-paper);
 }
 
 /* ── 요약 카드 그리드 ── */
@@ -243,23 +243,23 @@
 }
 
 .summaryLabel {
-  font-size: 0.625rem;
-  font-weight: 900;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-black);
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: #94a3b8;
+  color: var(--c-text-faint);
 }
 
 .summaryValue {
-  font-size: 0.875rem;
-  font-weight: 900;
-  font-family: ui-monospace, monospace;
+  font-size: var(--fs-base);
+  font-weight: var(--fw-black);
+  font-family: var(--ff-mono);
   margin-top: 0.125rem;
 }
 
-.summaryValueRed      { color: #E63946; }
-.summaryValueGreen    { color: #34d399; }
-.summaryValueNegative { color: #E63946; }
+.summaryValueRed      { color: var(--c-accent); }
+.summaryValueGreen    { color: var(--c-income-soft); }
+.summaryValueNegative { color: var(--c-accent); }
 
 /* ── 분배율 프로그레스 바 ── */
 .progressWrap {
@@ -271,16 +271,16 @@
 .progressHeader {
   display: flex;
   justify-content: space-between;
-  font-size: 0.625rem;
-  font-weight: 900;
-  color: #94a3b8;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-black);
+  color: var(--c-text-faint);
 }
 
 .progressTrack {
   height: 0.75rem;
   width: 100%;
-  background-color: #262626;
-  border: 1px solid #525252;
+  background-color: var(--c-neutral-800);
+  border: 1px solid var(--c-gray-550);
   overflow: hidden;
 }
 
@@ -289,9 +289,9 @@
   transition: width 0.5s ease;
 }
 
-.progressBarNormal  { background-color: #34d399; }
-.progressBarWarning { background-color: #fbbf24; }
-.progressBarOver    { background-color: #E63946; }
+.progressBarNormal  { background-color: var(--c-income-soft); }
+.progressBarWarning { background-color: var(--c-warning); }
+.progressBarOver    { background-color: var(--c-accent); }
 
 /* ── 통장 목록 ── */
 .accountList {
@@ -304,7 +304,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0.875rem 0.5rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid var(--c-shadow);
   cursor: pointer;
   transition: background-color 0.15s;
   user-select: none;
@@ -315,7 +315,7 @@
 }
 
 .accountRow:hover {
-  background-color: #f8fafc;
+  background-color: var(--c-bg-light);
 }
 
 .accountLeft {
@@ -327,66 +327,66 @@
 .checkBox {
   height: 1.25rem;
   width: 1.25rem;
-  border: 2px solid #000;
+  border: var(--border-base);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.15s, color 0.15s;
+  transition: var(--t-colors);
   flex-shrink: 0;
 }
 
 .checkBox[data-checked="true"] {
-  background-color: #000;
-  color: #fff;
+  background-color: var(--c-ink);
+  color: var(--c-paper);
 }
 
 .checkBox[data-checked="false"] {
-  background-color: #fff;
-  color: #000;
+  background-color: var(--c-paper);
+  color: var(--c-ink);
 }
 
 .accountName {
-  font-size: 0.75rem;
-  font-weight: 900;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-black);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .accountName[data-checked="true"] {
-  color: #94a3b8;
+  color: var(--c-text-faint);
   text-decoration: line-through;
 }
 
 .accountName[data-checked="false"] {
-  color: #000;
+  color: var(--c-ink);
 }
 
 .accountAmount {
-  font-size: 0.625rem;
-  color: #64748b;
-  font-weight: 800;
-  font-family: ui-monospace, monospace;
+  font-size: var(--fs-xs);
+  color: var(--c-text-muted);
+  font-weight: var(--fw-heavy);
+  font-family: var(--ff-mono);
   margin-top: 0.125rem;
 }
 
 .accountBadge {
-  font-size: 0.5625rem;
-  font-family: ui-monospace, monospace;
-  font-weight: 900;
+  font-size: var(--fs-tiny);
+  font-family: var(--ff-mono);
+  font-weight: var(--fw-black);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   padding: 0.25rem 0.625rem;
-  border: 2px solid #000;
+  border: var(--border-base);
 }
 
 .accountBadge[data-checked="true"] {
-  background-color: #000;
-  color: #fff;
+  background-color: var(--c-ink);
+  color: var(--c-paper);
 }
 
 .accountBadge[data-checked="false"] {
-  background-color: #fff;
-  color: #94a3b8;
+  background-color: var(--c-paper);
+  color: var(--c-text-faint);
 }
 
 /* ── 고정지출 목록 ── */
@@ -401,7 +401,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0.75rem 0.5rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid var(--c-shadow);
   gap: 0.5rem;
 }
 
@@ -410,7 +410,7 @@
 }
 
 .fixedRow:hover {
-  background-color: #f8fafc;
+  background-color: var(--c-bg-light);
 }
 
 .fixedLeft {
@@ -423,20 +423,20 @@
 
 .fixedDay {
   padding: 0.125rem 0.375rem;
-  background-color: #000;
-  color: #fff;
-  font-size: 0.5625rem;
-  font-weight: 900;
-  font-family: ui-monospace, monospace;
-  border: 1px solid #000;
+  background-color: var(--c-ink);
+  color: var(--c-paper);
+  font-size: var(--fs-tiny);
+  font-weight: var(--fw-black);
+  font-family: var(--ff-mono);
+  border: var(--border-thin);
   text-transform: uppercase;
   flex-shrink: 0;
 }
 
 .fixedName {
-  font-size: 0.75rem;
-  font-weight: 900;
-  color: #000;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-black);
+  color: var(--c-ink);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -453,10 +453,10 @@
 }
 
 .fixedAmount {
-  font-size: 0.75rem;
-  font-weight: 900;
-  color: #E63946;
-  font-family: ui-monospace, monospace;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-black);
+  color: var(--c-accent);
+  font-family: var(--ff-mono);
   white-space: nowrap;
 }
 
@@ -466,12 +466,12 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  font-size: 0.75rem;
-  color: #000;
-  background-color: #F9F9F9;
+  font-size: var(--fs-sm);
+  color: var(--c-ink);
+  background-color: var(--c-neutral-50);
   padding: 0.75rem 1rem;
-  border: 2px solid #000;
-  font-weight: 700;
+  border: var(--border-base);
+  font-weight: var(--fw-bold);
 }
 
 .eventName {
@@ -493,16 +493,16 @@
 }
 
 .eventAmount {
-  font-weight: 900;
-  color: #E63946;
-  font-family: ui-monospace, monospace;
+  font-weight: var(--fw-black);
+  color: var(--c-accent);
+  font-family: var(--ff-mono);
 }
 
 /* ── 할부 카드 ── */
 .installmentCard {
-  border: 2px solid #000;
+  border: var(--border-base);
   padding: 0.75rem;
-  background-color: #FFF5F5;
+  background-color: var(--c-danger-bg);
 }
 
 .installmentTop {
@@ -521,9 +521,9 @@
 }
 
 .installmentName {
-  font-size: 0.75rem;
-  font-weight: 900;
-  color: #000;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-black);
+  color: var(--c-ink);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -532,15 +532,15 @@
 }
 
 .installmentBadge {
-  font-size: 0.5625rem;
-  font-family: ui-monospace, monospace;
-  font-weight: 900;
+  font-size: var(--fs-tiny);
+  font-family: var(--ff-mono);
+  font-weight: var(--fw-black);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   padding: 0.125rem 0.375rem;
-  border: 2px solid #E63946;
-  background-color: #E63946;
-  color: #fff;
+  border: 2px solid var(--c-accent);
+  background-color: var(--c-accent);
+  color: var(--c-paper);
   flex-shrink: 0;
 }
 
@@ -557,34 +557,34 @@
   align-items: center;
   justify-content: space-between;
   margin-top: 0.5rem;
-  font-size: 0.625rem;
-  font-weight: 700;
-  color: #64748b;
-  font-family: ui-monospace, monospace;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  color: var(--c-text-muted);
+  font-family: var(--ff-mono);
 }
 
 .installmentMonthly {
-  font-weight: 900;
-  color: #E63946;
+  font-weight: var(--fw-black);
+  color: var(--c-accent);
 }
 
 /* ── 당겨쓰기 카드 ── */
 .debtCard {
-  border: 2px solid #000;
+  border: var(--border-base);
   padding: 0.75rem;
-  background-color: #FFF5F5;
+  background-color: var(--c-danger-bg);
 }
 
 .debtBadge {
-  font-size: 0.5625rem;
-  font-family: ui-monospace, monospace;
-  font-weight: 900;
+  font-size: var(--fs-tiny);
+  font-family: var(--ff-mono);
+  font-weight: var(--fw-black);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   padding: 0.125rem 0.375rem;
-  border: 2px solid #E63946;
-  background-color: #E63946;
-  color: #fff;
+  border: 2px solid var(--c-accent);
+  background-color: var(--c-accent);
+  color: var(--c-paper);
   flex-shrink: 0;
 }
 
@@ -595,30 +595,30 @@
   align-items: center;
   padding-top: 0.875rem;
   margin-top: 0.875rem;
-  border-top: 2px solid #000;
-  font-weight: 900;
+  border-top: 2px solid var(--c-ink);
+  font-weight: var(--fw-black);
   text-transform: uppercase;
 }
 
 .totalLabel {
-  font-size: 0.75rem;
-  color: #000;
+  font-size: var(--fs-sm);
+  color: var(--c-ink);
   letter-spacing: 0.1em;
 }
 
 .totalValue {
-  font-size: 0.875rem;
-  color: #E63946;
-  font-family: ui-monospace, monospace;
+  font-size: var(--fs-base);
+  color: var(--c-accent);
+  font-family: var(--ff-mono);
 }
 
 /* ── 빈 상태 메시지 ── */
 .empty {
   text-align: center;
   padding: 2rem;
-  color: #94a3b8;
-  font-size: 0.75rem;
-  font-weight: 500;
+  color: var(--c-text-faint);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }

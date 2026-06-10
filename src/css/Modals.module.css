@@ -15,13 +15,13 @@
   align-items: center;
   justify-content: center;
   padding: 1rem;
-  background-color: rgba(0, 0, 0, 0.75);
+  background-color: var(--c-overlay);
   overflow-y: auto;           /* 패널이 화면보다 길어지면 overlay 스크롤 */
 }
 
 .panel {
-  background-color: #fff;
-  border: 4px solid #000;
+  background-color: var(--c-paper);
+  border: var(--border-thick);
   border-radius: 0;
   width: 100%;
   max-width: 24rem;
@@ -34,8 +34,8 @@
 
 /* IncomeModal 전용: 패딩 없이 헤더/바디가 직접 패딩 */
 .panelFlush {
-  background-color: #fff;
-  border: 4px solid #000;
+  background-color: var(--c-paper);
+  border: var(--border-thick);
   width: 100%;
   max-width: 24rem;
   max-height: 90vh;           /* 화면 넘침 방지 */
@@ -50,7 +50,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 2px solid #000;
+  border-bottom: 2px solid var(--c-ink);
   padding: 1.25rem 1.5rem 0.875rem; /* panel padding 제거로 여기서 처리 */
   flex-shrink: 0;             /* 헤더 고정 */
 }
@@ -60,16 +60,16 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 4px solid #000;
+  border-bottom: 4px solid var(--c-ink);
   padding: 1rem 1.25rem;
   flex-shrink: 0;             /* 헤더 고정 */
 }
 
 .modalTitle,
 .modalTitleFlex {
-  font-size: 0.875rem;
-  font-weight: 900;
-  color: #000;
+  font-size: var(--fs-base);
+  font-weight: var(--fw-black);
+  color: var(--c-ink);
 }
 
 .modalTitleFlex {
@@ -80,20 +80,20 @@
 
 .closeBtn {
   padding: 0.375rem;
-  background-color: #fff;
-  border: 2px solid #000;
-  color: #000;
+  background-color: var(--c-paper);
+  border: var(--border-base);
+  color: var(--c-ink);
   border-radius: 0;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.15s, color 0.15s;
+  transition: var(--t-colors);
 }
 
 .closeBtn:hover {
-  background-color: #E63946;
-  color: #fff;
+  background-color: var(--c-accent);
+  color: var(--c-paper);
 }
 
 .closeIcon {
@@ -127,9 +127,9 @@
 .label,
 .labelBetween {
   display: block;
-  font-size: 0.75rem;
-  font-weight: 900;
-  color: #000;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-black);
+  color: var(--c-ink);
   margin-bottom: 0.375rem;
 }
 
@@ -141,13 +141,13 @@
 
 .labelOptional {
   font-weight: 400;
-  color: #94a3b8;
+  color: var(--c-text-faint);
 }
 
 .labelHintInline {
-  font-size: 0.625rem;
-  color: #64748b;
-  font-weight: 700;
+  font-size: var(--fs-xs);
+  color: var(--c-text-muted);
+  font-weight: var(--fw-bold);
 }
 
 /* ── input 공통 ── */
@@ -157,14 +157,14 @@
 .inputMonoTight {
   width: 100%;
   height: 2.75rem;
-  border: 2px solid #000;
-  background-color: #fff;
+  border: var(--border-base);
+  background-color: var(--c-paper);
   border-radius: 0;
   padding-left: 0.75rem;
   padding-right: 0.75rem;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: #000;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+  color: var(--c-ink);
   outline: none;
 }
 
@@ -172,14 +172,14 @@
 .inputMono:focus,
 .inputMonoNative:focus,
 .inputMonoTight:focus {
-  border-color: #E63946;
-  box-shadow: 0 0 0 1px #E63946;
+  border-color: var(--c-accent);
+  box-shadow: 0 0 0 1px var(--c-accent);
 }
 
 .inputMono,
 .inputMonoNative,
 .inputMonoTight {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-family: var(--ff-mono);
 }
 
 .inputMonoNative {
@@ -197,20 +197,20 @@
 .incomeInputMono {
   width: 100%;
   height: 2.75rem;
-  border: 2px solid #000;
+  border: var(--border-base);
   padding-left: 0.75rem;
   padding-right: 0.75rem;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   outline: none;
 }
 
 .incomeInput:focus,
 .incomeInputMono:focus {
-  border-color: #E63946;
+  border-color: var(--c-accent);
 }
 
 .incomeInputMono {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-family: var(--ff-mono);
 }
 
 /* ── 2열 그리드 ── */
@@ -229,9 +229,9 @@
 /* ── 보조 텍스트 / 안내 ── */
 .hintSlate {
   display: block;
-  font-size: 0.625rem;
-  color: #94a3b8;
-  font-weight: 700;
+  font-size: var(--fs-xs);
+  color: var(--c-text-faint);
+  font-weight: var(--fw-bold);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-top: 0.375rem;
@@ -239,9 +239,9 @@
 
 .hintRed {
   display: block;
-  font-size: 0.625rem;
-  color: #E63946;
-  font-weight: 700;
+  font-size: var(--fs-xs);
+  color: var(--c-accent);
+  font-weight: var(--fw-bold);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-top: 0.375rem;
@@ -249,23 +249,23 @@
 
 /* ExpenseModal 정산 미리보기 */
 .settlePreview {
-  font-size: 0.625rem;
-  font-weight: 700;
-  color: #64748b;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  color: var(--c-text-muted);
   margin-top: 0.375rem;
 }
 
 .settlePreviewHighlight {
-  color: #E63946;
-  font-weight: 900;
+  color: var(--c-accent);
+  font-weight: var(--fw-black);
 }
 
 /* InstallmentModal 자동계산 되돌리기 버튼 */
 .revertBtn {
   margin-top: 0.375rem;
-  font-size: 0.625rem;
-  font-weight: 900;
-  color: #64748b;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-black);
+  color: var(--c-text-muted);
   text-decoration: underline;
   cursor: pointer;
   background: none;
@@ -274,36 +274,36 @@
 }
 
 .revertBtn:hover {
-  color: #E63946;
+  color: var(--c-accent);
 }
 
 /* 미리보기 박스 */
 .previewBoxGray {
-  background-color: #F0F0F0;
-  border: 2px solid #000;
+  background-color: var(--c-bg-soft);
+  border: var(--border-base);
   padding: 0.5rem 0.75rem;
-  font-size: 0.625rem;
-  font-weight: 900;
-  color: #000;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-black);
+  color: var(--c-ink);
+  font-family: var(--ff-mono);
 }
 
 .previewBoxBlack {
-  background-color: #000;
-  color: #fff;
+  background-color: var(--c-ink);
+  color: var(--c-paper);
   padding: 0.5rem 0.75rem;
-  font-size: 0.625rem;
-  font-weight: 900;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-black);
+  font-family: var(--ff-mono);
 }
 
 /* DebtModal 안내 문구 */
 .debtNotice {
-  font-size: 0.625rem;
-  font-weight: 700;
-  color: #64748b;
-  background-color: #F0F0F0;
-  border: 2px solid #000;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  color: var(--c-text-muted);
+  background-color: var(--c-bg-soft);
+  border: var(--border-base);
   padding: 0.5rem 0.75rem;
   margin-bottom: 1rem;
   line-height: 1.625;
@@ -320,25 +320,25 @@
   width: 100%;
   padding-top: 0.625rem;
   padding-bottom: 0.625rem;
-  font-size: 0.75rem;
-  font-weight: 900;
-  border: 2px solid #000;
-  transition: all 0.15s;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-black);
+  border: var(--border-base);
+  transition: var(--t-base);
   cursor: pointer;
 }
 
 .cycleSelectBtn[data-active="false"] {
-  background-color: #fff;
-  color: #000;
+  background-color: var(--c-paper);
+  color: var(--c-ink);
 }
 
 .cycleSelectBtn[data-active="false"]:hover {
-  background-color: #f1f5f9;
+  background-color: var(--c-bg-muted);
 }
 
 .cycleSelectBtn[data-active="true"] {
-  background-color: #000;
-  color: #fff;
+  background-color: var(--c-ink);
+  color: var(--c-paper);
 }
 
 /* ── 액션 버튼 행 ── */
@@ -352,23 +352,23 @@
 .btnSave {
   flex: 1 1 0%;
   height: 2.75rem;
-  font-size: 0.75rem;
-  font-weight: 900;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-black);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  border: 2px solid #000;
+  border: var(--border-base);
   border-radius: 0;
   cursor: pointer;
-  transition: background-color 0.15s, color 0.15s;
+  transition: var(--t-colors);
 }
 
 .btnCancel {
-  background-color: #fff;
-  color: #000;
+  background-color: var(--c-paper);
+  color: var(--c-ink);
 }
 
 .btnCancel:hover {
-  background-color: #f1f5f9;
+  background-color: var(--c-bg-muted);
 }
 
 .btnCancel:active,
@@ -377,8 +377,8 @@
 }
 
 .btnSave {
-  background-color: #000;
-  color: #fff;
+  background-color: var(--c-ink);
+  color: var(--c-paper);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -386,7 +386,7 @@
 }
 
 .btnSave:hover {
-  background-color: #E63946;
+  background-color: var(--c-accent);
 }
 
 .btnIcon {
@@ -405,27 +405,27 @@
 .incomeBtnSave {
   flex: 1 1 0%;
   height: 2.75rem;
-  font-size: 0.75rem;
-  font-weight: 900;
-  border: 2px solid #000;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-black);
+  border: var(--border-base);
   cursor: pointer;
-  transition: background-color 0.15s, color 0.15s;
+  transition: var(--t-colors);
 }
 
 .incomeBtnCancel {
-  background-color: #fff;
-  color: #000;
+  background-color: var(--c-paper);
+  color: var(--c-ink);
 }
 
 .incomeBtnCancel:hover {
-  background-color: #f1f5f9;
+  background-color: var(--c-bg-muted);
 }
 
 .incomeBtnSave {
-  background-color: #000;
-  color: #fff;
+  background-color: var(--c-ink);
+  color: var(--c-paper);
 }
 
 .incomeBtnSave:hover {
-  background-color: #E63946;
+  background-color: var(--c-accent);
 }

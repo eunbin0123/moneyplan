@@ -288,33 +288,33 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           </div>
 
           {/* Card 2: 전체 사용내역 */}
-          <div className={`${styles.cardDark} `}>
+          <div className={`${styles.cardLight} `}>
             <div>
               <div className={styles.cardHeadRow}>
-                <span className={styles.dotRed} />
-                <h3 className={styles.cardTitleRed}>전체 사용내역 (총 지출 합산)</h3>
+                <span className={styles.dotBlack} />
+                <h3 className={styles.cardTitleBlack}>전체 사용내역 (총 지출 합산)</h3>
               </div>
 
-              <div className={styles.specBoxDark}>
-                <div className={styles.specRowDark}>
-                  <span>일반 생활비 지출</span>
+              <div className={styles.specBox}>
+                <div className={styles.specRow}>
+                  <span className={styles.specLabel}>일반 생활비 지출</span>
                   <span className={styles.specValueDark}>{formatCurrency(totalLivingSpent)}</span>
                 </div>
-                <div className={styles.specRowDark}>
-                  <span>월 정기 고정비 지출</span>
+                <div className={styles.specRow}>
+                  <span className={styles.specLabel}>월 정기 고정비 지출</span>
                   <span className={styles.specValueDark}>{formatCurrency(totalFixedSpent)}</span>
                 </div>
-                <div className={styles.specRowDark}>
-                  <span>비정기 경조사비 지출</span>
+                <div className={styles.specRow}>
+                  <span className={styles.specLabel}>비정기 경조사비 지출</span>
                   <span className={styles.specValueDark}>{formatCurrency(totalEventSpent)}</span>
                 </div>
-                <div className={styles.specRowDark}>
-                  <span>이번 달 할부금</span>
+                <div className={styles.specRow}>
+                  <span className={styles.specLabel}>이번 달 할부금</span>
                   <span className={styles.specValueDark}>{formatCurrency(installmentChargeThisMonth)}</span>
                 </div>
                 {debtChargeThisMonth > 0 && (
-                    <div className={styles.specRowDark}>
-                      <span>당겨쓰기 차감</span>
+                    <div className={styles.specRow}>
+                      <span className={styles.specLabel}>당겨쓰기 차감</span>
                       <span className={styles.specValueDark}>{formatCurrency(debtChargeThisMonth)}</span>
                     </div>
                 )}
@@ -329,57 +329,61 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           </div>
 
           {/* Cycles Breakdown */}
-          <div className={`${styles.cyclesCard} `}>
-            <div className={styles.cyclesHeader}>
-              <div>
-                <h3 className={styles.cyclesHeaderTitle}>주기별 예산 잔액</h3>
+          <div className={`${styles.cardLight} `}>
+            <div>
+              <div className={styles.cardHeadRow}>
+                <span className={styles.dotBlack} />
+                <h3 className={styles.cardTitleBlack}>주기별 예산 잔액</h3>
+              </div>
+
+
+              <div className={styles.specBox}>
+                {data.cycles.map((c, idx) => {
+                  const spent = getCycleSpent(c.start, c.end);
+                  const bal = c.budget - spent; // c.budget is now effective budget inclusive of carryIn
+                  const pct = c.budget > 0 ? Math.round((spent / c.budget) * 100) : 0;
+                  const carryIn = c.carryIn ?? 0;
+                  const baseBudget = c.baseBudget ?? c.budget;
+
+                  return (
+                      <div key={idx} className={styles.cycleItem}>
+                        <div className={styles.cycleTopRow}>
+                          <div className={styles.cycleTopLeft}>
+                            <span className={styles.cycleLabel}>{getCleanLabel(c.label)}</span>
+                            <span className={styles.cycleDate}>
+                          ({dlabel(c.start)} ~ {dlabel(c.end)})
+                        </span>
+                            <button onClick={() => onEditCycle(idx)} className={styles.cycleEditBtn} title="주기 수정">
+                              수정
+                            </button>
+                          </div>
+                          <span className={styles.cycleBalance} data-negative={bal < 0}>
+                        {bal < 0 ? "-" : ""}
+                            {formatCurrency(Math.abs(bal))}
+                      </span>
+                        </div>
+
+                        <div className={styles.cycleBarTrack}>
+                          <div
+                              className={styles.cycleBarFill}
+                              data-level={getLevel(pct)}
+                              style={{ width: `${Math.min(pct, 100)}%` }}
+                          />
+                        </div>
+
+                        <div className={styles.cycleStats}>
+                          <span>내 예산 <span className={styles.cycleStatStrong}>{formatCurrency(baseBudget)}</span></span>
+                          {(c as any).incomeAmount > 0 && <span>수입 <span className={styles.cycleStatIncome}>+{formatCurrency((c as any).incomeAmount)}</span></span>}
+                          <span>이월 <span className={styles.cycleStatCarry} data-positive={carryIn > 0}>+{formatCurrency(carryIn)}</span></span>
+                          <span>사용예산 <span className={styles.cycleStatStrong}>{formatCurrency(c.budget)}</span></span>
+                        </div>
+                      </div>
+                  );
+                })}
               </div>
             </div>
 
-            <div className={styles.cyclesList}>
-              {data.cycles.map((c, idx) => {
-                const spent = getCycleSpent(c.start, c.end);
-                const bal = c.budget - spent; // c.budget is now effective budget inclusive of carryIn
-                const pct = c.budget > 0 ? Math.round((spent / c.budget) * 100) : 0;
-                const carryIn = c.carryIn ?? 0;
-                const baseBudget = c.baseBudget ?? c.budget;
-
-                return (
-                    <div key={idx} className={styles.cycleItem}>
-                      <div className={styles.cycleTopRow}>
-                        <div className={styles.cycleTopLeft}>
-                          <span className={styles.cycleLabel}>{getCleanLabel(c.label)}</span>
-                          <span className={styles.cycleDate}>
-                          ({dlabel(c.start)} ~ {dlabel(c.end)})
-                        </span>
-                          <button onClick={() => onEditCycle(idx)} className={styles.cycleEditBtn} title="주기 수정">
-                            ✏️ 수정
-                          </button>
-                        </div>
-                        <span className={styles.cycleBalance} data-negative={bal < 0}>
-                        {bal < 0 ? "-" : ""}
-                          {formatCurrency(Math.abs(bal))}
-                      </span>
-                      </div>
-
-                      <div className={styles.cycleBarTrack}>
-                        <div
-                            className={styles.cycleBarFill}
-                            data-level={getLevel(pct)}
-                            style={{ width: `${Math.min(pct, 100)}%` }}
-                        />
-                      </div>
-
-                      <div className={styles.cycleStats}>
-                        <span>내 예산 <span className={styles.cycleStatStrong}>{formatCurrency(baseBudget)}</span></span>
-                        {(c as any).incomeAmount > 0 && <span>수입 <span className={styles.cycleStatIncome}>+{formatCurrency((c as any).incomeAmount)}</span></span>}
-                        <span>이월 <span className={styles.cycleStatCarry} data-positive={carryIn > 0}>+{formatCurrency(carryIn)}</span></span>
-                        <span>사용예산 <span className={styles.cycleStatStrong}>{formatCurrency(c.budget)}</span></span>
-                      </div>
-                    </div>
-                );
-              })}
-            </div>
+            
           </div>
           {/* Memo Card Preview */}
           {data.memo && data.memo.trim() && (

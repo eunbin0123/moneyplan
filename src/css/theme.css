@@ -1,0 +1,109 @@
+/* ===========================================================
+   디자인 토큰 — 순수 CSS 변수 (Tailwind @theme 미사용)
+   각 module.css 에서 var(--...) 로 참조한다.
+   값을 바꾸면 앱 전체에 한 번에 반영된다.
+   =========================================================== */
+
+:root {
+  /* --- 색상 --- */
+  --c-ink: #000;            /* 기본 텍스트 / 보더 */
+  --c-paper: #fff;          /* 기본 배경 */
+  --c-accent: #E63946;      /* 브랜드 강조색 */
+  --c-income: #059669;      /* 수입 / 긍정 */
+  --c-income-soft: #34d399; /* 수입 보조 */
+  --c-danger-bg: #FFF5F5;   /* 경고 배경 */
+
+  --c-bg-soft: #F7F6F9;     /* 페이지 캔버스 */
+  --c-bg-muted: #f1f5f9;    /* 옅은 면 */
+  --c-bg-light: #f8fafc;    /* 더 옅은 면 */
+  --c-text-muted: #64748b;  /* 보조 텍스트 */
+  --c-text-faint: #94a3b8;  /* 흐린 텍스트 */
+  --c-border-soft: #cbd5e1; /* 옅은 보더 */
+
+  --c-overlay: rgba(0, 0, 0, 0.75); /* 모달 딤 */
+  --c-shadow: rgba(0, 0, 0, 0.1);   /* 그림자 */
+  --c-ink-40: rgba(0, 0, 0, 0.4);
+  --c-ink-20: rgba(0, 0, 0, 0.2);
+  --c-paper-20: rgba(255, 255, 255, 0.2);
+  --c-paper-10: rgba(255, 255, 255, 0.1);
+  --c-accent-10: rgba(230, 57, 70, 0.1);
+
+  /* 수입(초록) 확장 */
+  --c-income-dark: #047857;
+  --c-income-bg: #ecfdf5;
+  --c-income-border: #a7f3d0;
+  --c-income-border-strong: #6ee7b7;
+
+  /* 지출/에러(빨강) */
+  --c-danger: #dc2626;
+  --c-danger-soft: #f87171;
+  --c-danger-border: #fecaca;
+  --c-danger-bg-strong: #fee2e2;
+
+  /* 회색 스케일 */
+  --c-gray-900: #0f172a;
+  --c-gray-700: #334155;
+  --c-gray-600: #475569;
+  --c-gray-550: #525252;
+  --c-gray-200: #e2e8f0;
+  --c-neutral-800: #262626;
+  --c-neutral-50: #F9F9F9;
+
+  /* 경고(노랑) */
+  --c-warning: #fbbf24;
+
+  /* --- 폰트 --- */
+  --ff-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* --- 폰트 크기 --- */
+  --fs-tiny: 0.5625rem;
+  --fs-xs: 0.625rem;
+  --fs-sm: 0.75rem;
+  --fs-base: 0.875rem;
+  --fs-md: 1rem;
+  --fs-lg: 1.125rem;
+  --fs-xl: 1.5rem;
+
+  /* --- 폰트 굵기 --- */
+  --fw-thin: 100;
+  --fw-light: 300;
+  --fw-normal: 400;
+  --fw-medium: 500;
+  --fw-bold: 700;
+  --fw-heavy: 800;
+  --fw-black: 900;
+
+  /* --- 보더 (brutalist 두께 3종) --- */
+  --border-thin: 1px solid var(--c-ink);
+  --border-base: 2px solid var(--c-ink);
+  --border-thick: 4px solid var(--c-ink);
+
+  /* --- 전환 --- */
+  --t-base: all 0.15s;
+  --t-colors: background-color 0.15s, color 0.15s;
+
+  /* --- 기타 --- */
+  --radius-pill: 9999px;
+  
+  --c-btn-bluegrey: #B5E2FA;
+  
+  --c-bg: #F8F7FA;
+  --c-card: #fff;
+  
+  --c-font-2: #939bbb;
+  
+  --c-btn-1: #939bbb;
+  
+  --c-progress-2: #B8B593;
+  --c-progress-3: #9F93B8;
+  
+  
+  --c-red: #B86865;
+  --c-purple: #4c4263;
+  --c-yellow: #B8B593;
+  --c-green: #468005;
+  --c-blue: #64748b;  /* 보조 텍스트 */
+  --c-skyblue: #cbd5e1; /* 옅은 보더 */
+
+
+}

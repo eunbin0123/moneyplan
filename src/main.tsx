@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import App from './App.tsx';
 import TravelPage from './pages/TravelPage.tsx';
+import './css/theme.css';
 import './index.css';
 
 createRoot(document.getElementById('root')!).render(
