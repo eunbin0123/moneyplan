@@ -34,3 +34,21 @@ body {
 
 /* iOS 사파리 줌인 방지 */
 input, textarea, select { font-size: 16px !important; }
+
+/* iOS 네이티브 date 입력 정상화 (폰에서 값이 가운데로 떠 깨져 보이는 것 방지) */
+input[type="date"] {
+  -webkit-appearance: none;
+  appearance: none;
+  min-width: 0;
+  box-sizing: border-box;
+}
+input[type="date"]::-webkit-date-and-time-value {
+  text-align: left;
+  margin: 0;
+}
+input[type="date"]::-webkit-datetime-edit {
+  padding: 0;
+}
+input[type="date"]::-webkit-calendar-picker-indicator {
+  margin-left: auto;
+}
