@@ -429,22 +429,24 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
                                             <div className={styles.installmentLeft}>
                                                 <span className={styles.installmentName}>{d.name}</span>
                                             </div>
-                                            <div className={styles.installmentRight}>
-                                                <button
-                                                    className={styles.btnEdit}
-                                                    onClick={() => onEditDebt && onEditDebt(d.id)}
-                                                >수정</button>
-                                                <button
-                                                    className={styles.btnDelete}
-                                                    onClick={() => onDeleteDebt && onDeleteDebt(d.id)}
-                                                >삭제</button>
+                                            <div>
+                                                <div className={styles.installmentRight}>
+                                                    <button
+                                                        className={styles.btnEdit}
+                                                        onClick={() => onEditDebt && onEditDebt(d.id)}
+                                                    >수정</button>
+                                                    <button
+                                                        className={styles.btnDelete}
+                                                        onClick={() => onDeleteDebt && onDeleteDebt(d.id)}
+                                                    >삭제</button>
+                                                </div>
+                                                <div className={styles.installmentMeta}style={{ justifyContent: "flex-end" }} >
+                                                    <span className={styles.installmentMonthly}>
+                                                        -{formatCurrency(d.amount)}
+                                                    </span>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div className={styles.installmentMeta}>
-                                            <span>{d.targetMonth} 예산에서 차감</span>
-                                            <span className={styles.installmentMonthly}>
-                                                -{formatCurrency(d.amount)}
-                                            </span>
+
                                         </div>
                                     </div>
                                 ))}
