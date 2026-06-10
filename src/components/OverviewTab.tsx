@@ -524,7 +524,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                       취소
                     </button>
                     <button type="submit" className={`${styles.btnSave} `}>
-                      <Save className={styles.btnIcon} /> 저장
+                      저장
                     </button>
                   </div>
                 </form>

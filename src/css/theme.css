@@ -13,7 +13,6 @@
   --c-income-soft: #34d399; /* 수입 보조 */
   --c-danger-bg: #FFF5F5;   /* 경고 배경 */
 
-  --c-bg-soft: #F7F6F9;     /* 페이지 캔버스 */
   --c-bg-muted: #f1f5f9;    /* 옅은 면 */
   --c-bg-light: #f8fafc;    /* 더 옅은 면 */
   --c-text-muted: #64748b;  /* 보조 텍스트 */
@@ -74,9 +73,9 @@
   --fw-black: 900;
 
   /* --- 보더 (brutalist 두께 3종) --- */
-  --border-thin: 1px solid var(--c-ink);
-  --border-base: 2px solid var(--c-ink);
-  --border-thick: 4px solid var(--c-ink);
+  --border-thin: 1px solid var(--c-deepgreen);
+  --border-base: 2px solid var(--c-deepgreen);
+  --border-thick: 4px solid var(--c-deepgreen);
 
   /* --- 전환 --- */
   --t-base: all 0.15s;
@@ -106,5 +105,6 @@
   --c-blue: #64748b; 
   --c-skyblue: #cbd5e1; 
   --c-purplegrey: #EAE7EE;
+  --c-bg-soft: #F4F1EA;     /* 페이지 캔버스 */
 
 }
