@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { MonthData, InstallmentItem, DebtItem } from "../types";
-import { Check, Calendar, CalendarRange, Sparkles, Plus, CreditCard } from "lucide-react";
+import { Check, Calendar, CalendarRange, Sparkles, Plus, CreditCard, HandCoins } from "lucide-react";
 // @ts-ignore
 import styles from "../css/SavingsTab.module.css";
 
@@ -214,7 +214,7 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
                     <div className={styles.card}>
                         <div className={styles.cardHeader}>
                             <h3 className={styles.cardTitle}>
-                                <Sparkles className={styles.iconSm} style={{ color: "#E63946" }} />
+                                <Sparkles className={styles.iconSm} style={{ color: "var(--c-red)" }} />
                                 통장별 이체 현황
                             </h3>
                         </div>
@@ -409,7 +409,9 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
                     {/* 당겨쓰기 */}
                     <div className={styles.cardAccent}>
                         <div className={styles.cardHeader}>
-                            <h3 className={styles.cardTitle}>🔴 당겨쓰기</h3>
+                            <h3 className={styles.cardTitle}>
+                                <HandCoins className={styles.iconSm} /> 당겨쓰기
+                            </h3>
                             <button className={styles.btnAdd} onClick={onAddDebt}>
                                 <Plus className={styles.iconXs} /> 추가
                             </button>
