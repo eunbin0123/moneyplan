@@ -5,45 +5,54 @@
 
 /* ── 오버레이 / 패널 ── */
 .overlay {
-  position: fixed; inset: 0; z-index: 50;
-  display: flex; align-items: center; justify-content: center;
-  padding: 1rem;
-  background-color: var(--c-overlay);
-  backdrop-filter: blur(2px);
-  overflow-y: auto;
+    position: fixed; inset: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: center;
+    padding: 1rem;
+    background-color: var(--c-overlay);
+    backdrop-filter: blur(2px);
+    overflow-y: auto;
 }
 .panel,
 .panelFlush {
-  background-color: var(--c-card);
-  border: none;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-float);
-  width: 100%;  max-height: 90vh;
-  display: flex; flex-direction: column; overflow: hidden;
-  margin: auto;
+    background-color: var(--c-card);
+    border: none;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-float);
+    width: 100%;  max-height: 90vh;
+    display: flex; flex-direction: column; overflow: hidden;
+    margin: auto;
+}
+
+/* 데스크탑(481px 이상)에서는 모달 너비를 고정 */
+@media (min-width: 481px) {
+    .panel,
+    .panelFlush {
+        width: 420px;
+        max-width: 420px;
+    }
 }
 
 /* ── 모달 헤더 ── */
 .modalHeader,
 .modalHeaderFlush {
-  display: flex; align-items: center; justify-content: space-between;
-  border-bottom: var(--hairline);
-  padding: 1.25rem 1.5rem;
-  flex-shrink: 0;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: var(--hairline);
+    padding: 1.25rem 1.5rem;
+    flex-shrink: 0;
 }
 .modalTitle,
 .modalTitleFlex { font-size: var(--fs-base); font-weight: var(--fw-bold); color: var(--c-deepgreen); }
 .modalTitleFlex { display: flex; align-items: center; gap: 0.5rem; }
 
 .closeBtn {
-  padding: 0.375rem;
-  background-color: var(--c-bg-soft);
-  border: none;
-  color: var(--c-deepgreen);
-  border-radius: var(--radius-pill);
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: var(--t-colors);
+    padding: 0.375rem;
+    background-color: var(--c-bg-soft);
+    border: none;
+    color: var(--c-deepgreen);
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: var(--t-colors);
 }
 .closeBtn:hover { background-color: var(--c-red); color: var(--c-card); }
 .closeIcon { height: 1rem; width: 1rem; }
@@ -67,18 +76,18 @@
 .inputMonoTight,
 .incomeInput,
 .incomeInputMono {
-  width: 100%;
-  min-width: 0;
-  height: 2.875rem;
-  border: var(--hairline);
-  background-color: var(--c-bg-soft);
-  border-radius: var(--radius-md);
-  padding: 0 0.875rem;
-  font-size: var(--fs-base);
-  font-weight: var(--fw-medium);
-  color: var(--c-deepgreen);
-  outline: none;
-  transition: var(--t-base);
+    width: 100%;
+    min-width: 0;
+    height: 2.875rem;
+    border: var(--hairline);
+    background-color: var(--c-bg-soft);
+    border-radius: var(--radius-md);
+    padding: 0 0.875rem;
+    font-size: var(--fs-base);
+    font-weight: var(--fw-medium);
+    color: var(--c-deepgreen);
+    outline: none;
+    transition: var(--t-base);
 }
 .input:focus,
 .inputMono:focus,
@@ -86,9 +95,9 @@
 .inputMonoTight:focus,
 .incomeInput:focus,
 .incomeInputMono:focus {
-  border-color: var(--c-red);
-  box-shadow: 0 0 0 3px var(--c-accent-10);
-  background-color: var(--c-card);
+    border-color: var(--c-red);
+    box-shadow: 0 0 0 3px var(--c-accent-10);
+    background-color: var(--c-card);
 }
 .inputMono,
 .inputMonoNative,
@@ -130,14 +139,14 @@
 .btnSave,
 .incomeBtnCancel,
 .incomeBtnSave {
-  flex: 1 1 0%; height: 2.875rem;
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-bold);
-  letter-spacing: 0;
-  border: none;
-  border-radius: var(--radius-pill);
-  cursor: pointer;
-  transition: var(--t-base);
+    flex: 1 1 0%; height: 2.875rem;
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-bold);
+    letter-spacing: 0;
+    border: none;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    transition: var(--t-base);
 }
 .btnCancel,
 .incomeBtnCancel { background-color: var(--c-bg-soft); color: var(--c-deepgreen); }
