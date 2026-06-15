@@ -12,7 +12,7 @@ function PaydayCountdown() {
     return () => clearInterval(id);
   }, []);
 
-  const PAY_HOUR = 0; // 월급 입금 시각(시). 새벽 6시쯤 들어오면 6으로 바꾸면 됨.
+  const PAY_HOUR = 18; // 퇴근 시간 기준
 
   const paydayOf = (y: number, m: number) => {
     const last = new Date(y, m + 1, 0); // 해당 월 말일
