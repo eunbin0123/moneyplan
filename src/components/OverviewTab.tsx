@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { MonthData, InstallmentItem, DebtItem } from "../types";
 import { BookOpen, X, Save } from "lucide-react";
 import styles from "../css/OverviewTab.module.css";
+import { getPayday, isSameDay } from "../utils/payday";
 
 /* 월급날 카운트다운 — 말일(토/일이면 그 전 금요일)까지 남은 일/시간/분.
    독립 컴포넌트라 1초 갱신해도 OverviewTab 전체는 리렌더 안 됨. */
@@ -12,26 +13,9 @@ function PaydayCountdown() {
     return () => clearInterval(id);
   }, []);
 
-  const PAY_HOUR = 18; // 퇴근 시간 기준
+  const thisPay = getPayday(now.getFullYear(), now.getMonth());
 
-  const paydayOf = (y: number, m: number) => {
-    const last = new Date(y, m + 1, 0); // 해당 월 말일
-    const d = new Date(last);
-    const dow = last.getDay(); // 0=일 … 6=토
-    if (dow === 6) d.setDate(d.getDate() - 1); // 토 → 금
-    else if (dow === 0) d.setDate(d.getDate() - 2); // 일 → 금
-    d.setHours(PAY_HOUR, 0, 0, 0);
-    return d;
-  };
-
-  const sameDay = (a: Date, b: Date) =>
-      a.getFullYear() === b.getFullYear() &&
-      a.getMonth() === b.getMonth() &&
-      a.getDate() === b.getDate();
-
-  const thisPay = paydayOf(now.getFullYear(), now.getMonth());
-
-  if (sameDay(now, thisPay)) {
+  if (isSameDay(now, thisPay)) {
     return (
         <div className={styles.paydayToday}>
           오늘 월급날 🎉
@@ -42,19 +26,17 @@ function PaydayCountdown() {
   let target = thisPay;
   if (now.getTime() >= thisPay.getTime()) {
     const nm = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-    target = paydayOf(nm.getFullYear(), nm.getMonth());
+    target = getPayday(nm.getFullYear(), nm.getMonth());
   }
 
-  const totalMin = Math.floor((target.getTime() - now.getTime()) / 60000);
-  const days = Math.floor(totalMin / (60 * 24));
-  const hours = Math.floor((totalMin % (60 * 24)) / 60);
-  const mins = totalMin % 60;
+  const diffMs = target.getTime() - now.getTime();
+  const dDay = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
 
   return (
       <div className={styles.paydayCountdown}>
         <span style={{ fontSize: "0.6875rem", color: "var(--c-text-faint)", fontWeight: 500 }}>월급까지</span>
         <span style={{ fontSize: "0.8125rem", fontWeight: 700, color: "var(--c-green)", fontVariantNumeric: "tabular-nums" }}>
-        {days}일 {hours}시간 {mins}분
+        {dDay === 0 ? "D-DAY" : `D-${dDay}`}
       </span>
       </div>
   );
