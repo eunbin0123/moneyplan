@@ -266,24 +266,24 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
 
               <div className={styles.specBox}>
                 <div className={styles.specRow}>
-                  <span className={styles.specLabel}>일반 생활비 지출</span>
+                  <span className={styles.specLabel}>생활비</span>
                   <span className={styles.specValueDark}>{formatCurrency(totalLivingSpent)}</span>
                 </div>
                 <div className={styles.specRow}>
-                  <span className={styles.specLabel}>월 정기 고정비 지출</span>
+                  <span className={styles.specLabel}>고정비</span>
                   <span className={styles.specValueDark}>{formatCurrency(totalFixedSpent)}</span>
                 </div>
                 <div className={styles.specRow}>
-                  <span className={styles.specLabel}>비정기 경조사비 지출</span>
+                  <span className={styles.specLabel}>경조사비</span>
                   <span className={styles.specValueDark}>{formatCurrency(totalEventSpent)}</span>
                 </div>
                 <div className={styles.specRow}>
-                  <span className={styles.specLabel}>이번 달 할부금</span>
+                  <span className={styles.specLabel}>할부금</span>
                   <span className={styles.specValueDark}>{formatCurrency(installmentChargeThisMonth)}</span>
                 </div>
                 {debtChargeThisMonth > 0 && (
                     <div className={styles.specRow}>
-                      <span className={styles.specLabel}>당겨쓰기 차감</span>
+                      <span className={styles.specLabel}>당겨쓰기</span>
                       <span className={styles.specValueDark}>{formatCurrency(debtChargeThisMonth)}</span>
                     </div>
                 )}

@@ -601,7 +601,7 @@ export default function App() {
             isOpen={isCycleModalOpen}
             onClose={() => { setIsCycleModalOpen(false); setEditingCycleIdx(null); }}
             onSave={handleSaveCycle}
-            initialCycle={editingCycleIdx !== null ? activeData.cycles[editingCycleIdx] : null}
+            initialCycle={editingCycleIdx !== null ? (budgetState[currentMonth]?.cycles[editingCycleIdx] ?? null) : null}
         />
         <EventModal isOpen={isEventModalOpen} onClose={() => setIsEventModalOpen(false)} onSave={handleSaveEvent} />
         <IncomeModal

@@ -73,7 +73,7 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
       amount: amtNum,
       settleAmount: settleNum > 0 ? settleNum : undefined,
       editable: true,
-      checked: initialItem ? initialItem.checked : true,
+      checked: initialItem ? initialItem.checked : false,
       paid: initialItem ? initialItem.paid : false,
     });
     onClose();
