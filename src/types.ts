@@ -51,6 +51,7 @@ export interface InstallmentItem {
   months: number;       // 할부 개월 수
   totalAmount: number;  // 총 결제 금액
   monthlyAmount: number; // 월 납부액 (기본 = 총액/개월, 수정 가능)
+  checked?: boolean;    // 분배 탭 이체 완료 여부
 }
 
 export interface DebtItem {
@@ -59,6 +60,7 @@ export interface DebtItem {
   amount: number;      // 갚아야 할 금액
   fromMonth: string;   // "YYYY-MM" 발생 월
   targetMonth: string; // "YYYY-MM" 이 달에 차감 적용할 월
+  checked?: boolean;   // 분배 탭 이체 완료 여부
 }
 
 export interface MonthData {

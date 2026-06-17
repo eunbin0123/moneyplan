@@ -454,7 +454,31 @@ export default function App() {
       const mD = { ...copy[currentMonth] };
       const cycles = [...mD.cycles];
       const isAutoMode = !!(mD.totalBudget && mD.totalBudget > 0);
+
+      // 수정한 주기 저장
       cycles[editingCycleIdx] = { ...cycle, manual: isAutoMode ? true : undefined };
+
+      // 수정한 주기 이후 주기들에 남은 예산 균등분배 (autoMode 여부 무관)
+      const afterCycles = cycles.slice(editingCycleIdx + 1);
+      if (afterCycles.length > 0) {
+        // 총 생활비: 주기 budget 합산 기준 (totalBudget 모드여도 현재 주기값 합산 사용)
+        const totalMonthBudget = cycles.reduce((sum, c) => sum + (c.budget ?? 0), 0);
+        // 수정한 주기까지 사용한 예산
+        const usedBudget = cycles
+            .slice(0, editingCycleIdx + 1)
+            .reduce((sum, c) => sum + (c.budget ?? 0), 0);
+        const remaining = totalMonthBudget - usedBudget;
+        const perCycle = Math.floor(remaining / afterCycles.length);
+        const remainder = remaining - perCycle * afterCycles.length;
+        afterCycles.forEach((c, i) => {
+          cycles[editingCycleIdx + 1 + i] = {
+            ...c,
+            budget: perCycle + (i === afterCycles.length - 1 ? remainder : 0),
+            manual: undefined,
+          };
+        });
+      }
+
       mD.cycles = cycles;
       copy[currentMonth] = mD;
       return copy;

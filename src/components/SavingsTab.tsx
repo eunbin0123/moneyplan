@@ -24,6 +24,8 @@ interface SavingsTabProps {
     onAddDebt?: () => void;
     onEditDebt?: (id: string) => void;
     onDeleteDebt?: (id: string) => void;
+    onToggleInstallment?: (id: string) => void;
+    onToggleDebt?: (id: string) => void;
 }
 
 export const SavingsTab: React.FC<SavingsTabProps> = ({
@@ -46,6 +48,8 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
                                                           onAddDebt,
                                                           onEditDebt,
                                                           onDeleteDebt,
+                                                          onToggleInstallment,
+                                                          onToggleDebt,
                                                       }) => {
     const formatCurrency = (amount: number) =>
         Math.round(amount).toLocaleString("ko-KR") + "원";
@@ -83,15 +87,26 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
         0
     );
 
-    const livingBudget = data.effectiveMonthlyBudget ?? data.budget;
+    const livingBudget = data.budget;
     const livingAmount =
         livingBudget > 0 ? livingBudget : data.accounts[0]?.amount ?? 0;
 
+    const totalDebtThisMonth = (data.debts || []).reduce((sum, d) => sum + d.amount, 0);
+
     const checkedCount = data.accounts.filter((a) => a.checked).length;
-    const totalTransfer = data.accounts.reduce((sum, a, idx) => {
-        if (!a.checked) return sum;
-        return sum + (idx === 0 ? livingAmount : a.amount);
-    }, 0);
+    const checkedInstallmentTotal = sortedInstallments
+        .filter((it) => it.checked)
+        .reduce((sum, it) => sum + it.monthlyAmount, 0);
+    const checkedDebtTotal = (data.debts || [])
+        .filter((d) => d.checked)
+        .reduce((sum, d) => sum + d.amount, 0);
+    const totalTransfer =
+        data.accounts.reduce((sum, a, idx) => {
+            if (!a.checked) return sum;
+            return sum + (idx === 0 ? livingAmount : a.amount);
+        }, 0)
+        + checkedInstallmentTotal
+        + checkedDebtTotal;
 
     const salary = data.salary ?? 0;
     const remaining = salary > 0 ? salary - totalTransfer : null;
@@ -249,6 +264,34 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
                                 );
                             })}
                         </div>
+
+                        {/* 할부 + 당겨쓰기 합산 한 줄 체크박스 */}
+                        {(totalInstallmentThisMonth + totalDebtThisMonth) > 0 && (() => {
+                            const allChecked = checkedInstallmentTotal + checkedDebtTotal === totalInstallmentThisMonth + totalDebtThisMonth;
+                            const checked = String(allChecked);
+                            const handleToggle = () => {
+                                sortedInstallments.forEach((it) => { if (!!it.checked !== !allChecked) onToggleInstallment?.(it.id); });
+                                (data.debts || []).forEach((d) => { if (!!d.checked !== !allChecked) onToggleDebt?.(d.id); });
+                            };
+                            return (
+                                <div className={styles.accountList} style={{ borderTop: "1px solid var(--c-border)", marginTop: "0.5rem", paddingTop: "0.5rem" }}>
+                                    <div className={styles.accountRow} onClick={handleToggle}>
+                                        <div className={styles.accountLeft}>
+                                            <div className={styles.checkBox} data-checked={checked}>
+                                                {allChecked && <Check className={styles.checkIcon} />}
+                                            </div>
+                                            <div>
+                                                <p className={styles.accountName} data-checked={checked}>할부 · 당겨쓰기</p>
+                                                <p className={styles.accountAmount}>{formatCurrency(totalInstallmentThisMonth + totalDebtThisMonth)}</p>
+                                            </div>
+                                        </div>
+                                        <span className={styles.accountBadge} data-checked={checked}>
+                                            {allChecked ? "완료" : "대기"}
+                                        </span>
+                                    </div>
+                                </div>
+                            );
+                        })()}
                     </div>
                 </div>
             )}
