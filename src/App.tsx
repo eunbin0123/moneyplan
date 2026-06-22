@@ -15,9 +15,20 @@ import styles from "./css/App.module.css";
 import { Confetti } from "./components/Confetti";
 import { isPayday } from "./utils/payday";
 
+// 인증 관련 추가 import (경로가 다를 경우 수정해주세요)
+import { signInWithEmailAndPassword, onAuthStateChanged, User } from "firebase/auth";
+import { auth } from "./utils/firebaseAuth";
+
 type TabType = "overview" | "expenses" | "fixed" | "installment" | "savings";
 
 export default function App() {
+  // --- 인증(Auth) 상태 ---
+  const [user, setUser] = useState<User | null>(null);
+  const [isAuthReady, setIsAuthReady] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [authError, setAuthError] = useState("");
+
   const [budgetState, setBudgetState] = useState<BudgetState>(() => {
     try {
       const saved = localStorage.getItem("smart_budget_state_v2");
@@ -54,6 +65,27 @@ export default function App() {
   const firestoreUnsub = useRef<(() => void) | null>(null);
   const isRemoteUpdate = useRef(false);
 
+  // 인증 상태 감지
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setIsAuthReady(true);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // 이메일/비밀번호 로그인 처리
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError("");
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch (error) {
+      console.error("로그인 에러:", error);
+      setAuthError("이메일 또는 비밀번호가 올바르지 않습니다.");
+    }
+  };
+
   useEffect(() => {
     localStorage.setItem("smart_budget_state_v2", JSON.stringify(budgetState));
   }, [budgetState]);
@@ -63,15 +95,21 @@ export default function App() {
   }, [months]);
 
   useEffect(() => {
+    // 로그인되지 않았으면 Firestore 저장 안 함
+    if (!user) return;
+
     if (isRemoteUpdate.current) { isRemoteUpdate.current = false; return; }
     if (isLoading) return;
     const timer = setTimeout(() => {
       saveToFirestore(months, budgetState).catch(console.error);
     }, 1000);
     return () => clearTimeout(timer);
-  }, [budgetState, months, isLoading]);
+  }, [budgetState, months, isLoading, user]);
 
   useEffect(() => {
+    // 로그인되지 않았으면 데이터를 불러오지 않음
+    if (!user) return;
+
     const init = async () => {
       try {
         const remote = await loadFromFirestore();
@@ -105,7 +143,7 @@ export default function App() {
     };
     init();
     return () => { if (firestoreUnsub.current) firestoreUnsub.current(); };
-  }, []);
+  }, [user]);
 
   const findCurrentMonth = (monthList: string[]) => {
     const today = new Date().toISOString().slice(0, 7);
@@ -455,15 +493,11 @@ export default function App() {
       const cycles = [...mD.cycles];
       const isAutoMode = !!(mD.totalBudget && mD.totalBudget > 0);
 
-      // 수정한 주기 저장
       cycles[editingCycleIdx] = { ...cycle, manual: isAutoMode ? true : undefined };
 
-      // 수정한 주기 이후 주기들에 남은 예산 균등분배 (autoMode 여부 무관)
       const afterCycles = cycles.slice(editingCycleIdx + 1);
       if (afterCycles.length > 0) {
-        // 총 생활비: 주기 budget 합산 기준 (totalBudget 모드여도 현재 주기값 합산 사용)
         const totalMonthBudget = cycles.reduce((sum, c) => sum + (c.budget ?? 0), 0);
-        // 수정한 주기까지 사용한 예산
         const usedBudget = cycles
             .slice(0, editingCycleIdx + 1)
             .reduce((sum, c) => sum + (c.budget ?? 0), 0);
@@ -488,6 +522,139 @@ export default function App() {
 
   /* ── 렌더 ── */
 
+  // 1. 인증 정보 로드 중 화면
+  if (!isAuthReady) {
+    return (
+        <div className={styles.loadingScreen}>
+          <div className={styles.loadingInner}>
+            <div className={styles.loadingSpinner} />
+            <p className={styles.loadingText}>인증 정보 확인 중...</p>
+          </div>
+        </div>
+    );
+  }
+
+  // 2. 비로그인 시 이메일 로그인 화면
+  // 2. 비로그인 시 이메일 로그인 화면
+  if (!user) {
+    return (
+        <div className={styles.loadingScreen}>
+          <form
+              onSubmit={handleLogin}
+              style={{
+                backgroundColor: "var(--c-card)", // 카드 배경색 통일
+                padding: "2.5rem 2rem",
+                borderRadius: "var(--radius-lg)", // 부드러운 모서리
+                boxShadow: "var(--shadow-float)", // 떠 있는 듯한 그림자 효과
+                display: "flex",
+                flexDirection: "column",
+                gap: "1.25rem",
+                width: "90%",
+                maxWidth: "340px",
+                margin: "0 1rem"
+              }}
+          >
+            <div style={{ textAlign: "center", marginBottom: "0.5rem" }}>
+              <h2 style={{
+                margin: "0 0 0.5rem 0",
+                color: "var(--c-deepgreen)", // 메인 포인트 컬러
+                fontSize: "1.5rem",
+                fontWeight: "var(--fw-bold)",
+                letterSpacing: "-0.02em"
+              }}>
+                Money Plan
+              </h2>
+              <p style={{
+                margin: 0,
+                color: "var(--c-text-muted)",
+                fontSize: "var(--fs-sm)"
+              }}>
+                스마트한 예산 관리를 시작하세요
+              </p>
+            </div>
+
+            {authError && (
+                <p style={{
+                  color: "var(--c-red)",
+                  fontSize: "var(--fs-sm)",
+                  margin: 0,
+                  textAlign: "center",
+                  backgroundColor: "color-mix(in srgb, var(--c-red) 10%, transparent)",
+                  padding: "0.5rem",
+                  borderRadius: "var(--radius-pill)"
+                }}>
+                  {authError}
+                </p>
+            )}
+
+            <input
+                type="email"
+                placeholder="이메일"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                style={{
+                  padding: "1rem 1.25rem",
+                  borderRadius: "var(--radius-pill)", // 둥근 입력창
+                  border: "1.5px solid var(--c-purplegrey)",
+                  backgroundColor: "var(--c-bg-soft)",
+                  outline: "none",
+                  fontSize: "var(--fs-base)",
+                  transition: "border-color 0.2s",
+                  color: "var(--c-text)"
+                }}
+                onFocus={(e) => e.target.style.borderColor = "var(--c-deepgreen)"}
+                onBlur={(e) => e.target.style.borderColor = "var(--c-purplegrey)"}
+                required
+            />
+
+            <input
+                type="password"
+                placeholder="비밀번호"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                style={{
+                  padding: "1rem 1.25rem",
+                  borderRadius: "var(--radius-pill)",
+                  border: "1.5px solid var(--c-purplegrey)",
+                  backgroundColor: "var(--c-bg-soft)",
+                  outline: "none",
+                  fontSize: "var(--fs-base)",
+                  transition: "border-color 0.2s",
+                  color: "var(--c-text)"
+                }}
+                onFocus={(e) => e.target.style.borderColor = "var(--c-deepgreen)"}
+                onBlur={(e) => e.target.style.borderColor = "var(--c-purplegrey)"}
+                required
+            />
+
+            <button
+                type="submit"
+                style={{
+                  padding: "1.125rem",
+                  borderRadius: "var(--radius-pill)",
+                  border: "none",
+                  backgroundColor: "var(--c-deepgreen)", // 메인 버튼 컬러
+                  color: "var(--c-card)",
+                  fontWeight: "var(--fw-bold)",
+                  cursor: "pointer",
+                  fontSize: "var(--fs-base)",
+                  marginTop: "0.5rem",
+                  boxShadow: "0 4px 12px rgba(42, 58, 43, 0.15)",
+                  transition: "background-color 0.2s, transform 0.1s"
+                }}
+                onMouseOver={(e) => e.currentTarget.style.backgroundColor = "var(--c-red)"} // 호버 시 포인트 컬러
+                onMouseOut={(e) => e.currentTarget.style.backgroundColor = "var(--c-deepgreen)"}
+                onMouseDown={(e) => e.currentTarget.style.transform = "scale(0.98)"}
+                onMouseUp={(e) => e.currentTarget.style.transform = "scale(1)"}
+            >
+              로그인
+            </button>
+          </form>
+        </div>
+    );
+  }
+
+  // 3. 로그인 후 데이터 로드 중 화면
   if (isLoading) {
     return (
         <div className={styles.loadingScreen}>
@@ -499,6 +666,7 @@ export default function App() {
     );
   }
 
+  // 4. 메인 앱 화면
   return (
       <div className={styles.root}>
         {isPayday() && <Confetti />}

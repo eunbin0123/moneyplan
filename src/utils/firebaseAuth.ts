@@ -1,5 +1,8 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, User } from "firebase/auth";
+import {
+  getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, User,
+  signInWithEmailAndPassword, createUserWithEmailAndPassword // ✅ 새로 추가할 import
+} from "firebase/auth";
 import firebaseConfig from "../../firebase-applet-config.json";
 
 const app = initializeApp(firebaseConfig);
@@ -102,4 +105,26 @@ export const getAccessToken = async (): Promise<string | null> => {
 export const logout = async () => {
   await auth.signOut();
   clearToken();
+};
+
+
+export const signUpWithEmail = async (email: string, password: string) => {
+  try {
+    const result = await createUserWithEmailAndPassword(auth, email, password);
+    return result.user;
+  } catch (error) {
+    console.error("회원가입 에러:", error);
+    throw error;
+  }
+};
+
+// ✅ 이메일/비밀번호 로그인 함수
+export const signInWithEmail = async (email: string, password: string) => {
+  try {
+    const result = await signInWithEmailAndPassword(auth, email, password);
+    return result.user;
+  } catch (error) {
+    console.error("로그인 에러:", error);
+    throw error;
+  }
 };
