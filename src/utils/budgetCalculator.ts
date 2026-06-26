@@ -75,38 +75,20 @@ export function calculateBudgetWithCarryOver(
         ? Math.max(0, salary - fixedAccountsTotal - installmentCharge - debtCharge)
         : workingCycles.reduce((sum, c) => sum + (c.budget || 0), 0);
 
-    // 주기 예산 분배:
-    // - manual=true 주기는 Firestore 저장값 유지 (단, 전체 합산이 baseLivingBudget 초과하면 비율 조정)
-    // - manual!=true 주기는 나머지 균등 분배
+    // 주기 예산 분배: baseLivingBudget을 주기 수로 균등 분배
+    // manual=true인 주기는 저장값 유지, 나머지만 균등 분배
     if (salary > 0 && workingCycles.length > 0) {
-      const manualCycles = workingCycles.filter(c => c.manual);
-      const autoCycles = workingCycles.filter(c => !c.manual);
-      const pinnedSum = manualCycles.reduce((s, c) => s + (c.budget || 0), 0);
-      const autoCount = autoCycles.length;
-
-      if (autoCount > 0) {
-        // auto 주기에 나머지 균등 분배
-        const remaining = Math.max(0, baseLivingBudget - pinnedSum);
-        const base = Math.floor(remaining / autoCount);
-        const rem = remaining - base * autoCount;
-        let autoSeen = 0;
-        workingCycles = workingCycles.map(c => {
-          if (c.manual) return { ...c };
-          autoSeen += 1;
-          return { ...c, budget: autoSeen === 1 ? base + rem : base }; // 나머지는 첫 주기에
-        });
-      } else {
-        // 전부 manual인 경우: 합산이 baseLivingBudget과 다르면 마지막 주기에 나머지 넣기
-        const totalPinned = workingCycles.reduce((s, c) => s + (c.budget || 0), 0);
-        if (totalPinned !== baseLivingBudget) {
-          const usedExceptLast = workingCycles.slice(0, -1).reduce((s, c) => s + (c.budget || 0), 0);
-          workingCycles = workingCycles.map((c, i) =>
-              i === workingCycles.length - 1
-                  ? { ...c, budget: Math.max(0, baseLivingBudget - usedExceptLast), manual: false }
-                  : { ...c }
-          );
-        }
-      }
+      const pinnedSum = workingCycles.reduce((s, c) => s + (c.manual ? (c.budget || 0) : 0), 0);
+      const autoCount = workingCycles.filter(c => !c.manual).length;
+      const autoTotal = Math.max(0, baseLivingBudget - pinnedSum);
+      const base = autoCount > 0 ? Math.floor(autoTotal / autoCount) : 0;
+      const rem = autoCount > 0 ? autoTotal - base * autoCount : 0;
+      let autoSeen = 0;
+      workingCycles = workingCycles.map(c => {
+        if (c.manual) return { ...c };
+        autoSeen += 1;
+        return { ...c, budget: autoSeen === autoCount ? base + rem : base };
+      });
     }
 
     const baseMonthlyBudget = workingCycles.reduce((sum, c) => sum + (c.budget || 0), 0);

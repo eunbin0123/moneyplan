@@ -370,21 +370,8 @@ export default function App() {
     setBudgetState((prev) => {
       const copy = { ...prev };
       const mD = copy[currentMonth];
-      // 고정 account 합산 (생활비 제외 = 마지막 항목 제외)
-      const fixedAccountsTotal = (mD.accounts || [])
-          .slice(0, -1)
-          .reduce((sum: number, a: InstallmentItem & { amount: number }) => sum + a.amount, 0);
-      // 이달 할부 합산
-      const allInstallmentsForCalc: InstallmentItem[] = [];
-      Object.values(copy).forEach((md) => {
-        (md.installments || []).forEach((it) => allInstallmentsForCalc.push(it));
-      });
-      const installmentTotal = calcInstallmentForMonth(currentMonth, allInstallmentsForCalc);
-      // 이달 당겨쓰기 합산
-      const debtTotal = (mD.debts || []).reduce((sum: number, d: DebtItem) => sum + d.amount, 0);
-      // 생활비 예산 자동계산 (salary만 저장, 주기 분배는 OverviewTab에서 직접 계산)
-      const livingBudget = Math.max(0, amount - fixedAccountsTotal - installmentTotal - debtTotal);
-      copy[currentMonth] = { ...mD, salary: amount, budget: livingBudget };
+      if (!mD) return prev;
+      copy[currentMonth] = { ...mD, salary: amount };
       return copy;
     });
   };
@@ -557,36 +544,16 @@ export default function App() {
       const cycles = [...mD.cycles];
       const isAutoMode = !!(mD.totalBudget && mD.totalBudget > 0);
 
-      const prevBudget = cycles[editingCycleIdx]?.budget ?? 0;
-      cycles[editingCycleIdx] = { ...cycle, manual: true };
-
-      // 예산이 바뀐 경우에만 이후 주기 재분배
-      const afterCycles = cycles.slice(editingCycleIdx + 1);
-      if (afterCycles.length > 0 && cycle.budget !== prevBudget) {
-        // 순수 생활비 기준으로 남은 금액 계산 (이월금 제외)
-        const allInst: InstallmentItem[] = [];
-        Object.values(copy).forEach((md) => (md.installments || []).forEach((it) => allInst.push(it)));
-        const instTotal = calcInstallmentForMonth(currentMonth, allInst);
-        const debtTotal = (mD.debts || []).reduce((s: number, d: DebtItem) => s + d.amount, 0);
-        const fixedAccTotal = (mD.accounts || []).slice(0, -1).reduce((s: number, a: { amount: number }) => s + a.amount, 0);
-        const salary = mD.salary ?? 0;
-        const totalMonthBudget = salary > 0
-            ? Math.max(0, salary - fixedAccTotal - instTotal - debtTotal)
-            : cycles.reduce((sum, c) => sum + (c.budget ?? 0), 0);
-        const usedBudget = cycles
-            .slice(0, editingCycleIdx + 1)
-            .reduce((sum, c) => sum + (c.budget ?? 0), 0);
-        const remaining = Math.max(0, totalMonthBudget - usedBudget);
-        const perCycle = Math.floor(remaining / afterCycles.length);
-        const remainder = remaining - perCycle * afterCycles.length;
-        afterCycles.forEach((c, i) => {
-          cycles[editingCycleIdx + 1 + i] = {
-            ...c,
-            budget: perCycle + (i === afterCycles.length - 1 ? remainder : 0),
-            manual: undefined,
-          };
-        });
-      }
+      // initialCycle이 computedState 기준이므로 cycle.budget은 computedState 값
+      // Firestore에도 computedState budget을 sync한 뒤, 사용자가 바꾼 경우만 manual=true
+      // activeData.cycles에서 computedState budget 가져오기
+      const computedBudget = activeData?.cycles?.[editingCycleIdx]?.budget ?? cycles[editingCycleIdx]?.budget ?? 0;
+      const storedManual = cycles[editingCycleIdx]?.manual ?? false;
+      const budgetChanged = cycle.budget !== computedBudget;
+      cycles[editingCycleIdx] = {
+        ...cycle,
+        manual: budgetChanged ? true : storedManual,
+      };
 
       mD.cycles = cycles;
       copy[currentMonth] = mD;
@@ -874,7 +841,7 @@ export default function App() {
             isOpen={isCycleModalOpen}
             onClose={() => { setIsCycleModalOpen(false); setEditingCycleIdx(null); }}
             onSave={handleSaveCycle}
-            initialCycle={editingCycleIdx !== null ? (budgetState[currentMonth]?.cycles[editingCycleIdx] ?? null) : null}
+            initialCycle={editingCycleIdx !== null ? (activeData?.cycles?.[editingCycleIdx] ?? null) : null}
         />
         <EventModal isOpen={isEventModalOpen} onClose={() => setIsEventModalOpen(false)} onSave={handleSaveEvent} />
         <IncomeModal
