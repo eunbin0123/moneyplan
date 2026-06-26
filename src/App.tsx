@@ -557,10 +557,12 @@ export default function App() {
       const cycles = [...mD.cycles];
       const isAutoMode = !!(mD.totalBudget && mD.totalBudget > 0);
 
+      const prevBudget = cycles[editingCycleIdx]?.budget ?? 0;
       cycles[editingCycleIdx] = { ...cycle, manual: true };
 
+      // 예산이 바뀐 경우에만 이후 주기 재분배
       const afterCycles = cycles.slice(editingCycleIdx + 1);
-      if (afterCycles.length > 0) {
+      if (afterCycles.length > 0 && cycle.budget !== prevBudget) {
         // 순수 생활비 기준으로 남은 금액 계산 (이월금 제외)
         const allInst: InstallmentItem[] = [];
         Object.values(copy).forEach((md) => (md.installments || []).forEach((it) => allInst.push(it)));

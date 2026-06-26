@@ -481,7 +481,6 @@ export const CycleModal: React.FC<CycleModalProps> = ({
                   onChange={(e) => setBudget(e.target.value)}
                   className={styles.inputMono}
               />
-              <span className={styles.hintRed}>※ 이 주기에 배당할 전용 소비 한도입니다.</span>
             </div>
 
             <div className={styles.actions}>

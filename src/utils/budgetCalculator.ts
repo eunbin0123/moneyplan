@@ -1,10 +1,10 @@
 import { BudgetState, MonthData, BudgetCycle, ExpenseItem, InstallmentItem, DebtItem } from "../types";
 
 export interface CalculatedCycle extends BudgetCycle {
-  baseBudget: number;      // 원래 배정 예산 (수입 제외)
-  incomeAmount: number;    // 해당 주기 추가 수입
-  carryIn: number;         // 이전 주기에서 이월된 금액
-  effectiveBudget: number; // baseBudget + incomeAmount + carryIn
+  baseBudget: number;
+  incomeAmount: number;
+  carryIn: number;
+  effectiveBudget: number;
   spent: number;
   remaining: number;
   carryOut: number;
@@ -25,10 +25,6 @@ export interface CalculatedMonth extends MonthData {
   totalCombinedRemaining: number;
 }
 
-/**
- * 이 달에 적용되는 할부 월납부 합계를 계산합니다.
- * allInstallments 가 없으면 rawData 내의 installments 만 사용합니다.
- */
 export function calcInstallmentForMonth(
     monthKey: string,
     allInstallments: InstallmentItem[]
@@ -53,7 +49,6 @@ export function calculateBudgetWithCarryOver(
   const computedState: Record<string, CalculatedMonth> = {};
   let runningCarryOver = 0;
 
-  // 전체 할부 목록 (파라미터로 받거나 budgetState 에서 수집)
   const installmentList: InstallmentItem[] = allInstallments ?? (() => {
     const list: InstallmentItem[] = [];
     Object.values(budgetState).forEach((md) => {
@@ -67,44 +62,9 @@ export function calculateBudgetWithCarryOver(
     if (!rawData) continue;
 
     const carryFromPrevMonth = runningCarryOver;
-
-    // ── rawData를 직접 변이하지 않도록 cycles를 로컬 복사본으로 관리 ──
     let workingCycles = rawData.cycles ? rawData.cycles.map(c => ({ ...c })) : [];
 
-    // ── totalBudget 이 설정된 경우: 역산으로 생활비 예산을 결정 ──────────
-    // 생활비 = totalBudget - fixedBudget - eventBudget - 이달 할부 합계 - 당겨쓰기
-    // 이 값을 주기 수로 균등 분배한다.
-    if (rawData.totalBudget && rawData.totalBudget > 0) {
-      const fixedAlloc = rawData.fixedBudget ?? 160000;
-      const eventAlloc = rawData.eventBudget ?? 200000;
-      const installmentCharge = calcInstallmentForMonth(m, installmentList);
-      const debtCharge = (rawData.debts || []).reduce((sum, d) => sum + d.amount, 0);
-      const derivedLiving = Math.max(0, rawData.totalBudget - fixedAlloc - eventAlloc - installmentCharge - debtCharge);
-
-      // 수동 고정(manual)된 주기는 그대로 두고, 남은 금액을 나머지 주기에 균등 분배
-      const pinnedSum = workingCycles.reduce((s, c) => s + (c.manual ? (c.budget || 0) : 0), 0);
-      const autoCount = workingCycles.filter((c) => !c.manual).length;
-      const remaining = Math.max(0, derivedLiving - pinnedSum);
-      const base = autoCount > 0 ? Math.floor(remaining / autoCount) : 0;
-      const remainder = autoCount > 0 ? remaining - base * autoCount : 0;
-
-      let autoSeen = 0;
-      workingCycles = workingCycles.map((c) => {
-        if (c.manual) return { ...c };           // 고정 주기는 손 안 댐
-        autoSeen += 1;
-        const isLastAuto = autoSeen === autoCount; // 나머지(잔돈)는 마지막 자동주기에
-        return { ...c, budget: isLastAuto ? base + remainder : base };
-      });
-    }
-
-    // 기본 예산 = 주기별 budget 합산
-    const baseMonthlyBudget = workingCycles.reduce((sum, c) => sum + (c.budget || 0), 0);
-    // 총 수입
-    const totalIncome = (rawData.incomes || []).reduce((sum, inc) => sum + inc.amount, 0);
-    // 유효 예산 = 기본 + 이월 + 수입
-    const effectiveMonthlyBudget = baseMonthlyBudget + carryFromPrevMonth + totalIncome;
-
-    // salary 기반 생활비 계산 (OverviewTab과 동일 로직)
+    // salary 기반 순수 생활비 계산
     const salary = rawData.salary ?? 0;
     const fixedAccountsTotal = (rawData.accounts || [])
         .slice(0, -1)
@@ -113,32 +73,53 @@ export function calculateBudgetWithCarryOver(
     const debtCharge = (rawData.debts || []).reduce((sum, d) => sum + d.amount, 0);
     const baseLivingBudget = salary > 0
         ? Math.max(0, salary - fixedAccountsTotal - installmentCharge - debtCharge)
-        : baseMonthlyBudget;
+        : workingCycles.reduce((sum, c) => sum + (c.budget || 0), 0);
 
-    // salary 있으면 baseLivingBudget 기준으로 주기 재분배 (manual 제외)
-    if (salary > 0) {
-      const pinnedSum = workingCycles.reduce((s, c) => s + (c.manual ? (c.budget || 0) : 0), 0);
-      const autoCount = workingCycles.filter(c => !c.manual).length;
-      const remaining = Math.max(0, baseLivingBudget - pinnedSum);
-      const base = autoCount > 0 ? Math.floor(remaining / autoCount) : 0;
-      const rem = autoCount > 0 ? remaining - base * autoCount : 0;
-      let autoSeen = 0;
-      workingCycles = workingCycles.map(c => {
-        if (c.manual) return { ...c };
-        autoSeen += 1;
-        return { ...c, budget: autoSeen === autoCount ? base + rem : base };
-      });
+    // 주기 예산 분배:
+    // - manual=true 주기는 Firestore 저장값 유지 (단, 전체 합산이 baseLivingBudget 초과하면 비율 조정)
+    // - manual!=true 주기는 나머지 균등 분배
+    if (salary > 0 && workingCycles.length > 0) {
+      const manualCycles = workingCycles.filter(c => c.manual);
+      const autoCycles = workingCycles.filter(c => !c.manual);
+      const pinnedSum = manualCycles.reduce((s, c) => s + (c.budget || 0), 0);
+      const autoCount = autoCycles.length;
+
+      if (autoCount > 0) {
+        // auto 주기에 나머지 균등 분배
+        const remaining = Math.max(0, baseLivingBudget - pinnedSum);
+        const base = Math.floor(remaining / autoCount);
+        const rem = remaining - base * autoCount;
+        let autoSeen = 0;
+        workingCycles = workingCycles.map(c => {
+          if (c.manual) return { ...c };
+          autoSeen += 1;
+          return { ...c, budget: autoSeen === 1 ? base + rem : base }; // 나머지는 첫 주기에
+        });
+      } else {
+        // 전부 manual인 경우: 합산이 baseLivingBudget과 다르면 마지막 주기에 나머지 넣기
+        const totalPinned = workingCycles.reduce((s, c) => s + (c.budget || 0), 0);
+        if (totalPinned !== baseLivingBudget) {
+          const usedExceptLast = workingCycles.slice(0, -1).reduce((s, c) => s + (c.budget || 0), 0);
+          workingCycles = workingCycles.map((c, i) =>
+              i === workingCycles.length - 1
+                  ? { ...c, budget: Math.max(0, baseLivingBudget - usedExceptLast), manual: false }
+                  : { ...c }
+          );
+        }
+      }
     }
+
+    const baseMonthlyBudget = workingCycles.reduce((sum, c) => sum + (c.budget || 0), 0);
+    const totalIncome = (rawData.incomes || []).reduce((sum, inc) => sum + inc.amount, 0);
+    const effectiveMonthlyBudget = baseMonthlyBudget + carryFromPrevMonth + totalIncome;
 
     const calculatedCycles: CalculatedCycle[] = workingCycles.map((c, ci) => {
       const spent = (rawData.expenses || [])
           .filter((e) => e.date >= c.start && e.date <= c.end && e.checked !== false)
           .reduce((sum, item) => sum + (item.amount - (item.settleAmount || 0)), 0);
-
       const incomeAmount = (rawData.incomes || [])
           .filter((inc) => inc.cycleIdx === ci)
           .reduce((sum, inc) => sum + inc.amount, 0);
-
       return {
         ...c,
         baseBudget: c.budget,
@@ -154,11 +135,7 @@ export function calculateBudgetWithCarryOver(
     // 주기간 이월 계산
     for (let i = 0; i < calculatedCycles.length; i++) {
       const cycle = calculatedCycles[i];
-      if (i === 0) {
-        cycle.carryIn = carryFromPrevMonth;
-      } else {
-        cycle.carryIn = calculatedCycles[i - 1].carryOut;
-      }
+      cycle.carryIn = i === 0 ? carryFromPrevMonth : calculatedCycles[i - 1].carryOut;
       cycle.effectiveBudget = cycle.baseBudget + cycle.incomeAmount + cycle.carryIn;
       cycle.remaining = cycle.effectiveBudget - cycle.spent;
       cycle.carryOut = Math.max(0, cycle.remaining);
@@ -166,14 +143,18 @@ export function calculateBudgetWithCarryOver(
 
     const updatedCyclesForCompat = calculatedCycles.map((cc) => ({
       ...cc,
-      budget: cc.baseBudget,  // 순수 배정 예산 (이월 제외) — OverviewTab 분배 계산 기준
+      budget: cc.baseBudget,
     }));
 
     const totalLivingSpent = (rawData.expenses || [])
         .filter((e) => e.checked !== false)
         .reduce((sum, item) => sum + (item.amount - (item.settleAmount || 0)), 0);
 
-    const remainingLiving = effectiveMonthlyBudget - totalLivingSpent;
+    // runningCarryOver: salary 있으면 baseLivingBudget 기준, 없으면 effectiveMonthlyBudget 기준
+    const livingBudgetForCarry = salary > 0
+        ? baseLivingBudget + carryFromPrevMonth
+        : effectiveMonthlyBudget;
+    const remainingLiving = livingBudgetForCarry - totalLivingSpent;
     runningCarryOver = Math.max(0, remainingLiving);
 
     const fixedAllocBudget = rawData.fixedBudget ?? 500000;

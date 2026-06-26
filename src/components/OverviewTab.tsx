@@ -281,24 +281,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               </div>
 
               <div className={styles.specBox}>
-                {(() => {
-                  // manual=true인 주기는 저장값 유지, 나머지만 균등 분배
-                  // rawCycles: 순수 저장값 (분배 기준)
-                  // data.cycles: computedState (carryIn 등 계산값 포함)
-                  const cycles = data.cycles || [];
-                  const pinnedSum = cycles.reduce((s, c) => s + (c.manual ? (c.budget || 0) : 0), 0);
-                  const autoCount = cycles.filter(c => !c.manual).length;
-                  const remaining = Math.max(0, baseLivingBudget - pinnedSum);
-                  const base = autoCount > 0 ? Math.floor(remaining / autoCount) : 0;
-                  const remainder = autoCount > 0 ? remaining - base * autoCount : 0;
-                  let autoSeen = 0;
-                  const distributedCycles = cycles.map((c) => {
-                    if (c.manual) return { ...c };
-                    autoSeen += 1;
-                    return { ...c, budget: autoSeen === autoCount ? base + remainder : base };
-                  });
-                  return distributedCycles;
-                })().map((c, idx) => {
+                {(data.cycles || []).map((c, idx) => {
                   const spent = getCycleSpent(c.start, c.end);
                   const carryIn = c.carryIn ?? 0;
                   const incomeAmount = (c as any).incomeAmount ?? 0;
@@ -335,7 +318,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                         <div className={styles.cycleStats}>
                           <span>내 예산 <span className={styles.cycleStatStrong}>{formatCurrency(c.budget)}</span></span>
                           {incomeAmount > 0 && <span>수입 <span className={styles.cycleStatIncome}>+{formatCurrency(incomeAmount)}</span></span>}
-                          {carryIn > 0 && <span> <span className={styles.cycleStatCarry} data-positive={true}>+{formatCurrency(carryIn)}</span></span>}
+                          {carryIn > 0 && <span>이월 <span className={styles.cycleStatCarry} data-positive={true}>+{formatCurrency(carryIn)}</span></span>}
                           <span>지출 <span className={styles.cycleStatStrong}>-{formatCurrency(spent)}</span></span>
                         </div>
                       </div>
