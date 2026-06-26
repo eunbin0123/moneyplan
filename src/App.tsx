@@ -8,7 +8,7 @@ import { SavingsTab } from "./components/SavingsTab";
 import { FixedExpense, BudgetCycle, ExpenseItem, MonthData, BudgetState, EventExpense, IncomeItem, InstallmentItem, DebtItem } from "./types";
 import { initialBudgetState, makeDefaultMonth } from "./initialData";
 import { ExpenseModal, FixedModal, MonthModal, CycleModal, EventModal, IncomeModal, InstallmentModal, DebtModal } from "./components/Modals";
-import { calculateBudgetWithCarryOver } from "./utils/budgetCalculator";
+import { calculateBudgetWithCarryOver, calcInstallmentForMonth } from "./utils/budgetCalculator";
 import { saveToFirestore, loadFromFirestore, subscribeToFirestore } from "./utils/firestore";
 // @ts-ignore
 import styles from "./css/App.module.css";
@@ -369,7 +369,22 @@ export default function App() {
   const handleUpdateSalary = (amount: number) => {
     setBudgetState((prev) => {
       const copy = { ...prev };
-      copy[currentMonth] = { ...copy[currentMonth], salary: amount };
+      const mD = copy[currentMonth];
+      // 고정 account 합산 (생활비 제외 = 마지막 항목 제외)
+      const fixedAccountsTotal = (mD.accounts || [])
+          .slice(0, -1)
+          .reduce((sum: number, a: InstallmentItem & { amount: number }) => sum + a.amount, 0);
+      // 이달 할부 합산
+      const allInstallmentsForCalc: InstallmentItem[] = [];
+      Object.values(copy).forEach((md) => {
+        (md.installments || []).forEach((it) => allInstallmentsForCalc.push(it));
+      });
+      const installmentTotal = calcInstallmentForMonth(currentMonth, allInstallmentsForCalc);
+      // 이달 당겨쓰기 합산
+      const debtTotal = (mD.debts || []).reduce((sum: number, d: DebtItem) => sum + d.amount, 0);
+      // 생활비 예산 자동계산 (salary만 저장, 주기 분배는 OverviewTab에서 직접 계산)
+      const livingBudget = Math.max(0, amount - fixedAccountsTotal - installmentTotal - debtTotal);
+      copy[currentMonth] = { ...mD, salary: amount, budget: livingBudget };
       return copy;
     });
   };
@@ -440,6 +455,55 @@ export default function App() {
     });
   };
 
+  const handleUpdateAccount = (idx: number, amount: number) => {
+    setBudgetState((prev) => {
+      const copy = { ...prev };
+      const mD = { ...copy[currentMonth] };
+      const accounts = [...(mD.accounts || [])];
+      accounts[idx] = { ...accounts[idx], amount };
+      copy[currentMonth] = { ...mD, accounts };
+      return copy;
+    });
+  };
+
+  const handleToggleInstallment = (id: string) => {
+    setBudgetState((prev) => {
+      const copy = { ...prev };
+      for (const mk of Object.keys(copy)) {
+        const installments = copy[mk].installments || [];
+        if (installments.some((it) => it.id === id)) {
+          copy[mk] = {
+            ...copy[mk],
+            installments: installments.map((it) =>
+                it.id === id ? { ...it, checked: !it.checked } : it
+            ),
+          };
+          break;
+        }
+      }
+      return copy;
+    });
+  };
+
+  const handleToggleDebt = (id: string) => {
+    setBudgetState((prev) => {
+      const copy = { ...prev };
+      for (const mk of Object.keys(copy)) {
+        const debts = copy[mk].debts || [];
+        if (debts.some((d) => d.id === id)) {
+          copy[mk] = {
+            ...copy[mk],
+            debts: debts.map((d) =>
+                d.id === id ? { ...d, checked: !d.checked } : d
+            ),
+          };
+          break;
+        }
+      }
+      return copy;
+    });
+  };
+
   const ensureMonthsUpToThreeAhead = (
       currentMonths: string[],
       currentBudgetState: BudgetState
@@ -493,15 +557,24 @@ export default function App() {
       const cycles = [...mD.cycles];
       const isAutoMode = !!(mD.totalBudget && mD.totalBudget > 0);
 
-      cycles[editingCycleIdx] = { ...cycle, manual: isAutoMode ? true : undefined };
+      cycles[editingCycleIdx] = { ...cycle, manual: true };
 
       const afterCycles = cycles.slice(editingCycleIdx + 1);
       if (afterCycles.length > 0) {
-        const totalMonthBudget = cycles.reduce((sum, c) => sum + (c.budget ?? 0), 0);
+        // 순수 생활비 기준으로 남은 금액 계산 (이월금 제외)
+        const allInst: InstallmentItem[] = [];
+        Object.values(copy).forEach((md) => (md.installments || []).forEach((it) => allInst.push(it)));
+        const instTotal = calcInstallmentForMonth(currentMonth, allInst);
+        const debtTotal = (mD.debts || []).reduce((s: number, d: DebtItem) => s + d.amount, 0);
+        const fixedAccTotal = (mD.accounts || []).slice(0, -1).reduce((s: number, a: { amount: number }) => s + a.amount, 0);
+        const salary = mD.salary ?? 0;
+        const totalMonthBudget = salary > 0
+            ? Math.max(0, salary - fixedAccTotal - instTotal - debtTotal)
+            : cycles.reduce((sum, c) => sum + (c.budget ?? 0), 0);
         const usedBudget = cycles
             .slice(0, editingCycleIdx + 1)
             .reduce((sum, c) => sum + (c.budget ?? 0), 0);
-        const remaining = totalMonthBudget - usedBudget;
+        const remaining = Math.max(0, totalMonthBudget - usedBudget);
         const perCycle = Math.floor(remaining / afterCycles.length);
         const remainder = remaining - perCycle * afterCycles.length;
         afterCycles.forEach((c, i) => {
@@ -702,9 +775,9 @@ export default function App() {
                       onEditCycle={(idx) => { setEditingCycleIdx(idx); setIsCycleModalOpen(true); }}
                       onOpenMemo={() => setIsMemoOpen(true)}
                       onOpenSavings={() => setIsSavingsModalOpen(true)}
-                      onUpdateAllocations={handleUpdateAllocations}
                       installments={allInstallments}
                       debts={currentMonthDebts}
+                      rawCycles={budgetState[currentMonth]?.cycles || []}
                   />
               )}
               {activeTab === "expenses" && (
@@ -768,6 +841,12 @@ export default function App() {
                       onDeleteEvent={handleDeleteEvent}
                       onUpdateSalary={handleUpdateSalary}
                       activeSubTab="distribution"
+                      installments={allInstallments}
+                      activeMonth={currentMonth}
+                      debts={currentMonthDebts}
+                      onToggleInstallment={handleToggleInstallment}
+                      onToggleDebt={handleToggleDebt}
+                      onUpdateAccount={handleUpdateAccount}
                   />
               )}
             </motion.div>
@@ -848,6 +927,12 @@ export default function App() {
                       onDeleteEvent={handleDeleteEvent}
                       onUpdateSalary={handleUpdateSalary}
                       activeSubTab="distribution"
+                      installments={allInstallments}
+                      activeMonth={currentMonth}
+                      debts={currentMonthDebts}
+                      onToggleInstallment={handleToggleInstallment}
+                      onToggleDebt={handleToggleDebt}
+                      onUpdateAccount={handleUpdateAccount}
                   />
                 </div>
               </div>

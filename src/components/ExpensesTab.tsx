@@ -14,7 +14,7 @@ interface ExpensesTabProps {
     onEditIncome: (id: string) => void;
     onDeleteIncome: (id: string) => void;
     isMonthNavOpen: boolean;
-    
+
 }
 
 export const ExpensesTab: React.FC<ExpensesTabProps> = ({
@@ -32,7 +32,7 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
     const getInitialCollapsed = () => {
         const today = new Date().toISOString().split("T")[0];
         const result: Record<number, boolean> = {};
-        data.cycles.forEach((c, i) => {
+        (data.cycles || []).forEach((c, i) => {
             result[i] = !(today >= c.start && today <= c.end);
         });
         return result;
@@ -46,7 +46,7 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
     };
 
     const getCycleExpenses = (start: string, end: string) => {
-        return data.expenses
+        return (data.expenses || [])
             .map((e, idx) => ({ ...e, _idx: idx }))
             .filter((e) => e.date >= start && e.date <= end)
             .sort((a, b) => {
@@ -56,15 +56,15 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
     };
 
     const getCycleSpent = (start: string, end: string) => {
-        return data.expenses
+        return (data.expenses || [])
             .filter((e) => e.date >= start && e.date <= end && e.checked !== false)
             .reduce((sum, item) => sum + (item.amount - (item.settleAmount || 0)), 0);
     };
 
     const getUnclassifiedExpenses = () => {
-        return data.expenses
+        return (data.expenses || [])
             .map((e, idx) => ({ ...e, _idx: idx }))
-            .filter((e) => !data.cycles.some((c) => e.date >= c.start && e.date <= c.end));
+            .filter((e) => !(data.cycles || []).some((c) => e.date >= c.start && e.date <= c.end));
     };
 
     const dlabel = (dateStr: string) => {
@@ -79,13 +79,13 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
     const formatCurrency = (amount: number) => Math.round(amount).toLocaleString("ko-KR") + "원";
 
     // 미결제(결제대기) 집계: 예산반영(checked)된 항목 중 아직 결제 안 한 것 = 통장에 확보해둬야 할 돈
-    const unpaidItems = data.expenses.filter((e) => e.checked !== false && e.paid !== true);
+    const unpaidItems = (data.expenses || []).filter((e) => e.checked !== false && e.paid !== true);
     const unpaidTotal = unpaidItems.reduce((sum, e) => sum + e.amount, 0);  // 카드 전액 = 통장에 채워야 할 돈
     const unpaidCount = unpaidItems.length;
     const unpaidHasSplit = unpaidItems.some((e) => (e.settleAmount || 0) > 0);
 
     const renderExpenseItem = (e: any) => {
-        const originalIdx = e._idx ?? data.expenses.findIndex((item) => item === e);
+        const originalIdx = e._idx ?? (data.expenses || []).findIndex((item) => item === e);
         const reflected = e.checked !== false;   // 예산 반영 여부
         const paid = e.paid === true;            // 결제완료 여부
         const settle = e.settleAmount || 0;      // 정산받을(친구 몫)
@@ -194,7 +194,7 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
             </div>
 
             <div className={styles.cycleList}>
-                {data.cycles.map((c, ci) => {
+                {(data.cycles || []).map((c, ci) => {
                     const cycleExps = getCycleExpenses(c.start, c.end);
                     const spent = getCycleSpent(c.start, c.end);
                     const bal = c.budget - spent;
@@ -217,7 +217,7 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
                                         <div className={styles.cycleStatsRow}>
                                             <span className={styles.cycleStat}>내 예산 <span className={styles.cycleStatValue}>{formatCurrency(baseBudget)}</span></span>
                                             {(c as any).incomeAmount > 0 && <span className={styles.cycleStatIncome}>수입 <span className={styles.cycleStatIncomeValue}>+{formatCurrency((c as any).incomeAmount)}</span></span>}
-                                            <span className={styles.cycleStat}>이월 <span className={styles.carryInValue} data-positive={carryIn > 0}>+{formatCurrency(carryIn)}</span></span>
+                                            <span className={styles.cycleStat}> <span className={styles.carryInValue} data-positive={carryIn > 0}>+{formatCurrency(carryIn)}</span></span>
                                             <span className={styles.cycleStat}>사용예산 <span className={styles.cycleStatValue}>{formatCurrency(c.budget)}</span></span>
                                         </div>
                                     </div>

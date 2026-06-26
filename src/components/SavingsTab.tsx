@@ -7,6 +7,7 @@ import styles from "../css/SavingsTab.module.css";
 interface SavingsTabProps {
     data: MonthData;
     onToggleAccount: (idx: number) => void;
+    onUpdateAccount?: (idx: number, amount: number) => void;
     onAddFixed: () => void;
     onEditFixed: (idx: number) => void;
     onDeleteFixed: (idx: number) => void;
@@ -31,6 +32,7 @@ interface SavingsTabProps {
 export const SavingsTab: React.FC<SavingsTabProps> = ({
                                                           data,
                                                           onToggleAccount,
+                                                          onUpdateAccount,
                                                           onAddFixed,
                                                           onEditFixed,
                                                           onDeleteFixed,
@@ -54,10 +56,8 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
     const formatCurrency = (amount: number) =>
         Math.round(amount).toLocaleString("ko-KR") + "원";
 
-    const totalFixed = data.fixed.reduce((sum, item) => sum + item.amount, 0);
-    const totalEvents = data.events
-        ? data.events.reduce((sum, item) => sum + item.amount, 0)
-        : 0;
+    const totalFixed = (data.fixed || []).reduce((sum, item) => sum + item.amount, 0);
+    const totalEvents = (data.events || []).reduce((sum, item) => sum + item.amount, 0);
 
     const monthIdx = (key: string) => {
         const [y, m] = key.split("-").map(Number);
@@ -87,13 +87,23 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
         0
     );
 
-    const livingBudget = data.budget;
-    const livingAmount =
-        livingBudget > 0 ? livingBudget : data.accounts[0]?.amount ?? 0;
-
     const totalDebtThisMonth = (data.debts || []).reduce((sum, d) => sum + d.amount, 0);
 
-    const checkedCount = data.accounts.filter((a) => a.checked).length;
+    const salary = data.salary ?? 0;
+
+    // 생활비(마지막 account)는 월급 - 나머지 항목 합산 - 할부 - 당겨쓰기로 자동계산
+    const fixedAccountsTotal = (data.accounts || [])
+        .slice(0, -1)
+        .reduce((sum, a) => sum + a.amount, 0);
+    const livingAmount = salary > 0
+        ? Math.max(0, salary - fixedAccountsTotal - totalInstallmentThisMonth - totalDebtThisMonth)
+        : (data.accounts || [])[(data.accounts || []).length - 1]?.amount ?? 0;
+
+    // 각 account의 실제 표시 금액 (마지막=생활비는 자동계산값)
+    const getDisplayAmount = (idx: number) =>
+        idx === (data.accounts || []).length - 1 ? livingAmount : (data.accounts || [])[idx].amount;
+
+    const checkedCount = (data.accounts || []).filter((a) => a.checked).length;
     const checkedInstallmentTotal = sortedInstallments
         .filter((it) => it.checked)
         .reduce((sum, it) => sum + it.monthlyAmount, 0);
@@ -101,17 +111,25 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
         .filter((d) => d.checked)
         .reduce((sum, d) => sum + d.amount, 0);
     const totalTransfer =
-        data.accounts.reduce((sum, a, idx) => {
+        (data.accounts || []).reduce((sum, a, idx) => {
             if (!a.checked) return sum;
-            return sum + (idx === 0 ? livingAmount : a.amount);
+            return sum + getDisplayAmount(idx);
         }, 0)
         + checkedInstallmentTotal
         + checkedDebtTotal;
 
-    const salary = data.salary ?? 0;
     const remaining = salary > 0 ? salary - totalTransfer : null;
     const usedPct =
         salary > 0 ? Math.min(Math.round((totalTransfer / salary) * 100), 100) : 0;
+
+    const [editingAccountIdx, setEditingAccountIdx] = useState<number | null>(null);
+    const [accountInput, setAccountInput] = useState("");
+
+    const handleAccountSave = (idx: number) => {
+        const val = parseInt(accountInput.replace(/,/g, ""), 10);
+        if (!isNaN(val) && val >= 0) onUpdateAccount?.(idx, val);
+        setEditingAccountIdx(null);
+    };
 
     const [salaryInput, setSalaryInput] = useState(
         salary > 0 ? String(salary) : ""
@@ -198,7 +216,7 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
                             <div>
                                 <p className={styles.summaryLabel}>이체 진행</p>
                                 <p className={styles.summaryValue}>
-                                    {checkedCount} / {data.accounts.length}
+                                    {checkedCount} / {(data.accounts || []).length}
                                 </p>
                             </div>
                             <div>
@@ -235,8 +253,9 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
                         </div>
 
                         <div className={styles.accountList}>
-                            {data.accounts.map((a, idx) => {
-                                const displayAmount = idx === 0 ? livingAmount : a.amount;
+                            {(data.accounts || []).map((a, idx) => {
+                                const isLiving = idx === (data.accounts || []).length - 1;
+                                const displayAmount = getDisplayAmount(idx);
                                 const checked = String(a.checked);
                                 return (
                                     <div
@@ -251,15 +270,46 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
                                             <div>
                                                 <p className={styles.accountName} data-checked={checked}>
                                                     {a.name}
+                                                    {isLiving && salary > 0 && (
+                                                        <span style={{ fontSize: "0.65rem", color: "var(--c-text-faint)", marginLeft: "0.4rem", fontWeight: 400 }}>
+                                                            자동
+                                                        </span>
+                                                    )}
                                                 </p>
-                                                <p className={styles.accountAmount}>
-                                                    {formatCurrency(displayAmount)}
-                                                </p>
+                                                {!isLiving && editingAccountIdx === idx ? (
+                                                    <div style={{ display: "flex", gap: "0.3rem", alignItems: "center", marginTop: "0.2rem" }} onClick={e => e.stopPropagation()}>
+                                                        <input
+                                                            type="number"
+                                                            value={accountInput}
+                                                            onChange={e => setAccountInput(e.target.value)}
+                                                            onKeyDown={e => e.key === "Enter" && handleAccountSave(idx)}
+                                                            style={{ width: "100px", fontSize: "0.8rem", padding: "0.2rem 0.4rem", borderRadius: "6px", border: "1px solid var(--c-border)" }}
+                                                            autoFocus
+                                                        />
+                                                        <button className={styles.btnConfirm} style={{ fontSize: "0.7rem", padding: "0.2rem 0.5rem" }} onClick={() => handleAccountSave(idx)}>확인</button>
+                                                        <button className={styles.btnCancel} style={{ fontSize: "0.7rem", padding: "0.2rem 0.5rem" }} onClick={() => setEditingAccountIdx(null)}>취소</button>
+                                                    </div>
+                                                ) : (
+                                                    <p
+                                                        className={styles.accountAmount}
+                                                        style={!isLiving ? { cursor: "pointer" } : {}}
+                                                        onClick={!isLiving ? (e) => {
+                                                            e.stopPropagation();
+                                                            setAccountInput(String(a.amount));
+                                                            setEditingAccountIdx(idx);
+                                                        } : undefined}
+                                                    >
+                                                        {formatCurrency(displayAmount)}
+                                                        {!isLiving && <span style={{ fontSize: "0.6rem", color: "var(--c-text-faint)", marginLeft: "0.3rem" }}>수정</span>}
+                                                    </p>
+                                                )}
                                             </div>
                                         </div>
-                                        <span className={styles.accountBadge} data-checked={checked}>
-                                            {a.checked ? "완료" : "대기"}
-                                        </span>
+                                        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }} onClick={e => e.stopPropagation()}>
+                                            <span className={styles.accountBadge} data-checked={checked}>
+                                                {a.checked ? "완료" : "대기"}
+                                            </span>
+                                        </div>
                                     </div>
                                 );
                             })}
@@ -313,11 +363,11 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
                             </button>
                         </div>
 
-                        {data.fixed.length === 0 ? (
+                        {(data.fixed || []).length === 0 ? (
                             <div className={styles.empty}>고정지출 목록이 비어있습니다.</div>
                         ) : (
                             <div className={styles.fixedList}>
-                                {data.fixed.map((f, idx) => (
+                                {(data.fixed || []).map((f, idx) => (
                                     <div key={idx} className={styles.fixedRow}>
                                         <div className={styles.fixedLeft}>
                                             <div className={styles.fixedDay}>
@@ -363,7 +413,7 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
                             </div>
                         ) : (
                             <div className={styles.listGapMd}>
-                                {data.events.map((e, idx) => (
+                                {(data.events || []).map((e, idx) => (
                                     <div key={idx} className={styles.eventRow}>
                                         <span className={styles.eventName}>{e.name}</span>
                                         <div className={styles.eventRight}>

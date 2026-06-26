@@ -13,20 +13,19 @@ export const makeDefaultMonth = (year: number, month: number, budget = 600000, t
   return {
     budget,
     totalBudget,
-    fixedBudget: 160000,
+    fixedBudget: 500000,
     eventBudget: 200000,
     totalSavings: 0,
     memo: "",
     accounts: [
-      { name: "머니통장 생활비", amount: 0, checked: false },
-      { name: "네이버 적금", amount: 300000, checked: false },
-      { name: "토스 고정지출", amount: 160000, checked: false },
-      { name: "토스 경조사비", amount: 200000, checked: false },
-      { name: "토스 여행적금", amount: 200000, checked: false },
+      { name: "청년미래적금", amount: 500000, checked: false },
       { name: "굴비적금", amount: 300000, checked: false },
-      { name: "키워봐요적금", amount: 400000, checked: false },
-      { name: "미래에셋 투자", amount: 200000, checked: false },
-      { name: "기업 청약", amount: 100000, checked: false },
+      { name: "네이버적금", amount: 100000, checked: false },
+      { name: "청약", amount: 100000, checked: false },
+      { name: "미래에셋ETF", amount: 500000, checked: false },
+      { name: "고정지출", amount: 500000, checked: false },
+      { name: "경조사비", amount: 200000, checked: false },
+      { name: "생활비", amount: 0, checked: false },  // 월급 - 위 합산 자동계산
     ],
     fixed: [
       { name: "교통비", amount: 56770, day: "매달 15" },
