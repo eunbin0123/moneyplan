@@ -13,7 +13,7 @@
 .card        { background-color: var(--c-card); border: none; box-shadow: var(--shadow-card); padding: 1.375rem; border-radius: var(--radius-lg); }
 .cardPad     { background-color: var(--c-card); border: none; box-shadow: var(--shadow-card); padding: 1.125rem; border-radius: var(--radius-lg); }
 .cardAccent  { background-color: var(--c-card); border: none; box-shadow: var(--shadow-card); padding: 1.375rem; border-radius: var(--radius-lg); }
-.cardDark    { background-color: var(--c-deepgreen); color: var(--c-card); border: none; box-shadow: var(--shadow-float); padding: 1.25rem; border-radius: var(--radius-lg); }
+.cardDark    { background-color: var(--c-card-dark); color: var(--c-card); border: none; box-shadow: var(--shadow-float); padding: 1.25rem; border-radius: var(--radius-lg); }
 
 .cardHeader { display: flex; align-items: center; justify-content: space-between; padding-bottom: 0.75rem; border-bottom: var(--hairline); margin-bottom: 1rem; }
 .cardHeaderSimple { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }

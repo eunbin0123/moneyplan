@@ -8,6 +8,7 @@
 
   /* ───────── 1. 브랜드 팔레트 (정본) ───────── */
   --c-deepgreen:  #2A3A2B;   /* 기본 글씨 */
+  --c-card-dark:  #2A3A2B;   /* cardDark 배경 */
   --c-purple:     #4c4263;   /* 보조 글씨(제목·라벨) */
   --c-red:        #B86865;   /* 강조 / 지출 */
   --c-yellow:     #B8B593;   /* 버튼 면 */
@@ -118,6 +119,7 @@
 /* ───────── 다크모드 ───────── */
 [data-theme="dark"] {
   --c-deepgreen:  #E8EDE8;
+  --c-card-dark:  #1E2E1F;   /* 다크모드 cardDark 전용 */
   --c-purple:     #C4BBDB;
   --c-red:        #E08E8B;
   --c-yellow:     #C8C4A0;
