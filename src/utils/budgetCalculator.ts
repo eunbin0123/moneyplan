@@ -132,11 +132,8 @@ export function calculateBudgetWithCarryOver(
         .filter((e) => e.checked !== false)
         .reduce((sum, item) => sum + (item.amount - (item.settleAmount || 0)), 0);
 
-    // runningCarryOver: salary 있으면 baseLivingBudget 기준, 없으면 effectiveMonthlyBudget 기준
-    const livingBudgetForCarry = salary > 0
-        ? baseLivingBudget + carryFromPrevMonth
-        : effectiveMonthlyBudget;
-    const remainingLiving = livingBudgetForCarry - totalLivingSpent;
+    // runningCarryOver: effectiveMonthlyBudget 기준 (수입/이월 모두 포함)
+    const remainingLiving = effectiveMonthlyBudget - totalLivingSpent;
     runningCarryOver = Math.max(0, remainingLiving);
 
     const fixedAllocBudget = rawData.fixedBudget ?? 500000;

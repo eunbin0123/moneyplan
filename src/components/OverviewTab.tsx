@@ -108,7 +108,9 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
       ? Math.max(0, salary - fixedAccountsTotal - installmentChargeThisMonth - debtChargeThisMonth)
       : (data.budget ?? 0);
   // 실질 생활비 (이월 포함) - 남은 생활비 표시 기준
-  const effectiveMonthlyBudget = baseLivingBudget + carryFromPrevMonth;
+  const totalIncome = (data.incomes || []).reduce((sum, inc) => sum + inc.amount, 0);
+  // effectiveMonthlyBudget은 budgetCalculator가 수입/이월 포함해서 이미 계산함
+  const effectiveMonthlyBudget = data.effectiveMonthlyBudget ?? (baseLivingBudget + carryFromPrevMonth + totalIncome);
   const remainingLiving = effectiveMonthlyBudget - totalLivingSpent;
   const livingPct = effectiveMonthlyBudget > 0 ? Math.round((totalLivingSpent / effectiveMonthlyBudget) * 100) : 0;
 
@@ -192,7 +194,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               <div className={styles.specBox}>
                 <div className={styles.specRow}>
                   <span className={styles.specLabel}>내 예산</span>
-                  <span className={styles.specValue}>{formatCurrency(effectiveMonthlyBudget)}</span>
+                  <span className={styles.specValue}>{formatCurrency(baseLivingBudget)}</span>
                 </div>
                 <div className={styles.specRowCarry}>
                   <span>이월금 (+)</span>
@@ -318,7 +320,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                         <div className={styles.cycleStats}>
                           <span>내 예산 <span className={styles.cycleStatStrong}>{formatCurrency(c.budget)}</span></span>
                           {incomeAmount > 0 && <span>수입 <span className={styles.cycleStatIncome}>+{formatCurrency(incomeAmount)}</span></span>}
-                          {carryIn > 0 && <span>이월 <span className={styles.cycleStatCarry} data-positive={true}>+{formatCurrency(carryIn)}</span></span>}
+                          {carryIn > 0 && <span>잔액 <span className={styles.cycleStatCarry} data-positive={true}>+{formatCurrency(carryIn)}</span></span>}
                           <span>지출 <span className={styles.cycleStatStrong}>-{formatCurrency(spent)}</span></span>
                         </div>
                       </div>
