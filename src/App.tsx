@@ -25,6 +25,12 @@ export default function App() {
   // --- 인증(Auth) 상태 ---
   const [user, setUser] = useState<User | null>(null);
   const [isAuthReady, setIsAuthReady] = useState(false);
+  const [isDark, setIsDark] = useState(() => localStorage.getItem('theme') === 'dark');
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  }, [isDark]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [authError, setAuthError] = useState("");
@@ -722,6 +728,8 @@ export default function App() {
             onUpdateMemo={handleUpdateMemo}
             memoSavingFeedback={memoSavingFeedback}
             shortMonthLabel={getShortMonthLabel(currentMonth)}
+            isDark={isDark}
+            onToggleDark={() => setIsDark(d => !d)}
             isMemoOpen={isMemoOpen}
             onToggleMemo={() => setIsMemoOpen(prev => !prev)}
             isMonthNavOpen={isMonthNavOpen}

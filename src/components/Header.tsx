@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Wallet, Trash2, Menu, X, ChevronLeft, ChevronRight, CalendarRange } from "lucide-react";
+import { Wallet, Trash2, Menu, X, ChevronLeft, ChevronRight, CalendarRange, Sun, Moon } from "lucide-react";
 import { MemoTab } from "./MemoTab";
 import styles from "../css/Header.module.css";
 
@@ -15,8 +15,10 @@ interface HeaderProps {
     shortMonthLabel: string;
     isMemoOpen: boolean;
     onToggleMemo: () => void;
-    isMonthNavOpen: boolean;     
+    isMonthNavOpen: boolean;
     onToggleMonthNav: () => void;
+    isDark: boolean;
+    onToggleDark: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -31,8 +33,10 @@ export const Header: React.FC<HeaderProps> = ({
                                                   shortMonthLabel,
                                                   isMemoOpen,
                                                   onToggleMemo,
-                                                  isMonthNavOpen,  
+                                                  isMonthNavOpen,
                                                   onToggleMonthNav,
+                                                  isDark,
+                                                  onToggleDark,
                                               }) => {
     const [isPickerOpen, setIsPickerOpen] = useState(false);
     // 달 이동 네비게이션 표시 여부 (기본 숨김, 로고 클릭으로 토글)
@@ -77,7 +81,7 @@ export const Header: React.FC<HeaderProps> = ({
                             >
                                 <Wallet className={styles.logoIcon} />
                             </button>
-                            
+
                         </div>
                         <h1 className={styles.title}>EB's MONEY</h1>
                         <div className={styles.topActions}>
@@ -91,6 +95,13 @@ export const Header: React.FC<HeaderProps> = ({
                                 {hasMemoContent && !isMemoOpen && (
                                     <span className={styles.memoBadge} />
                                 )}
+                            </button>
+                            <button
+                                onClick={onToggleDark}
+                                className={styles.memoBtn}
+                                title={isDark ? "라이트모드" : "다크모드"}
+                            >
+                                {isDark ? <Sun size={18} /> : <Moon size={18} />}
                             </button>
                         </div>
                     </div>
