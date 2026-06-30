@@ -29,6 +29,7 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
   const suggestions = name.trim().length > 0 ? (pastNames || []).filter(n => n.toLowerCase().includes(name.toLowerCase()) && n !== name).slice(0, 5) : [];
   const [amount, setAmount] = useState("");
   const [settle, setSettle] = useState("");
+  const [splitCount, setSplitCount] = useState<number | null>(null);
 
   useEffect(() => {
     if (initialItem) {
@@ -36,6 +37,7 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
       setName(initialItem.name);
       setAmount(String(initialItem.amount));
       setSettle(initialItem.settleAmount ? String(initialItem.settleAmount) : "");
+      setSplitCount(null);
     } else {
       const today = new Date();
       const yr = today.getFullYear();
@@ -56,13 +58,21 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
       setName("");
       setAmount("");
       setSettle("");
+      setSplitCount(null);
     }
   }, [initialItem, isOpen, defaultMonthStr]);
 
-  if (!isOpen) return null;
-
   const amtNum = parseInt(amount, 10) || 0;
   const settleNum = parseInt(settle, 10) || 0;
+
+  useEffect(() => {
+    if (splitCount && amtNum > 0) {
+      const myShare = Math.round(amtNum / splitCount);
+      setSettle(String(amtNum - myShare));
+    }
+  }, [amount, splitCount]);
+
+  if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -165,12 +175,41 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
               <label className={styles.label}>
                 정산받을 금액 <span className={styles.labelOptional}>(친구 몫 · 선택)</span>
               </label>
+              <div style={{ display: "flex", gap: "0.4rem", marginBottom: "0.5rem" }}>
+                {[2, 3, 4, 5].map(n => (
+                    <button
+                        key={n}
+                        type="button"
+                        onClick={() => {
+                          setSplitCount(n);
+                          const myShare = Math.round(amtNum / n);
+                          setSettle(String(amtNum - myShare));
+                        }}
+                        style={{
+                          flex: 1, padding: "0.4rem 0", borderRadius: "var(--radius-sm)",
+                          border: splitCount === n ? "1.5px solid var(--c-green)" : "var(--border-base)",
+                          background: splitCount === n ? "var(--c-tint-green)" : "var(--c-card)",
+                          color: splitCount === n ? "var(--c-green)" : "var(--c-text-muted)",
+                          fontSize: "var(--fs-xs)", fontWeight: 600, cursor: "pointer"
+                        }}
+                    >1/{n}</button>
+                ))}
+                <button
+                    type="button"
+                    onClick={() => { setSplitCount(null); setSettle(""); }}
+                    style={{
+                      flex: 1, padding: "0.4rem 0", borderRadius: "var(--radius-sm)",
+                      border: "var(--border-base)", background: "var(--c-card)",
+                      color: "var(--c-text-faint)", fontSize: "var(--fs-xs)", cursor: "pointer"
+                    }}
+                >직접</button>
+              </div>
               <input
                   type="number"
                   min="0"
                   placeholder="0"
                   value={settle}
-                  onChange={(e) => setSettle(e.target.value)}
+                  onChange={(e) => { setSplitCount(null); setSettle(e.target.value); }}
                   className={styles.inputMono}
               />
               {settleNum > 0 && amtNum > 0 && (
