@@ -3,6 +3,7 @@ import { Plus, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Header } from "./components/Header";
 import { OverviewTab } from "./components/OverviewTab";
+import { DashboardTab } from "./components/DashboardTab";
 import { ExpensesTab } from "./components/ExpensesTab";
 import { SavingsTab } from "./components/SavingsTab";
 import { FixedExpense, BudgetCycle, ExpenseItem, MonthData, BudgetState, EventExpense, IncomeItem, InstallmentItem, DebtItem } from "./types";
@@ -19,7 +20,7 @@ import { isPayday } from "./utils/payday";
 import { signInWithEmailAndPassword, onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "./utils/firebaseAuth";
 
-type TabType = "overview" | "expenses" | "fixed" | "installment" | "savings";
+type TabType = "overview" | "expenses" | "fixed" | "installment" | "savings" | "dashboard";
 
 export default function App() {
   // --- 인증(Auth) 상태 ---
@@ -274,6 +275,18 @@ export default function App() {
       const exps = [...mD.expenses];
       const [moved] = exps.splice(fromIdx, 1);
       exps.splice(toIdx, 0, moved);
+      mD.expenses = exps;
+      copy[currentMonth] = mD;
+      return copy;
+    });
+  };
+
+  const handleUpdateExpenseDate = (idx: number, date: string) => {
+    setBudgetState((prev) => {
+      const copy = { ...prev };
+      const mD = { ...copy[currentMonth] };
+      const exps = [...(mD.expenses || [])];
+      exps[idx] = { ...exps[idx], date };
       mD.expenses = exps;
       copy[currentMonth] = mD;
       return copy;
@@ -759,6 +772,7 @@ export default function App() {
                       onEditCycle={(idx) => { setEditingCycleIdx(idx); setIsCycleModalOpen(true); }}
                       onOpenMemo={() => setIsMemoOpen(true)}
                       onOpenSavings={() => setIsSavingsModalOpen(true)}
+                      onOpenDashboard={() => setActiveTab("dashboard")}
                       installments={allInstallments}
                       debts={currentMonthDebts}
                       rawCycles={budgetState[currentMonth]?.cycles || []}
@@ -772,6 +786,8 @@ export default function App() {
                       onDeleteExpense={handleDeleteExpense}
                       onCycleStatus={handleCycleExpenseStatus}
                       onReorderExpense={handleReorderExpense}
+                      onUpdateExpenseDate={handleUpdateExpenseDate}
+                      allExpenses={Object.values(budgetState).flatMap(md => md.expenses || [])}
                       onAddIncome={() => { setEditingIncomeId(null); setIsIncomeModalOpen(true); }}
                       onEditIncome={(id) => { setEditingIncomeId(id); setIsIncomeModalOpen(true); }}
                       onDeleteIncome={handleDeleteIncome}
@@ -814,6 +830,12 @@ export default function App() {
                       onDeleteDebt={handleDeleteDebt}
                   />
               )}
+              {activeTab === "dashboard" && (
+                  <DashboardTab
+                      budgetState={budgetState}
+                      months={months}
+                  />
+              )}
               {activeTab === "savings" && (
                   <SavingsTab
                       data={activeData}
@@ -843,6 +865,7 @@ export default function App() {
             onSave={handleSaveExpense}
             initialItem={editingExpenseIdx !== null ? activeData.expenses[editingExpenseIdx] : null}
             defaultMonthStr={currentMonth}
+            pastNames={[...new Set(Object.values(budgetState).flatMap(md => (md.expenses || []).map(e => e.name)))].sort()}
         />
         <FixedModal
             isOpen={isFixedModalOpen}
@@ -985,6 +1008,7 @@ export default function App() {
               </svg>
               <span className={styles.tabLabel}>Installment</span>
             </button>
+
           </div>
         </nav>
       </div>

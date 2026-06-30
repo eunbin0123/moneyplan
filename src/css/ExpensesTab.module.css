@@ -181,6 +181,13 @@
 .deleteBtn:hover { background-color: var(--c-red); color: var(--c-card); }
 
 /* ── 날짜 그룹 헤더 ── */
+.dateGroupHeader[data-dragover="true"] {
+  background: var(--c-tint-green);
+  border-radius: var(--radius-sm);
+  outline: 2px dashed var(--c-green);
+  transition: background 0.15s;
+}
+
 .dateGroupHeader { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 1rem; background-color: var(--c-bg-soft); border-bottom: var(--hairline); position: sticky; top: 0; }
 .dateGroupLabel { font-size: var(--fs-xs); font-weight: var(--fw-bold); font-variant-numeric: tabular-nums; color: var(--c-text-muted); }
 .dateGroupTotal { font-size: var(--fs-xs); font-weight: var(--fw-bold); font-variant-numeric: tabular-nums; color: var(--c-text-faint); }

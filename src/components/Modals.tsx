@@ -12,17 +12,21 @@ interface ExpenseModalProps {
   onSave: (item: ExpenseItem) => void;
   initialItem?: ExpenseItem | null;
   defaultMonthStr?: string;
+  pastNames?: string[];
 }
 
 export const ExpenseModal: React.FC<ExpenseModalProps> = ({
                                                             isOpen,
                                                             onClose,
                                                             onSave,
+                                                            pastNames = [],
                                                             initialItem,
                                                             defaultMonthStr,
                                                           }) => {
   const [date, setDate] = useState("");
   const [name, setName] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const suggestions = name.trim().length > 0 ? (pastNames || []).filter(n => n.toLowerCase().includes(name.toLowerCase()) && n !== name).slice(0, 5) : [];
   const [amount, setAmount] = useState("");
   const [settle, setSettle] = useState("");
 
@@ -106,17 +110,42 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
 
             <div>
               <label className={styles.label}>항목명</label>
-              <input
-                  type="text"
-                  required
-                  placeholder="예: 다이소, 커피 등"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  inputMode="text"
-                  lang="ko"
-                  autoComplete="off"
-                  className={styles.input}
-              />
+              <div style={{ position: "relative" }}>
+                <input
+                    type="text"
+                    required
+                    placeholder="예: 다이소, 커피 등"
+                    value={name}
+                    onChange={(e) => { setName(e.target.value); setShowSuggestions(true); }}
+                    onFocus={() => setShowSuggestions(true)}
+                    onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+                    inputMode="text"
+                    lang="ko"
+                    autoComplete="off"
+                    className={styles.input}
+                />
+                {showSuggestions && suggestions.length > 0 && (
+                    <ul style={{
+                      position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100,
+                      background: "var(--c-card)", border: "var(--border-base)",
+                      borderRadius: "var(--radius-sm)", boxShadow: "var(--shadow-card)",
+                      margin: "0.25rem 0 0", padding: 0, listStyle: "none", overflow: "hidden"
+                    }}>
+                      {suggestions.map((s, i) => (
+                          <li key={i}
+                              onMouseDown={() => { setName(s); setShowSuggestions(false); }}
+                              style={{
+                                padding: "0.6rem 1rem", fontSize: "var(--fs-sm)",
+                                cursor: "pointer", color: "var(--c-deepgreen)",
+                                borderBottom: "var(--hairline)"
+                              }}
+                              onMouseEnter={e => (e.currentTarget.style.background = "var(--c-bg-soft)")}
+                              onMouseLeave={e => (e.currentTarget.style.background = "")}
+                          >{s}</li>
+                      ))}
+                    </ul>
+                )}
+              </div>
             </div>
 
             <div>

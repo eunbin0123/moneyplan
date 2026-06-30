@@ -10,11 +10,12 @@ interface ExpensesTabProps {
     onDeleteExpense: (idx: number) => void;
     onCycleStatus: (idx: number) => void;
     onReorderExpense: (fromIdx: number, toIdx: number) => void;
+    onUpdateExpenseDate: (idx: number, date: string) => void;
     onAddIncome: () => void;
     onEditIncome: (id: string) => void;
     onDeleteIncome: (id: string) => void;
     isMonthNavOpen: boolean;
-
+    allExpenses?: { date: string; amount: number; checked?: boolean; paid?: boolean; settleAmount?: number }[];
 }
 
 export const ExpensesTab: React.FC<ExpensesTabProps> = ({
@@ -24,10 +25,12 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
                                                             onDeleteExpense,
                                                             onCycleStatus,
                                                             onReorderExpense,
+                                                            onUpdateExpenseDate,
                                                             onAddIncome,
                                                             onEditIncome,
                                                             onDeleteIncome,
                                                             isMonthNavOpen,
+                                                            allExpenses = [],
                                                         }) => {
     const getInitialCollapsed = () => {
         const today = new Date().toISOString().split("T")[0];
@@ -40,6 +43,7 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
 
     const [collapsed, setCollapsed] = useState<Record<number, boolean>>(getInitialCollapsed);
     const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
+    const [dragOverDate, setDragOverDate] = useState<string | null>(null);
 
     const toggleCollapse = (idx: number) => {
         setCollapsed((prev) => ({ ...prev, [idx]: !prev[idx] }));
@@ -79,8 +83,9 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
     const formatCurrency = (amount: number) => Math.round(amount).toLocaleString("ko-KR") + "원";
 
     // 미결제(결제대기) 집계: 예산반영(checked)된 항목 중 아직 결제 안 한 것 = 통장에 확보해둬야 할 돈
-    const unpaidItems = (data.expenses || []).filter((e) => e.checked !== false && e.paid !== true);
-    const unpaidTotal = unpaidItems.reduce((sum, e) => sum + e.amount, 0);  // 카드 전액 = 통장에 채워야 할 돈
+    // 미결제: 전체 달 합산 (이전 달 미결제 포함)
+    const unpaidItems = allExpenses.filter((e) => e.checked !== false && e.paid !== true);
+    const unpaidTotal = unpaidItems.reduce((sum, e) => sum + e.amount, 0);
     const unpaidCount = unpaidItems.length;
     const unpaidHasSplit = unpaidItems.some((e) => (e.settleAmount || 0) > 0);
 
@@ -159,7 +164,19 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
             const [, m, d] = date.split("-");
             return (
                 <div key={date}>
-                    <div className={styles.dateGroupHeader}>
+                    <div
+                        className={styles.dateGroupHeader}
+                        data-dragover={dragOverDate === date}
+                        onDragOver={(ev) => { ev.preventDefault(); setDragOverDate(date); }}
+                        onDragLeave={() => setDragOverDate(null)}
+                        onDrop={(ev) => {
+                            ev.preventDefault();
+                            const from = parseInt(ev.dataTransfer.getData("text/plain"), 10);
+                            const exp = (data.expenses || [])[from];
+                            if (exp && exp.date !== date) onUpdateExpenseDate(from, date);
+                            setDragOverDate(null);
+                        }}
+                    >
                         <span className={styles.dateGroupLabel}>{parseInt(m, 10)}/{parseInt(d, 10)}</span>
                         <span className={styles.dateGroupTotal}>-{formatCurrency(dayTotal)}</span>
                     </div>

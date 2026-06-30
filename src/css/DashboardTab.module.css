@@ -1,0 +1,103 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem 1rem 6rem;
+  max-width: 42rem;
+  margin: 0 auto;
+  min-height: 100vh;
+  background-color: var(--c-bg-soft);
+}
+
+.header { margin-bottom: 0.25rem; }
+.title {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  color: var(--c-deepgreen);
+}
+
+/* 요약 카드 */
+.summaryRow { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+.summaryCard {
+  background: var(--c-card);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+  box-shadow: var(--shadow-soft);
+}
+.summaryLabel {
+  font-size: var(--fs-xs);
+  color: var(--c-text-faint);
+  margin-bottom: 0.3rem;
+}
+.summaryValue {
+  font-size: var(--fs-md);
+  font-weight: var(--fw-bold);
+  color: var(--c-deepgreen);
+  font-variant-numeric: tabular-nums;
+}
+.summaryValueGreen {
+  font-size: var(--fs-md);
+  font-weight: var(--fw-bold);
+  color: var(--c-green);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 차트 */
+.chartCard {
+  background: var(--c-card);
+  border-radius: var(--radius-md);
+  padding: 1.25rem 1rem 0.75rem;
+  box-shadow: var(--shadow-soft);
+}
+.legend {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+  font-size: var(--fs-xs);
+}
+.legendSavings { color: var(--c-green); font-weight: var(--fw-medium); }
+.legendSpend { color: var(--c-red); font-weight: var(--fw-medium); }
+.chart { width: 100%; display: block; }
+
+.gridLine { stroke: var(--c-border-soft); stroke-width: 0.5; stroke-dasharray: 3 3; }
+.axisLabel { font-size: 9px; fill: var(--c-text-faint); font-family: var(--ff-mono); }
+
+.lineSavings { fill: none; stroke: var(--c-green); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.dotSavings { fill: var(--c-green); }
+.lineSpend { fill: none; stroke: var(--c-red); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.dotSpend { fill: var(--c-red); }
+
+/* 테이블 */
+.tableCard {
+  background: var(--c-card);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-soft);
+}
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 1.25rem;
+  border-bottom: var(--hairline);
+}
+.row:last-child { border-bottom: none; }
+.rowMonth {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+  color: var(--c-deepgreen);
+  min-width: 2.5rem;
+}
+.rowRight { display: flex; gap: 1.25rem; }
+.rowItem { display: flex; flex-direction: column; align-items: flex-end; gap: 0.1rem; }
+.rowLabel { font-size: var(--fs-xs); color: var(--c-text-faint); }
+.rowSavings { font-size: var(--fs-sm); font-weight: var(--fw-medium); color: var(--c-green); font-variant-numeric: tabular-nums; }
+.rowSpend { font-size: var(--fs-sm); font-weight: var(--fw-medium); color: var(--c-red); font-variant-numeric: tabular-nums; }
+.rowRate { font-size: var(--fs-sm); font-weight: var(--fw-medium); color: var(--c-purple); font-variant-numeric: tabular-nums; }
+
+.empty {
+  text-align: center;
+  color: var(--c-text-faint);
+  padding: 3rem;
+  font-size: var(--fs-sm);
+}

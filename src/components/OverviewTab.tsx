@@ -48,6 +48,7 @@ interface OverviewTabProps {
   onEditCycle: (idx: number) => void;
   onOpenMemo: () => void;
   onOpenSavings: () => void;
+  onOpenDashboard: () => void;
   installments?: InstallmentItem[];
   debts?: DebtItem[];
   rawCycles?: import('../types').BudgetCycle[];
@@ -59,6 +60,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                                                           onEditCycle,
                                                           onOpenMemo,
                                                           onOpenSavings,
+                                                          onOpenDashboard,
                                                           installments = [],
                                                           debts = [],
                                                           rawCycles = [],
@@ -178,6 +180,9 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         <div className={styles.tabActions}>
           <button onClick={onOpenSavings} className={styles.btnSavings}>
             분배
+          </button>
+          <button onClick={onOpenDashboard} className={styles.btnSavings} style={{ background: "var(--c-purplegrey)", color: "var(--c-purple)" }}>
+            통계
           </button>
         </div>
 
