@@ -152,7 +152,14 @@ export default function App() {
   }, [user]);
 
   const findCurrentMonth = (monthList: string[]) => {
-    const today = new Date().toISOString().slice(0, 7);
+    const now = new Date();
+    // 오늘이 월급날이면 다음 달로
+    if (isPayday(now)) {
+      const next = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+      const nextKey = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, "0")}`;
+      if (monthList.includes(nextKey)) return nextKey;
+    }
+    const today = now.toISOString().slice(0, 7);
     if (monthList.includes(today)) return today;
     return monthList[monthList.length - 1];
   };

@@ -197,10 +197,12 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
                 {(data.cycles || []).map((c, ci) => {
                     const cycleExps = getCycleExpenses(c.start, c.end);
                     const spent = getCycleSpent(c.start, c.end);
-                    const bal = c.budget - spent;
-                    const isOpen = !collapsed[ci];
-                    const baseBudget = c.baseBudget ?? c.budget;
                     const carryIn = c.carryIn ?? 0;
+                    const incomeAmount = (c as any).incomeAmount ?? 0;
+                    const baseBudget = c.baseBudget ?? c.budget;
+                    const effectiveBudget = (c as any).effectiveBudget ?? (baseBudget + carryIn + incomeAmount);
+                    const bal = effectiveBudget - spent;
+                    const isOpen = !collapsed[ci];
 
                     return (
                         <div key={ci} className={`${styles.cycleCard} `}>
@@ -218,7 +220,7 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
                                             <span className={styles.cycleStat}>내 예산 <span className={styles.cycleStatValue}>{formatCurrency(baseBudget)}</span></span>
                                             {(c as any).incomeAmount > 0 && <span className={styles.cycleStatIncome}>수입 <span className={styles.cycleStatIncomeValue}>+{formatCurrency((c as any).incomeAmount)}</span></span>}
                                             <span className={styles.cycleStat}> <span className={styles.carryInValue} data-positive={carryIn > 0}>+{formatCurrency(carryIn)}</span></span>
-                                            <span className={styles.cycleStat}>사용예산 <span className={styles.cycleStatValue}>{formatCurrency(c.budget)}</span></span>
+                                            <span className={styles.cycleStat}>사용예산 <span className={styles.cycleStatValue}>{formatCurrency(effectiveBudget)}</span></span>
                                         </div>
                                     </div>
                                 </div>
