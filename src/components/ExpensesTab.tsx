@@ -194,9 +194,9 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
 
     return (
         <div className={styles.container} style={{ "--cycle-header-top": isMonthNavOpen ? "132px" : "76px" } as React.CSSProperties}>
-            <div className={styles.header}>
-                <h2 className={styles.headerTitle}>지출 내역 기록</h2>
-                <div className={styles.headerRight}>
+            <div className={styles.header} style={{ flexDirection: "column", alignItems: "stretch", gap: "0.5rem" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <h2 className={styles.headerTitle}>지출 내역 기록</h2>
                     {unpaidCount > 0 ? (
                         <span className={styles.unpaidText}>
                             미결제 {unpaidCount}건 · {formatCurrency(unpaidTotal)}
@@ -205,21 +205,23 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
                     ) : (
                         <span className={styles.paidText}>✓ 결제 완료</span>
                     )}
+                </div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <div style={{ display: "flex", borderRadius: "var(--radius-sm)", overflow: "hidden", border: "var(--border-base)" }}>
+                        <button
+                            onClick={() => setViewMode("list")}
+                            style={{ padding: "0.35rem 0.75rem", fontSize: "var(--fs-xs)", fontWeight: 500, border: "none", cursor: "pointer", background: viewMode === "list" ? "var(--c-deepgreen)" : "var(--c-card)", color: viewMode === "list" ? "var(--c-card)" : "var(--c-text-muted)" }}
+                        >목록</button>
+                        <button
+                            onClick={() => setViewMode("calendar")}
+                            style={{ padding: "0.35rem 0.75rem", fontSize: "var(--fs-xs)", fontWeight: 500, border: "none", cursor: "pointer", background: viewMode === "calendar" ? "var(--c-deepgreen)" : "var(--c-card)", color: viewMode === "calendar" ? "var(--c-card)" : "var(--c-text-muted)" }}
+                        >달력</button>
+                    </div>
                     <div className={styles.headerActions}>
-                        <div style={{ display: "flex", borderRadius: "var(--radius-sm)", overflow: "hidden", border: "var(--border-base)" }}>
-                            <button
-                                onClick={() => setViewMode("list")}
-                                style={{ padding: "0.3rem 0.6rem", fontSize: "var(--fs-xs)", fontWeight: 500, border: "none", cursor: "pointer", background: viewMode === "list" ? "var(--c-deepgreen)" : "var(--c-card)", color: viewMode === "list" ? "var(--c-card)" : "var(--c-text-muted)" }}
-                            >목록</button>
-                            <button
-                                onClick={() => setViewMode("calendar")}
-                                style={{ padding: "0.3rem 0.6rem", fontSize: "var(--fs-xs)", fontWeight: 500, border: "none", cursor: "pointer", background: viewMode === "calendar" ? "var(--c-deepgreen)" : "var(--c-card)", color: viewMode === "calendar" ? "var(--c-card)" : "var(--c-text-muted)" }}
-                            >달력</button>
-                        </div>
                         <button onClick={onAddIncome} className={`${styles.btnIncome}`}>
                             수입
                         </button>
-                        <button onClick={onAddExpense} className={`${styles.btnExpense} `}>
+                        <button onClick={onAddExpense} className={`${styles.btnExpense}`}>
                             지출
                         </button>
                     </div>
@@ -265,12 +267,13 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
                                     <div key={day}
                                          onClick={() => setSelectedDate(isSelected ? null : dateStr)}
                                          style={{
-                                             minHeight: "72px", padding: "6px 4px", borderRadius: "0", cursor: "pointer",
+                                             height: "72px", padding: "6px 4px", borderRadius: "0", cursor: "pointer",
                                              background: isSelected ? "var(--c-income-bg)" : "transparent",
                                              border: "none",
                                              borderBottom: "1px solid var(--c-bg-muted)",
                                              transition: "background 0.15s",
                                              display: "flex", flexDirection: "column", gap: "3px",
+                                             overflow: "hidden",
                                          }}
                                     >
                                         {/* 날짜 숫자 */}
