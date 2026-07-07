@@ -31,6 +31,7 @@ export interface ExpenseItem {
   date: string;
   name: string;
   amount: number;
+  memo?: string;      // 메모
   editable?: boolean;
   checked?: boolean;
   paid?: boolean;     // 카드 결제(정산) 완료 여부 — 예산반영(checked)과는 별개
@@ -56,7 +57,8 @@ export interface InstallmentItem {
 
 export interface DebtItem {
   id: string;
-  name: string;        // 메모 (예: "5월 초과분", "친구한테 빌림")
+  name: string;        // 제목
+  memo?: string;       // 메모
   amount: number;      // 갚아야 할 금액
   fromMonth: string;   // "YYYY-MM" 발생 월
   targetMonth: string; // "YYYY-MM" 이 달에 차감 적용할 월
@@ -81,6 +83,7 @@ export interface MonthData {
   debts?: DebtItem[];                  // 당겨쓰기(부채) 목록
   carryFromPrevMonth?: number;      // 이월 금액
   effectiveMonthlyBudget?: number;  // 이월금이 반영된 정산 생활비 예산
+  dayMemos?: Record<string, string>; // 날짜별 메모 { "YYYY-MM-DD": "메모" }
 }
 
 export type BudgetState = Record<string, MonthData>;

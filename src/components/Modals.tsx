@@ -25,6 +25,7 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
                                                           }) => {
   const [date, setDate] = useState("");
   const [name, setName] = useState("");
+  const [expMemo, setExpMemo] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const suggestions = name.trim().length > 0 ? (pastNames || []).filter(n => n.toLowerCase().includes(name.toLowerCase()) && n !== name).slice(0, 5) : [];
   const [amount, setAmount] = useState("");
@@ -37,6 +38,7 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
       setName(initialItem.name);
       setAmount(String(initialItem.amount));
       setSettle(initialItem.settleAmount ? String(initialItem.settleAmount) : "");
+      setExpMemo(initialItem.memo || "");
       setSplitCount(null);
     } else {
       const today = new Date();
@@ -58,6 +60,7 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
       setName("");
       setAmount("");
       setSettle("");
+      setExpMemo("");
       setSplitCount(null);
     }
   }, [initialItem, isOpen, defaultMonthStr]);
@@ -84,6 +87,7 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
     onSave({
       date,
       name: name.trim(),
+      memo: expMemo.trim() || undefined,
       amount: amtNum,
       settleAmount: settleNum > 0 ? settleNum : undefined,
       editable: true,
@@ -168,6 +172,17 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   className={styles.inputMono}
+              />
+            </div>
+
+            <div>
+              <label className={styles.label}>메모 <span className={styles.labelOptional}>(선택)</span></label>
+              <input
+                  type="text"
+                  placeholder="메모 추가"
+                  value={expMemo}
+                  onChange={(e) => setExpMemo(e.target.value)}
+                  className={styles.input}
               />
             </div>
 
@@ -972,6 +987,7 @@ export const DebtModal: React.FC<DebtModalProps> = ({
                                                       defaultMonthStr,
                                                     }) => {
   const [name, setName] = useState("");
+  const [memo, setMemo] = useState("");
   const [amount, setAmount] = useState("");
   const [fromMonth, setFromMonth] = useState("");
   const [targetMonth, setTargetMonth] = useState("");
@@ -981,11 +997,13 @@ export const DebtModal: React.FC<DebtModalProps> = ({
     const fallback = defaultMonthStr || new Date().toISOString().slice(0, 7);
     if (initialItem) {
       setName(initialItem.name);
+      setMemo(initialItem.memo || "");
       setAmount(String(initialItem.amount));
       setFromMonth(initialItem.fromMonth);
       setTargetMonth(initialItem.targetMonth);
     } else {
       setName("");
+      setMemo("");
       setAmount("");
       // fromMonth 기본값: targetMonth 의 전달
       const [y, m] = fallback.split("-").map(Number);
@@ -1006,6 +1024,7 @@ export const DebtModal: React.FC<DebtModalProps> = ({
     onSave({
       id: initialItem?.id || Date.now().toString(),
       name: name.trim(),
+      memo: memo.trim() || undefined,
       amount: amt,
       fromMonth,
       targetMonth,
@@ -1033,7 +1052,7 @@ export const DebtModal: React.FC<DebtModalProps> = ({
 
           <form onSubmit={handleSubmit} className={styles.form}>
             <div>
-              <label className={styles.label}>메모</label>
+              <label className={styles.label}>제목</label>
               <input
                   type="text"
                   required
@@ -1044,6 +1063,17 @@ export const DebtModal: React.FC<DebtModalProps> = ({
                   autoComplete="off"
                   className={styles.input}
                   style={{ fontSize: "16px" }}
+              />
+            </div>
+
+            <div>
+              <label className={styles.label}>메모 <span className={styles.labelOptional}>(선택)</span></label>
+              <input
+                  type="text"
+                  placeholder="추가 메모"
+                  value={memo}
+                  onChange={(e) => setMemo(e.target.value)}
+                  className={styles.input}
               />
             </div>
 

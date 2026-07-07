@@ -16,6 +16,8 @@ interface ExpensesTabProps {
     onDeleteIncome: (id: string) => void;
     isMonthNavOpen: boolean;
     allExpenses?: { date: string; amount: number; checked?: boolean; paid?: boolean; settleAmount?: number }[];
+    dayMemos?: Record<string, string>;
+    onUpdateDayMemo?: (date: string, memo: string) => void;
 }
 
 export const ExpensesTab: React.FC<ExpensesTabProps> = ({
@@ -31,6 +33,8 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
                                                             onDeleteIncome,
                                                             isMonthNavOpen,
                                                             allExpenses = [],
+                                                            dayMemos = {},
+                                                            onUpdateDayMemo,
                                                         }) => {
     const getInitialCollapsed = () => {
         const today = new Date().toISOString().split("T")[0];
@@ -44,6 +48,8 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
     const [collapsed, setCollapsed] = useState<Record<number, boolean>>(getInitialCollapsed);
     const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
     const [dragOverDate, setDragOverDate] = useState<string | null>(null);
+    const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
+    const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
     const toggleCollapse = (idx: number) => {
         setCollapsed((prev) => ({ ...prev, [idx]: !prev[idx] }));
@@ -200,6 +206,16 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
                         <span className={styles.paidText}>✓ 결제 완료</span>
                     )}
                     <div className={styles.headerActions}>
+                        <div style={{ display: "flex", borderRadius: "var(--radius-sm)", overflow: "hidden", border: "var(--border-base)" }}>
+                            <button
+                                onClick={() => setViewMode("list")}
+                                style={{ padding: "0.3rem 0.6rem", fontSize: "var(--fs-xs)", fontWeight: 500, border: "none", cursor: "pointer", background: viewMode === "list" ? "var(--c-deepgreen)" : "var(--c-card)", color: viewMode === "list" ? "var(--c-card)" : "var(--c-text-muted)" }}
+                            >목록</button>
+                            <button
+                                onClick={() => setViewMode("calendar")}
+                                style={{ padding: "0.3rem 0.6rem", fontSize: "var(--fs-xs)", fontWeight: 500, border: "none", cursor: "pointer", background: viewMode === "calendar" ? "var(--c-deepgreen)" : "var(--c-card)", color: viewMode === "calendar" ? "var(--c-card)" : "var(--c-text-muted)" }}
+                            >달력</button>
+                        </div>
                         <button onClick={onAddIncome} className={`${styles.btnIncome}`}>
                             수입
                         </button>
@@ -210,7 +226,120 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
                 </div>
             </div>
 
-            <div className={styles.cycleList}>
+            {viewMode === "calendar" && (() => {
+                const [calYear, calMonth] = (() => {
+                    const parts = (data.cycles?.[0]?.end || new Date().toISOString().slice(0, 7) + "-01").split("-");
+                    return [parseInt(parts[0]), parseInt(parts[1])];
+                })();
+                const firstDay = new Date(calYear, calMonth - 1, 1).getDay();
+                const daysInMonth = new Date(calYear, calMonth, 0).getDate();
+                const expenses = data.expenses || [];
+
+                const getDayExpenses = (day: number) => {
+                    const dateStr = `${calYear}-${String(calMonth).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+                    return expenses.filter(e => e.date === dateStr && e.checked !== false);
+                };
+                const getDayTotal = (day: number) => getDayExpenses(day).reduce((s, e) => s + (e.amount - (e.settleAmount || 0)), 0);
+
+                const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+                const blanks = Array.from({ length: firstDay }, (_, i) => i);
+
+                return (
+                    <div style={{ padding: "0 1rem 6rem" }}>
+                        {/* 요일 헤더 */}
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", borderBottom: "1px solid var(--c-bg-muted)", marginBottom: "0" }}>
+                            {["일", "월", "화", "수", "목", "금", "토"].map(d => (
+                                <div key={d} style={{ textAlign: "center", fontSize: "var(--fs-xs)", color: "var(--c-text-faint)", fontWeight: 500, padding: "0.5rem 0" }}>{d}</div>
+                            ))}
+                        </div>
+                        {/* 날짜 그리드 */}
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "0" }}>
+                            {blanks.map(i => <div key={`b${i}`} />)}
+                            {days.map(day => {
+                                const dateStr = `${calYear}-${String(calMonth).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+                                const dayExps = getDayExpenses(day);
+                                const total = getDayTotal(day);
+                                const isSelected = selectedDate === dateStr;
+                                const isToday = new Date().toISOString().slice(0, 10) === dateStr;
+                                return (
+                                    <div key={day}
+                                         onClick={() => setSelectedDate(isSelected ? null : dateStr)}
+                                         style={{
+                                             minHeight: "72px", padding: "6px 4px", borderRadius: "0", cursor: "pointer",
+                                             background: isSelected ? "var(--c-income-bg)" : "transparent",
+                                             border: "none",
+                                             borderBottom: "1px solid var(--c-bg-muted)",
+                                             transition: "background 0.15s",
+                                             display: "flex", flexDirection: "column", gap: "3px",
+                                         }}
+                                    >
+                                        {/* 날짜 숫자 */}
+                                        <div style={{
+                                            fontSize: "0.8rem", fontWeight: (isToday || isSelected) ? 700 : 500, lineHeight: 1,
+                                            color: isSelected ? "var(--c-green)" : isToday ? "var(--c-green)" : "var(--c-deepgreen)",
+                                        }}>{day}</div>
+                                        {/* 금액 */}
+                                        {total > 0 && (
+                                            <div style={{ fontSize: "0.65rem", color: "var(--c-red)", fontWeight: 700, fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>
+                                                -{total >= 10000 ? `${(total / 10000).toFixed(1)}만` : `${total.toLocaleString()}`}
+                                            </div>
+                                        )}
+                                        {/* 항목명 1개 + 나머지 */}
+                                        {dayExps.length > 0 && (
+                                            <div style={{ fontSize: "0.6rem", color: "var(--c-text-faint)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", lineHeight: 1 }}>
+                                                {dayExps[0].name}{dayExps.length > 1 ? ` +${dayExps.length - 1}` : ""}
+                                            </div>
+                                        )}
+                                        {/* 메모 */}
+                                        {dayMemos[dateStr] && (
+                                            <div style={{ fontSize: "0.58rem", color: "var(--c-purple)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", lineHeight: 1 }}>
+                                                📝 {dayMemos[dateStr]}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        {/* 선택된 날짜 지출 목록 */}
+                        {selectedDate && (() => {
+                            const sel = expenses.map((e, i) => ({ ...e, _idx: i })).filter(e => e.date === selectedDate);
+                            return (
+                                <div style={{ marginTop: "1rem", background: "var(--c-card)", borderRadius: "var(--radius-md)", overflow: "hidden", boxShadow: "var(--shadow-soft)" }}>
+                                    <div style={{ padding: "0.75rem 1rem", borderBottom: "var(--hairline)" }}>
+                                        <div style={{ fontSize: "var(--fs-sm)", fontWeight: 600, color: "var(--c-deepgreen)", marginBottom: "0.5rem" }}>
+                                            {selectedDate.slice(5).replace("-", "/")}
+                                        </div>
+                                        <input
+                                            key={selectedDate}
+                                            type="text"
+                                            placeholder="날짜 메모 추가..."
+                                            defaultValue={dayMemos[selectedDate] || ""}
+                                            onBlur={(e) => onUpdateDayMemo?.(selectedDate, e.target.value)}
+                                            onKeyDown={(e) => { if (e.key === "Enter") { onUpdateDayMemo?.(selectedDate, e.currentTarget.value); e.currentTarget.blur(); } }}
+                                            style={{ width: "100%", fontSize: "var(--fs-xs)", padding: "0.3rem 0.5rem", borderRadius: "6px", border: "var(--border-base)", background: "var(--c-bg-soft)", color: "var(--c-deepgreen)", outline: "none", boxSizing: "border-box" }}
+                                        />
+                                    </div>
+                                    {sel.map((e, i) => (
+                                        <div key={i} style={{ padding: "0.6rem 1rem", borderBottom: "var(--hairline)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                            <div>
+                                                <div style={{ fontSize: "var(--fs-sm)", color: "var(--c-deepgreen)" }}>{e.name}</div>
+                                                {e.memo && <div style={{ fontSize: "var(--fs-xs)", color: "var(--c-text-faint)" }}>{e.memo}</div>}
+                                            </div>
+                                            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                                                <span style={{ fontSize: "var(--fs-sm)", fontWeight: 600, color: "var(--c-red)" }}>-{formatCurrency(e.amount - (e.settleAmount || 0))}</span>
+                                                <button onClick={() => onEditExpense(e._idx)} style={{ fontSize: "var(--fs-xs)", color: "var(--c-text-faint)", background: "none", border: "none", cursor: "pointer" }}>수정</button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            );
+                        })()}
+                    </div>
+                );
+            })()}
+
+            {viewMode === "list" && <div className={styles.cycleList}>
                 {(data.cycles || []).map((c, ci) => {
                     const cycleExps = getCycleExpenses(c.start, c.end);
                     const spent = getCycleSpent(c.start, c.end);
@@ -302,7 +431,7 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
                         </div>
                     );
                 })()}
-            </div>
+            </div>}
         </div>
     );
 };

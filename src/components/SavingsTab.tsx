@@ -521,6 +521,7 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
                                         <div className={styles.installmentTop}>
                                             <div className={styles.installmentLeft}>
                                                 <span className={styles.installmentName}>{d.name}</span>
+                                                {d.memo && <span style={{ fontSize: "var(--fs-xs)", color: "var(--c-text-faint)", display: "block", marginTop: "0.1rem" }}>{d.memo}</span>}
                                             </div>
                                             <div>
                                                 <div className={styles.installmentRight}>

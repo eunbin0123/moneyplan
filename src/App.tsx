@@ -468,6 +468,21 @@ export default function App() {
     });
   };
 
+  const handleUpdateDayMemo = (date: string, memo: string) => {
+    setBudgetState((prev) => {
+      const copy = { ...prev };
+      const mD = { ...copy[currentMonth] };
+      const dayMemos = { ...(mD.dayMemos || {}) };
+      if (memo.trim()) {
+        dayMemos[date] = memo.trim();
+      } else {
+        delete dayMemos[date];
+      }
+      copy[currentMonth] = { ...mD, dayMemos };
+      return copy;
+    });
+  };
+
   const handleUpdateAccount = (idx: number, amount: number) => {
     setBudgetState((prev) => {
       const copy = { ...prev };
@@ -787,6 +802,8 @@ export default function App() {
                       onCycleStatus={handleCycleExpenseStatus}
                       onReorderExpense={handleReorderExpense}
                       onUpdateExpenseDate={handleUpdateExpenseDate}
+                      dayMemos={activeData.dayMemos || {}}
+                      onUpdateDayMemo={handleUpdateDayMemo}
                       allExpenses={Object.values(budgetState).flatMap(md => md.expenses || [])}
                       onAddIncome={() => { setEditingIncomeId(null); setIsIncomeModalOpen(true); }}
                       onEditIncome={(id) => { setEditingIncomeId(id); setIsIncomeModalOpen(true); }}
