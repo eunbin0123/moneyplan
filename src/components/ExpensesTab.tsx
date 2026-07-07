@@ -48,7 +48,7 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
     const [collapsed, setCollapsed] = useState<Record<number, boolean>>(getInitialCollapsed);
     const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
     const [dragOverDate, setDragOverDate] = useState<string | null>(null);
-    const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
+    const [viewMode, setViewMode] = useState<"list" | "calendar">(() => (localStorage.getItem("expensesViewMode") as "list" | "calendar") || "list");
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
     const toggleCollapse = (idx: number) => {
@@ -209,11 +209,11 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <div style={{ display: "flex", borderRadius: "var(--radius-sm)", overflow: "hidden", border: "var(--border-base)" }}>
                         <button
-                            onClick={() => setViewMode("list")}
+                            onClick={() => { setViewMode("list"); localStorage.setItem("expensesViewMode", "list"); }}
                             style={{ padding: "0.35rem 0.75rem", fontSize: "var(--fs-xs)", fontWeight: 500, border: "none", cursor: "pointer", background: viewMode === "list" ? "var(--c-deepgreen)" : "var(--c-card)", color: viewMode === "list" ? "var(--c-card)" : "var(--c-text-muted)" }}
                         >목록</button>
                         <button
-                            onClick={() => setViewMode("calendar")}
+                            onClick={() => { setViewMode("calendar"); localStorage.setItem("expensesViewMode", "calendar"); }}
                             style={{ padding: "0.35rem 0.75rem", fontSize: "var(--fs-xs)", fontWeight: 500, border: "none", cursor: "pointer", background: viewMode === "calendar" ? "var(--c-deepgreen)" : "var(--c-card)", color: viewMode === "calendar" ? "var(--c-card)" : "var(--c-text-muted)" }}
                         >달력</button>
                     </div>
@@ -272,7 +272,7 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
                                              border: "none",
                                              borderBottom: "1px solid var(--c-bg-muted)",
                                              transition: "background 0.15s",
-                                             display: "flex", flexDirection: "column", gap: "3px",
+                                             display: "flex", flexDirection: "column", gap: "2px",
                                              overflow: "hidden",
                                          }}
                                     >
@@ -284,18 +284,28 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
                                         {/* 금액 */}
                                         {total > 0 && (
                                             <div style={{ fontSize: "0.65rem", color: "var(--c-red)", fontWeight: 700, fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>
-                                                -{total >= 10000 ? `${(total / 10000).toFixed(1)}만` : `${total.toLocaleString()}`}
+                                                -{total >= 1000 ? `${(total / 10000).toFixed(1)}만` : `${total.toLocaleString()}`}
                                             </div>
                                         )}
                                         {/* 항목명 1개 + 나머지 */}
                                         {dayExps.length > 0 && (
-                                            <div style={{ fontSize: "0.6rem", color: "var(--c-text-faint)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", lineHeight: 1 }}>
-                                                {dayExps[0].name}{dayExps.length > 1 ? ` +${dayExps.length - 1}` : ""}
-                                            </div>
+                                            <>
+                                                {/* 웹: 텍스트 */}
+                                                <div className={styles.calName}>
+                                                    {dayExps[0].name}{dayExps.length > 1 ? ` +${dayExps.length - 1}` : ""}
+                                                </div>
+                                                {/* 모바일: 점 */}
+                                                <div className={styles.calDots} style={{ marginTop: "3px" }}>
+                                                    {dayExps.slice(0, 4).map((_, i) => (
+                                                        <div key={i} style={{ width: "4px", height: "4px", borderRadius: "50%", background: "var(--c-red)", opacity: 0.7, flexShrink: 0 }} />
+                                                    ))}
+                                                    {dayExps.length > 4 && <div style={{ width: "4px", height: "4px", borderRadius: "50%", background: "var(--c-text-faint)", flexShrink: 0 }} />}
+                                                </div>
+                                            </>
                                         )}
                                         {/* 메모 */}
                                         {dayMemos[dateStr] && (
-                                            <div style={{ fontSize: "0.58rem", color: "var(--c-purple)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", lineHeight: 1 }}>
+                                            <div style={{ fontSize: "0.58rem", color: "var(--c-purple)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", lineHeight: 1, marginTop: "auto" }}>
                                                 📝 {dayMemos[dateStr]}
                                             </div>
                                         )}

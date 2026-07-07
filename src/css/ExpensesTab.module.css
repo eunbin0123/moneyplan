@@ -199,3 +199,11 @@
 .unclassifiedLabel { font-size: var(--fs-sm); font-weight: var(--fw-bold); letter-spacing: 0; color: var(--c-red); }
 .unclassifiedSub { font-size: var(--fs-xs); color: var(--c-text-muted); font-weight: var(--fw-medium); letter-spacing: 0; margin-top: 0.25rem; }
 .unclassifiedBalance { font-size: var(--fs-sm); font-weight: var(--fw-bold); font-variant-numeric: tabular-nums; color: var(--c-red); }
+/* 달력 - 모바일/웹 분기 */
+.calDots { display: none; }
+.calName { display: block; font-size: 0.6rem; color: var(--c-text-faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1; }
+
+@media (max-width: 600px) {
+  .calDots { display: flex; gap: 2px; flex-wrap: wrap; margin-top: 1px; }
+  .calName { display: none; }
+}
