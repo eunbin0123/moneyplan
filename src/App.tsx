@@ -20,7 +20,7 @@ import { isPayday } from "./utils/payday";
 import { signInWithEmailAndPassword, onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "./utils/firebaseAuth";
 
-type TabType = "overview" | "expenses" | "fixed" | "installment" | "savings" | "dashboard";
+type TabType = "overview" | "expenses" | "savings" | "dashboard" | "fixed" | "event" | "installment" | "debt";
 
 export default function App() {
   // --- 인증(Auth) 상태 ---
@@ -66,6 +66,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [isLoading, setIsLoading] = useState(true);
   const [isMemoOpen, setIsMemoOpen] = useState(false);
+  const [isHamburgerOpen, setIsHamburgerOpen] = useState(false);
   const [isMonthNavOpen, setIsMonthNavOpen] = useState(false);
   const [isSavingsModalOpen, setIsSavingsModalOpen] = useState(false);
 
@@ -483,6 +484,39 @@ export default function App() {
     });
   };
 
+  const handleAddAccount = (name: string) => {
+    setBudgetState((prev) => {
+      const copy = { ...prev };
+      const mD = { ...copy[currentMonth] };
+      const accounts = [...(mD.accounts || [])];
+      // 생활비(마지막) 앞에 삽입
+      accounts.splice(accounts.length - 1, 0, { name, amount: 0, checked: false });
+      copy[currentMonth] = { ...mD, accounts };
+      return copy;
+    });
+  };
+
+  const handleDeleteAccount = (idx: number) => {
+    setBudgetState((prev) => {
+      const copy = { ...prev };
+      const mD = { ...copy[currentMonth] };
+      const accounts = (mD.accounts || []).filter((_, i) => i !== idx);
+      copy[currentMonth] = { ...mD, accounts };
+      return copy;
+    });
+  };
+
+  const handleRenameAccount = (idx: number, name: string) => {
+    setBudgetState((prev) => {
+      const copy = { ...prev };
+      const mD = { ...copy[currentMonth] };
+      const accounts = [...(mD.accounts || [])];
+      accounts[idx] = { ...accounts[idx], name };
+      copy[currentMonth] = { ...mD, accounts };
+      return copy;
+    });
+  };
+
   const handleUpdateAccount = (idx: number, amount: number) => {
     setBudgetState((prev) => {
       const copy = { ...prev };
@@ -765,6 +799,7 @@ export default function App() {
             shortMonthLabel={getShortMonthLabel(currentMonth)}
             isDark={isDark}
             onToggleDark={() => setIsDark(d => !d)}
+            onToggleHamburger={() => setIsHamburgerOpen(prev => !prev)}
             isMemoOpen={isMemoOpen}
             onToggleMemo={() => setIsMemoOpen(prev => !prev)}
             isMonthNavOpen={isMonthNavOpen}
@@ -786,11 +821,13 @@ export default function App() {
                       activeMonth={currentMonth}
                       onEditCycle={(idx) => { setEditingCycleIdx(idx); setIsCycleModalOpen(true); }}
                       onOpenMemo={() => setIsMemoOpen(true)}
-                      onOpenSavings={() => setIsSavingsModalOpen(true)}
+                      onOpenSavings={() => setActiveTab("savings")}
                       onOpenDashboard={() => setActiveTab("dashboard")}
                       installments={allInstallments}
                       debts={currentMonthDebts}
                       rawCycles={budgetState[currentMonth]?.cycles || []}
+                      dayMemos={activeData.dayMemos || {}}
+                      onUpdateDayMemo={handleUpdateDayMemo}
                   />
               )}
               {activeTab === "expenses" && (
@@ -812,65 +849,78 @@ export default function App() {
 
                   />
               )}
-              {activeTab === "fixed" && (
-                  <SavingsTab
-                      data={activeData}
-                      onToggleAccount={handleToggleAccount}
-                      onAddFixed={() => { setEditingFixedIdx(null); setIsFixedModalOpen(true); }}
-                      onEditFixed={(idx) => { setEditingFixedIdx(idx); setIsFixedModalOpen(true); }}
-                      onDeleteFixed={handleDeleteFixed}
-                      onAddEvent={() => setIsEventModalOpen(true)}
-                      onDeleteEvent={handleDeleteEvent}
-                      onUpdateSalary={handleUpdateSalary}
-                      activeSubTab="fixed"
-                  />
-              )}
-              {activeTab === "installment" && (
-                  <SavingsTab
-                      data={activeData}
-                      onToggleAccount={handleToggleAccount}
-                      onAddFixed={() => { setEditingFixedIdx(null); setIsFixedModalOpen(true); }}
-                      onEditFixed={(idx) => { setEditingFixedIdx(idx); setIsFixedModalOpen(true); }}
-                      onDeleteFixed={handleDeleteFixed}
-                      onAddEvent={() => setIsEventModalOpen(true)}
-                      onDeleteEvent={handleDeleteEvent}
-                      onUpdateSalary={handleUpdateSalary}
-                      activeSubTab="installment"
-                      installments={allInstallments}
-                      activeMonth={currentMonth}
-                      onAddInstallment={() => { setEditingInstallmentId(null); setIsInstallmentModalOpen(true); }}
-                      onEditInstallment={(id) => { setEditingInstallmentId(id); setIsInstallmentModalOpen(true); }}
-                      onDeleteInstallment={handleDeleteInstallment}
-                      debts={currentMonthDebts}
-                      onAddDebt={() => { setEditingDebtId(null); setIsDebtModalOpen(true); }}
-                      onEditDebt={(id) => { setEditingDebtId(id); setIsDebtModalOpen(true); }}
-                      onDeleteDebt={handleDeleteDebt}
-                  />
-              )}
               {activeTab === "dashboard" && (
-                  <DashboardTab
-                      budgetState={budgetState}
-                      months={months}
-                  />
+                  <DashboardTab budgetState={budgetState} months={months} />
               )}
               {activeTab === "savings" && (
-                  <SavingsTab
-                      data={activeData}
-                      onToggleAccount={handleToggleAccount}
-                      onAddFixed={() => { setEditingFixedIdx(null); setIsFixedModalOpen(true); }}
-                      onEditFixed={(idx) => { setEditingFixedIdx(idx); setIsFixedModalOpen(true); }}
-                      onDeleteFixed={handleDeleteFixed}
-                      onAddEvent={() => setIsEventModalOpen(true)}
-                      onDeleteEvent={handleDeleteEvent}
-                      onUpdateSalary={handleUpdateSalary}
-                      activeSubTab="distribution"
-                      installments={allInstallments}
-                      activeMonth={currentMonth}
-                      debts={currentMonthDebts}
-                      onToggleInstallment={handleToggleInstallment}
-                      onToggleDebt={handleToggleDebt}
-                      onUpdateAccount={handleUpdateAccount}
-                  />
+                  <SavingsTab data={activeData} onToggleAccount={handleToggleAccount}
+                              onAddFixed={() => { setEditingFixedIdx(null); setIsFixedModalOpen(true); }}
+                              onEditFixed={(idx) => { setEditingFixedIdx(idx); setIsFixedModalOpen(true); }}
+                              onDeleteFixed={handleDeleteFixed} onAddEvent={() => setIsEventModalOpen(true)}
+                              onDeleteEvent={handleDeleteEvent} onUpdateSalary={handleUpdateSalary}
+                              activeSubTab="distribution" installments={allInstallments}
+                              activeMonth={currentMonth} debts={currentMonthDebts}
+                              onToggleInstallment={handleToggleInstallment} onToggleDebt={handleToggleDebt}
+                              onUpdateAccount={handleUpdateAccount}
+                              onAddAccount={handleAddAccount}
+                              onDeleteAccount={handleDeleteAccount}
+                              onRenameAccount={handleRenameAccount} />
+              )}
+              {activeTab === "fixed" && (
+                  <SavingsTab data={activeData} onToggleAccount={handleToggleAccount}
+                              onAddFixed={() => { setEditingFixedIdx(null); setIsFixedModalOpen(true); }}
+                              onEditFixed={(idx) => { setEditingFixedIdx(idx); setIsFixedModalOpen(true); }}
+                              onDeleteFixed={handleDeleteFixed} onAddEvent={() => setIsEventModalOpen(true)}
+                              onDeleteEvent={handleDeleteEvent} onUpdateSalary={handleUpdateSalary}
+                              activeSubTab="fixed" installments={allInstallments}
+                              activeMonth={currentMonth} debts={currentMonthDebts}
+                              onToggleInstallment={handleToggleInstallment} onToggleDebt={handleToggleDebt}
+                              onUpdateAccount={handleUpdateAccount} />
+              )}
+              {activeTab === "event" && (
+                  <SavingsTab data={activeData} onToggleAccount={handleToggleAccount}
+                              onAddFixed={() => { setEditingFixedIdx(null); setIsFixedModalOpen(true); }}
+                              onEditFixed={(idx) => { setEditingFixedIdx(idx); setIsFixedModalOpen(true); }}
+                              onDeleteFixed={handleDeleteFixed} onAddEvent={() => setIsEventModalOpen(true)}
+                              onDeleteEvent={handleDeleteEvent} onUpdateSalary={handleUpdateSalary}
+                              activeSubTab="event" installments={allInstallments}
+                              activeMonth={currentMonth} debts={currentMonthDebts}
+                              onToggleInstallment={handleToggleInstallment} onToggleDebt={handleToggleDebt}
+                              onUpdateAccount={handleUpdateAccount} />
+              )}
+              {activeTab === "installment" && (
+                  <SavingsTab data={activeData} onToggleAccount={handleToggleAccount}
+                              onAddFixed={() => { setEditingFixedIdx(null); setIsFixedModalOpen(true); }}
+                              onEditFixed={(idx) => { setEditingFixedIdx(idx); setIsFixedModalOpen(true); }}
+                              onDeleteFixed={handleDeleteFixed} onAddEvent={() => setIsEventModalOpen(true)}
+                              onDeleteEvent={handleDeleteEvent} onUpdateSalary={handleUpdateSalary}
+                              activeSubTab="installment" installments={allInstallments}
+                              activeMonth={currentMonth} debts={currentMonthDebts}
+                              onToggleInstallment={handleToggleInstallment} onToggleDebt={handleToggleDebt}
+                              onUpdateAccount={handleUpdateAccount}
+                              onAddInstallment={() => setIsInstallmentModalOpen(true)}
+                              onEditInstallment={(id) => { setEditingInstallmentId(id); setIsInstallmentModalOpen(true); }}
+                              onDeleteInstallment={handleDeleteInstallment}
+                              onAddDebt={() => setIsDebtModalOpen(true)}
+                              onEditDebt={(id) => { setEditingDebtId(id); setIsDebtModalOpen(true); }}
+                              onDeleteDebt={handleDeleteDebt} />
+              )}
+              {activeTab === "debt" && (
+                  <SavingsTab data={activeData} onToggleAccount={handleToggleAccount}
+                              onAddFixed={() => { setEditingFixedIdx(null); setIsFixedModalOpen(true); }}
+                              onEditFixed={(idx) => { setEditingFixedIdx(idx); setIsFixedModalOpen(true); }}
+                              onDeleteFixed={handleDeleteFixed} onAddEvent={() => setIsEventModalOpen(true)}
+                              onDeleteEvent={handleDeleteEvent} onUpdateSalary={handleUpdateSalary}
+                              activeSubTab="debt" installments={allInstallments}
+                              activeMonth={currentMonth} debts={currentMonthDebts}
+                              onToggleInstallment={handleToggleInstallment} onToggleDebt={handleToggleDebt}
+                              onUpdateAccount={handleUpdateAccount}
+                              onAddInstallment={() => setIsInstallmentModalOpen(true)}
+                              onEditInstallment={(id) => { setEditingInstallmentId(id); setIsInstallmentModalOpen(true); }}
+                              onDeleteInstallment={handleDeleteInstallment}
+                              onAddDebt={() => setIsDebtModalOpen(true)}
+                              onEditDebt={(id) => { setEditingDebtId(id); setIsDebtModalOpen(true); }}
+                              onDeleteDebt={handleDeleteDebt} />
               )}
             </motion.div>
           </AnimatePresence>
@@ -921,44 +971,34 @@ export default function App() {
             defaultMonthStr={currentMonth}
         />
 
-        {/* 분배 모달 */}
-        {isSavingsModalOpen && (
-            <div
-                className={styles.savingsOverlay}
-                onClick={() => setIsSavingsModalOpen(false)}
-            >
-              <div
-                  className={styles.savingsPanel}
-                  onClick={(e) => e.stopPropagation()}
-              >
-                <div className={styles.savingsPanelHeader}>
-                  <h2 className={styles.savingsPanelTitle}>분배</h2>
-                  <button
-                      className={styles.savingsPanelClose}
-                      onClick={() => setIsSavingsModalOpen(false)}
-                  >
-                    <X className={styles.savingsPanelCloseIcon} />  {/* ← h-4 w-4 제거 */}
-                  </button>
+        {/* 햄버거 메뉴 */}
+        {isHamburgerOpen && (
+            <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "var(--c-overlay)" }} onClick={() => setIsHamburgerOpen(false)}>
+              <div style={{ position: "absolute", top: 0, right: 0, width: "72vw", maxWidth: "300px", height: "100%", background: "var(--c-card)", boxShadow: "var(--shadow-float)", display: "flex", flexDirection: "column", padding: "1.5rem 0" }} onClick={e => e.stopPropagation()}>
+                <div style={{ padding: "0 1.5rem 1rem", borderBottom: "var(--hairline)", marginBottom: "0.5rem" }}>
+                  <p style={{ fontSize: "var(--fs-xs)", color: "var(--c-text-faint)", fontWeight: 500 }}>메뉴</p>
                 </div>
-                <div className={styles.savingsPanelBody}>
-                  <SavingsTab
-                      data={activeData}
-                      onToggleAccount={handleToggleAccount}
-                      onAddFixed={() => { setEditingFixedIdx(null); setIsFixedModalOpen(true); }}
-                      onEditFixed={(idx) => { setEditingFixedIdx(idx); setIsFixedModalOpen(true); }}
-                      onDeleteFixed={handleDeleteFixed}
-                      onAddEvent={() => setIsEventModalOpen(true)}
-                      onDeleteEvent={handleDeleteEvent}
-                      onUpdateSalary={handleUpdateSalary}
-                      activeSubTab="distribution"
-                      installments={allInstallments}
-                      activeMonth={currentMonth}
-                      debts={currentMonthDebts}
-                      onToggleInstallment={handleToggleInstallment}
-                      onToggleDebt={handleToggleDebt}
-                      onUpdateAccount={handleUpdateAccount}
-                  />
-                </div>
+                {([
+                  { label: "통계", tab: "dashboard", icon: "📊" },
+                  { label: "고정지출", tab: "fixed", icon: "🛡️" },
+                  { label: "경조사비", tab: "event", icon: "🎁" },
+                  { label: "할부", tab: "installment", icon: "💳" },
+                  { label: "당겨쓰기", tab: "debt", icon: "🏦" },
+                ] as { label: string; tab: TabType; icon: string }[]).map(({ label, tab, icon }) => (
+                    <button key={tab} onClick={() => { setActiveTab(tab); setIsHamburgerOpen(false); }}
+                            style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.875rem 1.5rem", background: "none", border: "none", cursor: "pointer", fontSize: "var(--fs-sm)", color: activeTab === tab ? "var(--c-green)" : "var(--c-deepgreen)", fontWeight: activeTab === tab ? 600 : 400, textAlign: "left" }}>
+                      <span>{icon}</span>{label}
+                    </button>
+                ))}
+                <div style={{ borderTop: "var(--hairline)", margin: "0.5rem 0" }} />
+                <button onClick={() => { setIsMemoOpen(true); setIsHamburgerOpen(false); }}
+                        style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.875rem 1.5rem", background: "none", border: "none", cursor: "pointer", fontSize: "var(--fs-sm)", color: "var(--c-deepgreen)", textAlign: "left" }}>
+                  <span>📝</span>이달 메모
+                </button>
+                <button onClick={() => setIsDark(d => !d)}
+                        style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.875rem 1.5rem", background: "none", border: "none", cursor: "pointer", fontSize: "var(--fs-sm)", color: "var(--c-deepgreen)", textAlign: "left" }}>
+                  <span>{isDark ? "☀️" : "🌙"}</span>{isDark ? "라이트모드" : "다크모드"}
+                </button>
               </div>
             </div>
         )}
@@ -966,29 +1006,17 @@ export default function App() {
         {/* 하단 고정 탭바 */}
         <nav className={styles.navWrapper}>
           <div className={styles.navBar}>
-            {/* 개요 */}
-            <button
-                className={styles.tabBtn}
-                data-active={activeTab === "overview"}
-                onClick={() => setActiveTab("overview")}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-                <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+            <button className={styles.tabBtn} data-active={activeTab === "overview"} onClick={() => setActiveTab("overview")}>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{width:"1.25rem",height:"1.25rem"}}>
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
               </svg>
-              <span className={styles.tabLabel}>Overview</span>
+              <span className={styles.tabLabel}>홈</span>
             </button>
-
-            {/* 지출 */}
-            <button
-                className={styles.tabBtn}
-                data-active={activeTab === "expenses"}
-                onClick={() => setActiveTab("expenses")}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <button className={styles.tabBtn} data-active={activeTab === "expenses"} onClick={() => setActiveTab("expenses")}>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{width:"1.25rem",height:"1.25rem"}}>
                 <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
               </svg>
-              <span className={styles.tabLabel}>Expenses</span>
+              <span className={styles.tabLabel}>지출</span>
             </button>
 
             {/* 중앙 FAB */}
@@ -1002,30 +1030,18 @@ export default function App() {
               </button>
             </div>
 
-            {/* 고정 */}
-            <button
-                className={styles.tabBtn}
-                data-active={activeTab === "fixed"}
-                onClick={() => setActiveTab("fixed")}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <button className={styles.tabBtn} data-active={activeTab === "savings"} onClick={() => setActiveTab("savings")}>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{width:"1.25rem",height:"1.25rem"}}>
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M12 6v6l4 2"/>
               </svg>
-              <span className={styles.tabLabel}>Fixed</span>
+              <span className={styles.tabLabel}>분배</span>
             </button>
-
-            {/* 할부·당겨쓰기 */}
-            <button
-                className={styles.tabBtn}
-                data-active={activeTab === "installment"}
-                onClick={() => setActiveTab("installment")}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>
+            <button className={styles.tabBtn} onClick={() => setIsHamburgerOpen(true)}>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{width:"1.25rem",height:"1.25rem"}}>
+                <line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>
               </svg>
-              <span className={styles.tabLabel}>Installment</span>
+              <span className={styles.tabLabel}>더보기</span>
             </button>
-
           </div>
         </nav>
       </div>

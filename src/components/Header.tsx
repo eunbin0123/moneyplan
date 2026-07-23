@@ -19,6 +19,7 @@ interface HeaderProps {
     onToggleMonthNav: () => void;
     isDark: boolean;
     onToggleDark: () => void;
+    onToggleHamburger: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -37,6 +38,7 @@ export const Header: React.FC<HeaderProps> = ({
                                                   onToggleMonthNav,
                                                   isDark,
                                                   onToggleDark,
+                                                  onToggleHamburger,
                                               }) => {
     const [isPickerOpen, setIsPickerOpen] = useState(false);
     // 달 이동 네비게이션 표시 여부 (기본 숨김, 로고 클릭으로 토글)
@@ -85,17 +87,6 @@ export const Header: React.FC<HeaderProps> = ({
                         </div>
                         <h1 className={styles.title}>EB's MONEY</h1>
                         <div className={styles.topActions}>
-                            <button
-                                onClick={onToggleMemo}
-                                className={`${styles.memoBtn}`}
-                                data-open={isMemoOpen}
-                                title="이달 메모"
-                            >
-                                {isMemoOpen ? <X className={styles.memoBtnIcon} /> : <Menu className={styles.memoBtnIcon} />}
-                                {hasMemoContent && !isMemoOpen && (
-                                    <span className={styles.memoBadge} />
-                                )}
-                            </button>
                             <button
                                 onClick={onToggleDark}
                                 className={styles.memoBtn}

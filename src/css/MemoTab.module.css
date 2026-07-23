@@ -22,17 +22,16 @@
 
 .chipRow { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 .chip {
-  font-size: var(--fs-sm);
-  color: var(--c-deepgreen);
-  font-weight: var(--fw-medium);
+  font-size: 1.25rem;
   background-color: var(--c-bg-soft);
-  border: none;
-  border-radius: var(--radius-pill);
-  padding: 0.4375rem 0.875rem;
+  border: var(--border-base);
+  border-radius: var(--radius-sm);
+  padding: 0.25rem 0.35rem;
   transition: var(--t-base);
   cursor: pointer;
+  line-height: 1;
 }
-.chip:hover { background-color: var(--c-deepgreen); color: var(--c-card); }
+.chip:hover { background-color: var(--c-tint-green); border-color: var(--c-green); }
 
 .srOnly { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border-width: 0; }
 
