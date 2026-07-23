@@ -276,9 +276,9 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
 
                                 {/* 편집 모드 */}
                                 {isEditingRules && (
-                                    <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", padding: "0.5rem 1rem 1rem" }}>
+                                    <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", "align-items":"center" }}>
                                         {editValues.map((v, idx) => (
-                                            <div key={idx} style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                                            <div key={idx} style={{ display: "flex", gap: "0.5rem", alignItems: "center", "justify-content":"center" }}>
                                                 <input type="text" value={v.name}
                                                        onChange={e => setEditValues(prev => prev.map((p, i) => i === idx ? { ...p, name: e.target.value } : p))}
                                                        style={{ flex: 1, fontSize: "var(--fs-sm)", padding: "0.35rem 0.5rem", borderRadius: "6px", border: "var(--border-base)", outline: "none", background: "var(--c-bg-soft)", color: "var(--c-deepgreen)" }}
