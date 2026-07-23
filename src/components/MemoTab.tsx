@@ -1,84 +1,90 @@
-/* ─────────────────────────────────────────
-   MemoTab.module.css — 모던 웜 리스타일 (클래스명 동일)
-   ───────────────────────────────────────── */
+import React, { useRef } from "react";
+import { HelpCircle, Sparkles, Check } from "lucide-react";
+// @ts-ignore
+import styles from "../css/MemoTab.module.css";
 
-.container {
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  padding: 0;
-  border-radius: 0;
-}
-.container > * + * { margin-top: 1.125rem; }
-
-.sectionLabel {
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-bold);
-  color: var(--c-deepgreen);
-  margin-bottom: 0.75rem;
-  display: flex; align-items: center; gap: 0.375rem;
-}
-.sparkleIcon { height: 0.875rem; width: 0.875rem; color: var(--c-red); }
-
-.chipRow { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-.chip {
-  font-size: 0.9rem;
-  background-color: var(--c-bg-soft);
-  border: var(--border-base);
-  border-radius: var(--radius-sm);
-  padding: 0.2rem 0.25rem;
-  transition: var(--t-base);
-  cursor: pointer;
-  line-height: 1;
-}
-.chip:hover { background-color: var(--c-tint-green); border-color: var(--c-green); }
-
-.srOnly { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border-width: 0; }
-
-.textarea {
-  width: 100%;
-  min-height: 160px; max-height: 350px;
-  background-color: var(--c-bg-soft);
-  border: var(--hairline);
-  border-radius: var(--radius-md);
-  padding: 1rem;
-  font-size: var(--fs-base);
-  font-weight: var(--fw-normal);
-  color: var(--c-deepgreen);
-  line-height: 1.7;
-  outline: none;
-  transition: var(--t-base);
-}
-.textarea::placeholder { color: var(--c-text-faint); }
-.textarea:focus { border-color: var(--c-red); box-shadow: 0 0 0 3px var(--c-accent-10); background-color: var(--c-card); }
-
-.counterRow {
-  display: flex; flex-direction: column;
-  justify-content: space-between; align-items: flex-start;
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-medium);
-  letter-spacing: 0;
-  gap: 0.25rem;
-  margin-top: 0.5rem;
-  color: var(--c-text-muted);
-}
-@media (min-width: 640px) { .counterRow { flex-direction: row; align-items: center; } }
-
-.counter {
-  font-variant-numeric: tabular-nums;
-  background-color: var(--c-bg-soft);
-  color: var(--c-text-muted);
-  padding: 0.1875rem 0.625rem;
-  border-radius: var(--radius-pill);
-  flex-shrink: 0;
-  user-select: none;
+interface MemoTabProps {
+  memo: string;
+  onUpdateMemo: (newMemo: string) => void;
+  savingIndicator: boolean;
+  shortMonthLabel: string;
 }
 
-/* ── 모바일 미세조정 ── */
-@media (max-width: 480px) {
-.sectionLabel { font-size: var(--fs-xs); margin-bottom: 0.5rem; }
-.chipRow { gap: 0.375rem; }
-.chip { font-size: var(--fs-xs); padding: 0.375rem 0.6875rem; }
-.textarea { padding: 0.875rem; min-height: 140px; }
-.container > * + * { margin-top: 0.875rem; }
-}
+export const MemoTab: React.FC<MemoTabProps> = ({
+                                                  memo,
+                                                  onUpdateMemo,
+                                                  savingIndicator,
+                                                  shortMonthLabel,
+                                                }) => {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const quickChips = [
+    "☕", "🍽️", "🛒", "🚌", "🚗", "💊", "🎬", "👗",
+    "🏋️", "🎮", "🍺", "🎁", "✂️", "📚", "🐾", "✈️",
+    "🎂", "⚠️", "🪙", "🎵"
+  ];
+
+  const handleChipClick = (chip: string) => {
+    const ta = textareaRef.current;
+    if (!ta) return;
+
+    const startPos = ta.selectionStart;
+    const endPos = ta.selectionEnd;
+    const text = ta.value;
+
+    const insertText = `${chip} `;
+    const isNewLineNeeded = startPos > 0 && text[startPos - 1] !== "\n";
+    const linePrefix = isNewLineNeeded ? "\n" : "";
+
+    const finalInsert = `${linePrefix}${insertText}`;
+    const newText =
+        text.substring(0, startPos) + finalInsert + text.substring(endPos);
+
+    onUpdateMemo(newText);
+
+    // restore focus and pointer position
+    setTimeout(() => {
+      ta.focus();
+      const nextPos = startPos + finalInsert.length;
+      ta.setSelectionRange(nextPos, nextPos);
+    }, 50);
+  };
+
+  return (
+      <div className={`${styles.container} `}>
+        {/* Speed chips insert panel */}
+        <div>
+          <p className={styles.sectionLabel}>
+            <Sparkles className={styles.sparkleIcon} /> 이모지
+          </p>
+          <div className={styles.chipRow}>
+            {quickChips.map((chip, i) => (
+                <button
+                    key={i}
+                    onClick={() => handleChipClick(chip)}
+                    className={styles.chip}
+                >
+                  {chip}
+                </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Core Textarea editor */}
+        <div>
+          <label htmlFor="memo-editor" className={styles.srOnly}>메모 입력</label>
+          <textarea
+              id="memo-editor"
+              ref={textareaRef}
+              value={memo}
+              onChange={(e) => onUpdateMemo(e.target.value)}
+              className={styles.textarea}
+              placeholder={`이번 달 기억해야 할 것들을 자유롭게 적어두세요.\n예) 굴비적금 만기, 여행 일정, 이번 달 공과금 변동 등...`}
+          />
+          <div className={styles.counterRow}>
+            <span className={styles.counter}>{memo.length}자</span>
+          </div>
+        </div>
+      </div>
+  );
+};
