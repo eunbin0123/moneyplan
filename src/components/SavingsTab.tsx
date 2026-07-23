@@ -291,7 +291,7 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
                                                         style={{ fontSize: "0.7rem", padding: "0.25rem 0.5rem", borderRadius: "6px", background: "none", border: "var(--border-base)", cursor: "pointer", color: "var(--c-red)", flexShrink: 0 }}>삭제</button>
                                             </div>
                                         ))}
-                                        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", paddingTop: "0.5rem", borderTop: "var(--hairline)", marginTop: "0.25rem" }}>
+                                        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", paddingTop: "0.5rem", borderTop: "var(--hairline)", marginTop: "0.25rem" , "justify-content":"center" }}>
                                             <input type="text" value={newAccountName} placeholder="새 항목 이름"
                                                    onChange={e => setNewAccountName(e.target.value)}
                                                    style={{ flex: 1, fontSize: "var(--fs-sm)", padding: "0.35rem 0.5rem", borderRadius: "6px", border: "var(--border-base)", outline: "none", background: "var(--c-bg-soft)", color: "var(--c-deepgreen)" }}
