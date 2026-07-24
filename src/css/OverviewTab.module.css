@@ -28,7 +28,8 @@
 @media (min-width: 640px) {
   .tabTitle { font-size: var(--fs-lg); justify-content: flex-start; }
 }
-
+.totalSpent{display: flex; justify-content: center;}
+@media (min-width: 640px) { .totalSpent{justify-content: flex-start;} }
 .tabActions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; width: 100%; }
 @media (min-width: 640px) { .tabActions { width: auto; } }
 

@@ -141,8 +141,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
 
 
             {/* ── 총 지출 한 줄 ── */}
-            <p style={{ fontSize: "var(--fs-xs)", color: "var(--c-text-faint)", textAlign: "center", "margin-top": "0.375rem" }}>
-              총 지출 <span style={{ fontWeight: 700, color: "var(--c-red)", fontVariantNumeric: "tabular-nums" }}>{formatCurrency(totalCombinedSpent)}</span>
+            <p className={styles.totalSpent} style={{ fontSize: "var(--fs-xs)", color: "var(--c-text-faint)", textAlign: "left", "margin-top": "0.375rem"}}>
+              총 지출&ensp;  <span style={{ fontWeight: 700, color: "var(--c-red)", fontVariantNumeric: "tabular-nums" }}>{formatCurrency(totalCombinedSpent)}</span>
             </p>
 
           </div>

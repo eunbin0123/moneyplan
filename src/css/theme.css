@@ -1,30 +1,31 @@
 /* ===========================================================
-   디자인 토큰 — 모던 웜 (단일 정본)
+   디자인 토큰 — 블루 리디자인 (정본)
    각 module.css 에서 var(--...) 로 참조한다.
-   값만 바꾸면 앱 전체에 반영된다.
+   변수명은 기존과 동일하게 유지했고, 값만 블루 계열로 교체했다.
+   수입 = 틸블루 / 지출 = 인디고블루 로 색상축을 나눠 구분성을 확보했다.
    =========================================================== */
 
 :root {
 
   /* ───────── 1. 브랜드 팔레트 (정본) ───────── */
-  --c-deepgreen:  #2A3A2B;   /* 기본 글씨 */
-  --c-card-dark:  #2A3A2B;   /* cardDark 배경 */
-  --c-purple:     #4c4263;   /* 보조 글씨(제목·라벨) */
-  --c-red:        #B86865;   /* 강조 / 지출 */
-  --c-yellow:     #B8B593;   /* 버튼 면 */
-  --c-green:      #468005;   /* 수입 / 긍정 */
-  --c-blue:       #64748b;   /* 보조 텍스트 */
-  --c-skyblue:    #cbd5e1;   /* 흐린 텍스트 / 옅은 선 */
-  --c-purplegrey: #EAE7EE;   /* 옅은 면 */
-  --c-bg-soft:    #F6F4F1;   /* 페이지 캔버스 (따뜻한 오프화이트) */
+  --c-deepgreen:  #16233B;   /* 기본 글씨 — 딥 네이비 */
+  --c-card-dark:  #16233B;   /* cardDark 배경 */
+  --c-purple:     #4A5C8C;   /* 보조 글씨(제목·라벨) — 슬레이트 인디고 */
+  --c-red:        #5B5EA6;   /* 강조 / 지출 — 인디고 바이올렛 */
+  --c-yellow:     #7C93B0;   /* 버튼 면 — 스틸 블루 */
+  --c-green:      #0E7C86;   /* 수입 / 긍정 — 틸 블루 */
+  --c-blue:       #64748B;   /* 보조 텍스트 — 슬레이트 블루그레이 */
+  --c-skyblue:    #C7D6EA;   /* 흐린 텍스트 / 옅은 선 */
+  --c-purplegrey: #E7ECF7;   /* 옅은 면 */
+  --c-bg-soft:    #F5F8FC;   /* 페이지 캔버스 (쿨 오프화이트) */
   --c-card:       #fff;      /* 카드 / 표면 */
   --c-bg:         var(--c-bg-soft);
 
-  /* 보조 톤 (모던 웜에서 추가) */
-  --c-font-2:     #939bbb;   /* 흐린 라벨/힌트 */
-  --c-tint-red:   #F6ECE9;   /* 지출 칩 배경 */
-  --c-tint-green: #EEF3E6;   /* 수입 칩 배경 */
-  --c-tint-purple:#EAE7EE;   /* 중립 칩 배경 */
+  /* 보조 톤 */
+  --c-font-2:     #8C99B8;   /* 흐린 라벨/힌트 */
+  --c-tint-red:   #ECEBF6;   /* 지출 칩 배경 — 옅은 인디고 */
+  --c-tint-green: #E4F3F2;   /* 수입 칩 배경 — 옅은 틸 */
+  --c-tint-purple:#E7ECF7;   /* 중립 칩 배경 */
 
   /* ───────── 2. 레거시 별칭 (옛 토큰 → 브랜드) ───────── */
   --c-ink:         var(--c-deepgreen);
@@ -37,38 +38,37 @@
   --c-border-soft: var(--c-skyblue);
   --c-warning:     var(--c-yellow);
 
-  /* ───────── 3. 수입 초록(에메랄드) 게이지 전용 ───────── */
-  --c-income:               #468005;
-  --c-income-soft:          #7bb53f;
-  --c-income-dark:          #356104;
-  --c-income-bg:            #EEF3E6;
-  --c-income-border:        #cfe0b3;
-  --c-income-border-strong: #b6d189;
+  /* ───────── 3. 수입 틸블루 게이지 전용 ───────── */
+  --c-income:               #0E7C86;
+  --c-income-soft:          #4FA8AE;
+  --c-income-dark:          #0A5C63;
+  --c-income-bg:            #E4F3F2;
+  --c-income-border:        #B9DEDD;
+  --c-income-border-strong: #8FC7C5;
 
   /* ───────── 4. 오버레이 / 그림자 토큰 ───────── */
-  --c-overlay:   rgba(42, 58, 43, 0.45);   /* 모달 딤(딥그린 베이스) */
-  --c-shadow:    rgba(42, 58, 43, 0.06);
-  --c-ink-40:    rgba(42, 58, 43, 0.40);
-  --c-ink-20:    rgba(42, 58, 43, 0.12);
+  --c-overlay:   rgba(22, 35, 59, 0.45);   /* 모달 딤(네이비 베이스) */
+  --c-shadow:    rgba(22, 35, 59, 0.06);
+  --c-ink-40:    rgba(22, 35, 59, 0.40);
+  --c-ink-20:    rgba(22, 35, 59, 0.12);
   --c-paper-20:  rgba(255, 255, 255, 0.20);
   --c-paper-10:  rgba(255, 255, 255, 0.10);
-  --c-accent-10: rgba(184, 104, 101, 0.10);
-  --c-danger-bg: #FBF2F1;
+  --c-accent-10: rgba(91, 94, 166, 0.10);
+  --c-danger-bg: #EEEDF8;
 
-  /* 카드 그림자 / 헤어라인 (모던 웜 핵심) */
-  --shadow-soft:  0 4px 14px rgba(42, 58, 43, 0.05);
-  --shadow-card:  0 6px 22px rgba(42, 58, 43, 0.06);
-  --shadow-float: 0 10px 40px rgba(42, 58, 43, 0.10);
-  --hairline:     1px solid rgba(42, 58, 43, 0.07);
+  /* 카드 그림자 / 헤어라인 */
+  --shadow-soft:  0 4px 14px rgba(22, 35, 59, 0.05);
+  --shadow-card:  0 6px 22px rgba(22, 35, 59, 0.06);
+  --shadow-float: 0 10px 40px rgba(22, 35, 59, 0.10);
+  --hairline:     1px solid rgba(22, 35, 59, 0.07);
 
-  /* 지출/에러(빨강) — 클레이 톤 */
+  /* 지출/에러 — 인디고 바이올렛 톤 */
   --c-danger:           var(--c-red);
-  --c-danger-soft:      #c98e8b;
-  --c-danger-border:    #e3c4c3;
-  --c-danger-bg-strong: #f5e6e5;
+  --c-danger-soft:      #8A8CC4;
+  --c-danger-border:    #C7C8E8;
+  --c-danger-bg-strong: #DEDEF3;
 
   /* ───────── 5. 폰트 ───────── */
-  /* 모노 제거 → 산스로 재정의. 숫자 정렬은 각 모듈에서 tabular-nums 사용 */
   --ff-mono: 'Plus Jakarta Sans', 'Noto Sans KR', ui-sans-serif, system-ui, sans-serif;
 
   --fs-tiny: 0.625rem;
@@ -79,7 +79,6 @@
   --fs-lg:   1.25rem;
   --fs-xl:   1.75rem;
 
-  /* 무게: 헤비 톤 전반 완화 (900→700) */
   --fw-thin:   300;
   --fw-light:  300;
   --fw-normal: 400;
@@ -89,9 +88,9 @@
   --fw-black:  700;
 
   /* ───────── 6. 보더 → 헤어라인 / 라운드 / 전환 ───────── */
-  --border-thin:  1px solid rgba(42, 58, 43, 0.07);
-  --border-base:  1px solid rgba(42, 58, 43, 0.10);
-  --border-thick: 1.5px solid rgba(42, 58, 43, 0.14);
+  --border-thin:  1px solid rgba(22, 35, 59, 0.07);
+  --border-base:  1px solid rgba(22, 35, 59, 0.10);
+  --border-thick: 1.5px solid rgba(22, 35, 59, 0.14);
 
   --radius-sm:  10px;
   --radius-md:  14px;
@@ -103,38 +102,38 @@
   --t-colors: background-color 0.18s, color 0.18s;
 
   /* ───────── 7. 검토 후 정리 대상 ───────── */
-  --c-btn-bluegrey: #B5E2FA;
+  --c-btn-bluegrey: #BFE0F5;
   --c-btn-1:    var(--c-blue);
   --c-progress-2: var(--c-yellow);
-  --c-progress-3: #9F93B8;
-  --c-neutral-800: #262626;
-  --c-neutral-50:  #F9F9F9;
+  --c-progress-3: #8C93C2;
+  --c-neutral-800: #1F2937;
+  --c-neutral-50:  #F7F9FC;
   --c-gray-900: var(--c-deepgreen);
   --c-gray-700: #334155;
   --c-gray-600: #475569;
-  --c-gray-550: #525252;
+  --c-gray-550: #52607A;
   --c-gray-200: #e2e8f0;
 }
 
 /* ───────── 다크모드 ───────── */
 [data-theme="dark"] {
-  --c-deepgreen:  #E8EDE8;
-  --c-card-dark:  #1E2E1F;   /* 다크모드 cardDark 전용 */
-  --c-purple:     #C4BBDB;
-  --c-red:        #E08E8B;
-  --c-yellow:     #C8C4A0;
-  --c-green:      #7DC142;
+  --c-deepgreen:  #E8ECF5;
+  --c-card-dark:  #101A2C;
+  --c-purple:     #A9B8DD;
+  --c-red:        #9092D6;
+  --c-yellow:     #9DB2CE;
+  --c-green:      #4FC2C9;
   --c-blue:       #94A3B8;
-  --c-skyblue:    #475569;
-  --c-purplegrey: #2A2733;
-  --c-bg-soft:    #1A1C1A;
-  --c-card:       #242724;
+  --c-skyblue:    #3E5273;
+  --c-purplegrey: #232A42;
+  --c-bg-soft:    #10161F;
+  --c-card:       #1B2438;
   --c-bg:         var(--c-bg-soft);
 
   --c-font-2:     #6B7299;
-  --c-tint-red:   #2E1F1E;
-  --c-tint-green: #1E2A1A;
-  --c-tint-purple:#252230;
+  --c-tint-red:   #262A47;
+  --c-tint-green: #16302E;
+  --c-tint-purple:#20263C;
 
   --c-ink:         var(--c-deepgreen);
   --c-paper:       var(--c-card);
@@ -146,21 +145,21 @@
   --c-border-soft: var(--c-skyblue);
   --c-warning:     var(--c-yellow);
 
-  --c-income:               #7DC142;
-  --c-income-soft:          #9DD066;
-  --c-income-dark:          #5E9130;
-  --c-income-bg:            #1E2A1A;
-  --c-income-border:        #3A5028;
-  --c-income-border-strong: #4F6E38;
+  --c-income:               #4FC2C9;
+  --c-income-soft:          #7ED4D9;
+  --c-income-dark:          #2E9AA0;
+  --c-income-bg:            #16302E;
+  --c-income-border:        #295552;
+  --c-income-border-strong: #3D7873;
 
   --c-overlay:   rgba(0, 0, 0, 0.60);
   --c-shadow:    rgba(0, 0, 0, 0.30);
-  --c-ink-40:    rgba(232, 237, 232, 0.40);
-  --c-ink-20:    rgba(232, 237, 232, 0.12);
+  --c-ink-40:    rgba(232, 236, 245, 0.40);
+  --c-ink-20:    rgba(232, 236, 245, 0.12);
   --c-paper-20:  rgba(255, 255, 255, 0.08);
   --c-paper-10:  rgba(255, 255, 255, 0.05);
-  --c-accent-10: rgba(224, 142, 139, 0.15);
-  --c-danger-bg: #2E1F1E;
+  --c-accent-10: rgba(144, 146, 214, 0.15);
+  --c-danger-bg: #262A47;
 
   --shadow-soft:  0 4px 14px rgba(0, 0, 0, 0.20);
   --shadow-card:  0 6px 22px rgba(0, 0, 0, 0.25);
@@ -168,14 +167,14 @@
   --hairline:     1px solid rgba(255, 255, 255, 0.06);
 
   --c-danger:           var(--c-red);
-  --c-danger-soft:      #C07A77;
-  --c-danger-border:    #5A3635;
-  --c-danger-bg-strong: #3A2322;
+  --c-danger-soft:      #A6A8DC;
+  --c-danger-border:    #4A4D7A;
+  --c-danger-bg-strong: #34375C;
 
   --border-thin:  1px solid rgba(255, 255, 255, 0.06);
   --border-base:  1px solid rgba(255, 255, 255, 0.09);
   --border-thick: 1.5px solid rgba(255, 255, 255, 0.12);
 
-  --c-neutral-50:  #2A2A2A;
+  --c-neutral-50:  #1E2436;
   --c-gray-200:    #334155;
 }
