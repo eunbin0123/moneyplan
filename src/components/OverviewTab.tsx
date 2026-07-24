@@ -110,6 +110,9 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   const paydayOfMonth = new Date(calYear, calMonth, 0).getDate();
   const paydayStr = `${calYear}-${String(calMonth).padStart(2, "0")}-${String(paydayOfMonth).padStart(2, "0")}`;
 
+  // 주기 시작일 체크
+  const cycleStartDates = new Set((data.cycles || []).map(c => c.start));
+
   const getDayExps = (day: number) => {
     const dateStr = `${calYear}-${String(calMonth).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
     return (data.expenses || []).filter(e => e.date === dateStr && e.checked !== false);
@@ -254,23 +257,29 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               const isToday = dateStr === todayStr;
               const isSelected = selectedDate === dateStr;
               const isPayday = dateStr === paydayStr;
+              const isCycleStart = cycleStartDates.has(dateStr) && !isPayday;
               return (
                   <div key={day}
                        onClick={() => setSelectedDate(isSelected ? null : dateStr)}
                        style={{
-                         height: "64px", padding: "5px 4px", cursor: "pointer",
+                         height: "80px", padding: "5px 4px", cursor: "pointer",
                          background: isSelected ? "var(--c-income-bg)" : "transparent",
                          borderBottom: "1px solid var(--c-bg-muted)",
                          display: "flex", flexDirection: "column", gap: "2px", overflow: "hidden",
                        }}
                   >
-                    <div style={{ fontSize: "0.75rem", fontWeight: isToday ? 700 : 400, color: isToday || isSelected ? "var(--c-green)" : "var(--c-deepgreen)", lineHeight: 1 }}>
-                      {day}
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                      <div style={{ fontSize: "0.75rem", fontWeight: isToday ? 700 : 400, color: isToday || isSelected ? "var(--c-green)" : "var(--c-deepgreen)", lineHeight: 1 }}>{day}</div>
+                      {dayExps.length > 0 && <div style={{ fontSize: "0.48rem", color: "var(--c-text-faint)", lineHeight: 1 }}>{dayExps.length}건</div>}
                     </div>
-                    {isPayday && <div style={{ fontSize: "0.5rem", color: "var(--c-green)", fontWeight: 600, lineHeight: 1 }}>💰</div>}
+                    {isPayday && (
+                        <div style={{ display: "inline-flex", alignItems: "center", gap: "2px", fontSize: "0.48rem", background: "var(--c-green)", color: "#fff", borderRadius: "3px", padding: "1px 3px", lineHeight: 1, fontWeight: 700 }}>💰 월급날</div>
+                    )}
+                    {isCycleStart && (
+                        <div style={{ display: "inline-flex", alignItems: "center", fontSize: "0.48rem", background: "var(--c-tint-green)", color: "var(--c-income)", borderRadius: "3px", padding: "1px 3px", lineHeight: 1, fontWeight: 700, border: "1px solid var(--c-income-border)" }}>💸 리필</div>
+                    )}
                     {total > 0 && <div style={{ fontSize: "0.6rem", color: "var(--c-red)", fontWeight: 700, lineHeight: 1 }}>-{fmtShort(total)}</div>}
-                    {dayExps.length > 0 && <div style={{ fontSize: "0.55rem", color: "var(--c-text-faint)", lineHeight: 1 }}>{dayExps.length}건</div>}
-                    {dayMemos[dateStr] && <div style={{ fontSize: "0.5rem", color: "var(--c-purple)", lineHeight: 1 }}>📝</div>}
+                    {dayMemos[dateStr] && <div style={{ fontSize: "0.48rem", color: "var(--c-purple)", lineHeight: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>📝 {dayMemos[dateStr].split("\n")[0]}</div>}
                   </div>
               );
             })}
@@ -280,12 +289,12 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 <div style={{ fontSize: "var(--fs-sm)", fontWeight: 600, color: "var(--c-deepgreen)", marginBottom: "0.5rem" }}>
                   {selectedDate.slice(5).replace("-", "/")}
                 </div>
-                <input
-                    key={selectedDate} type="text" placeholder="날짜 메모..."
+                <textarea
+                    key={selectedDate} placeholder="날짜 메모... (여러 줄 입력 가능)"
                     defaultValue={dayMemos[selectedDate] || ""}
                     onBlur={e => onUpdateDayMemo?.(selectedDate, e.target.value)}
-                    onKeyDown={e => { if (e.key === "Enter") { onUpdateDayMemo?.(selectedDate, e.currentTarget.value); e.currentTarget.blur(); } }}
-                    style={{ width: "100%", fontSize: "var(--fs-xs)", padding: "0.4rem 0.6rem", borderRadius: "6px", border: "var(--border-base)", background: "var(--c-bg-soft)", color: "var(--c-deepgreen)", outline: "none", boxSizing: "border-box", marginBottom: "0.5rem" }}
+                    rows={2}
+                    style={{ width: "100%", fontSize: "var(--fs-xs)", padding: "0.4rem 0.6rem", borderRadius: "6px", border: "var(--border-base)", background: "var(--c-bg-soft)", color: "var(--c-deepgreen)", outline: "none", boxSizing: "border-box", marginBottom: "0.5rem", resize: "none", lineHeight: 1.5, fontFamily: "inherit" }}
                 />
                 {getDayExps(parseInt(selectedDate.slice(8))).length > 0 && (
                     <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>

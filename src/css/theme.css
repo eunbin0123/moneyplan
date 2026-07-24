@@ -92,10 +92,10 @@
   --border-base:  1px solid rgba(22, 35, 59, 0.10);
   --border-thick: 1.5px solid rgba(22, 35, 59, 0.14);
 
-  --radius-sm:  10px;
-  --radius-md:  14px;
-  --radius-lg:  20px;
-  --radius-xl:  26px;
+  --radius-sm:  6px;
+  --radius-md:  8px;
+  --radius-lg:  12px;
+  --radius-xl:  16px;
   --radius-pill: 9999px;
 
   --t-base:   all 0.18s ease;

@@ -44,7 +44,7 @@
   transition: var(--t-base);
   color: var(--c-deepgreen);
   cursor: pointer;
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-md);
   border: none; background: var(--c-bg-soft);
 }
 .navArrow:not(:disabled):hover { background-color: var(--c-red); color: var(--c-card); }
@@ -62,7 +62,7 @@
   font-size: var(--fs-base);
   transition: var(--t-base);
   cursor: pointer;
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-md);
   border: none;
 }
 .monthBtn:hover { background-color: var(--c-red); color: var(--c-card); }

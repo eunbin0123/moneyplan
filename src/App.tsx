@@ -630,6 +630,23 @@ export default function App() {
         manual: budgetChanged ? true : storedManual,
       };
 
+      // 날짜가 바뀌면 인접 주기 날짜도 자동 조정
+      const idx = editingCycleIdx;
+      const addDay = (dateStr: string, n: number) => {
+        const d = new Date(dateStr);
+        d.setDate(d.getDate() + n);
+        return d.toISOString().slice(0, 10);
+      };
+
+      // 이전 주기 end = 이 주기 start 전날
+      if (idx > 0 && cycles[idx - 1]) {
+        cycles[idx - 1] = { ...cycles[idx - 1], end: addDay(cycle.start, -1) };
+      }
+      // 다음 주기 start = 이 주기 end 다음날
+      if (idx < cycles.length - 1 && cycles[idx + 1]) {
+        cycles[idx + 1] = { ...cycles[idx + 1], start: addDay(cycle.end, 1) };
+      }
+
       mD.cycles = cycles;
       copy[currentMonth] = mD;
       return copy;
