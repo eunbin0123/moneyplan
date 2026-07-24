@@ -75,7 +75,6 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
     return y * 12 + (m - 1);
   };
 
-  // 계산
   const salary = data.salary ?? 0;
   const carryFromPrevMonth = data.carryFromPrevMonth ?? 0;
   const totalIncome = (data.incomes || []).reduce((s, i) => s + i.amount, 0);
@@ -102,15 +101,12 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
       (data.expenses || []).filter(e => e.date >= start && e.date <= end && e.checked !== false)
           .reduce((s, e) => s + (e.amount - (e.settleAmount || 0)), 0);
 
-  // 달력
   const [calYear, calMonth] = activeMonth.split("-").map(Number);
   const firstDay = new Date(calYear, calMonth - 1, 1).getDay();
   const daysInMonth = new Date(calYear, calMonth, 0).getDate();
   const todayStr = new Date().toISOString().slice(0, 10);
   const paydayOfMonth = new Date(calYear, calMonth, 0).getDate();
   const paydayStr = `${calYear}-${String(calMonth).padStart(2, "0")}-${String(paydayOfMonth).padStart(2, "0")}`;
-
-  // 주기 시작일 체크
   const cycleStartDates = new Set((data.cycles || []).map(c => c.start));
 
   const getDayExps = (day: number) => {
@@ -141,16 +137,11 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               })()}
             </h2>
             <PaydayCountdown />
-
-
-            {/* ── 총 지출 한 줄 ── */}
-            <p className={styles.totalSpent} style={{ fontSize: "var(--fs-xs)", color: "var(--c-text-faint)", textAlign: "left", "margin-top": "0.375rem"}}>
-              총 지출&ensp;  <span style={{ fontWeight: 700, color: "var(--c-red)", fontVariantNumeric: "tabular-nums" }}>{formatCurrency(totalCombinedSpent)}</span>
+            <p className={styles.totalSpent} style={{ fontSize: "var(--fs-xs)", color: "var(--c-text-faint)", marginTop: "0.375rem" }}>
+              총 지출&ensp;<span style={{ fontWeight: 700, color: "var(--c-red)", fontVariantNumeric: "tabular-nums" }}>{formatCurrency(totalCombinedSpent)}</span>
             </p>
-
           </div>
         </div>
-
 
         {/* ── 2. 남은 생활비 예산 ── */}
         <div className={styles.cardLight}>
@@ -265,25 +256,36 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                          height: "80px", padding: "5px 4px", cursor: "pointer",
                          background: isSelected ? "var(--c-income-bg)" : "transparent",
                          borderBottom: "1px solid var(--c-bg-muted)",
-                         display: "flex", flexDirection: "column", gap: "2px", overflow: "hidden",
+                         display: "flex", flexDirection: "column", overflow: "hidden",
                        }}
                   >
+                    {/* 상단: 날짜 + 건수 */}
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                       <div style={{ fontSize: "0.75rem", fontWeight: isToday ? 700 : 400, color: isToday || isSelected ? "var(--c-green)" : "var(--c-deepgreen)", lineHeight: 1 }}>{day}</div>
                       {dayExps.length > 0 && <div style={{ fontSize: "0.48rem", color: "var(--c-text-faint)", lineHeight: 1 }}>{dayExps.length}건</div>}
                     </div>
-                    {isPayday && (
-                        <div style={{ display: "inline-flex", alignItems: "center", gap: "2px", fontSize: "0.48rem", background: "var(--c-green)", color: "#fff", borderRadius: "3px", padding: "1px 3px", lineHeight: 1, fontWeight: 700 }}>💰 월급날</div>
+                    {/* 중간: 뱃지 + 금액 */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: "2px", marginTop: "2px" }}>
+                      {isPayday && (
+                          <div style={{ display: "inline-flex", alignItems: "center", fontSize: "0.42rem", background: "var(--c-green)", color: "#fff", borderRadius: "3px", padding: "1px 2px", lineHeight: 1, fontWeight: 700, }}>💰월급</div>
+                      )}
+                      {isCycleStart && (
+                          <div style={{ display: "inline-flex", alignItems: "center", fontSize: "0.42rem", background: "var(--c-tint-green)", color: "var(--c-income)", borderRadius: "3px", padding: "1px 2px", lineHeight: 1, fontWeight: 700, border: "1px solid var(--c-income-border)" }}>💸 리필</div>
+                      )}
+                      {total > 0 && <div style={{ fontSize: "0.6rem", color: "var(--c-red)", fontWeight: 700, lineHeight: 1 }}>-{fmtShort(total)}</div>}
+                    </div>
+                    {/* 하단: 메모 (flex 1로 밀어서 아래 붙이기) */}
+                    <div style={{ flex: 1 }} />
+                    {dayMemos[dateStr] && (
+                        <div style={{ fontSize: "0.48rem", color: "var(--c-purple)", lineHeight: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {dayMemos[dateStr].split("\n")[0]}
+                        </div>
                     )}
-                    {isCycleStart && (
-                        <div style={{ display: "inline-flex", alignItems: "center", fontSize: "0.48rem", background: "var(--c-tint-green)", color: "var(--c-income)", borderRadius: "3px", padding: "1px 3px", lineHeight: 1, fontWeight: 700, border: "1px solid var(--c-income-border)" }}>💸 리필</div>
-                    )}
-                    {total > 0 && <div style={{ fontSize: "0.6rem", color: "var(--c-red)", fontWeight: 700, lineHeight: 1 }}>-{fmtShort(total)}</div>}
-                    {dayMemos[dateStr] && <div style={{ fontSize: "0.48rem", color: "var(--c-purple)", lineHeight: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>📝 {dayMemos[dateStr].split("\n")[0]}</div>}
                   </div>
               );
             })}
           </div>
+
           {selectedDate && (
               <div style={{ marginTop: "0.75rem", borderTop: "var(--hairline)", paddingTop: "0.75rem" }}>
                 <div style={{ fontSize: "var(--fs-sm)", fontWeight: 600, color: "var(--c-deepgreen)", marginBottom: "0.5rem" }}>
