@@ -253,7 +253,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                   <div key={day}
                        onClick={() => setSelectedDate(isSelected ? null : dateStr)}
                        style={{
-                         height: "80px", padding: "5px 4px", cursor: "pointer",
+                         height: "96px", padding: "5px 4px", cursor: "pointer",
                          background: isSelected ? "var(--c-income-bg)" : "transparent",
                          borderBottom: "1px solid var(--c-bg-muted)",
                          display: "flex", flexDirection: "column", overflow: "hidden",
@@ -267,18 +267,20 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                     {/* 중간: 뱃지 + 금액 */}
                     <div style={{ display: "flex", flexDirection: "column", gap: "2px", marginTop: "2px" }}>
                       {isPayday && (
-                          <div style={{ display: "inline-flex", alignItems: "center", fontSize: "0.42rem", background: "var(--c-green)", color: "#fff", borderRadius: "3px", padding: "1px 2px", lineHeight: 1, fontWeight: 700, }}>💰월급</div>
+                          <div style={{ display: "inline-flex", alignItems: "center", fontSize: "0.42rem", background: "var(--c-green)", color: "#fff", borderRadius: "3px", padding: "1px 2px", lineHeight: 1, fontWeight: 700, width: "fit-content" }}>💰월급</div>
                       )}
                       {isCycleStart && (
-                          <div style={{ display: "inline-flex", alignItems: "center", fontSize: "0.42rem", background: "var(--c-tint-green)", color: "var(--c-income)", borderRadius: "3px", padding: "1px 2px", lineHeight: 1, fontWeight: 700, border: "1px solid var(--c-income-border)" }}>💸 리필</div>
+                          <div style={{ display: "inline-flex", alignItems: "center", fontSize: "0.42rem", background: "var(--c-tint-green)", color: "var(--c-income)", borderRadius: "3px", padding: "1px 2px", lineHeight: 1, fontWeight: 700, border: "1px solid var(--c-income-border)", width: "fit-content" }}>💸 리필</div>
                       )}
                       {total > 0 && <div style={{ fontSize: "0.6rem", color: "var(--c-red)", fontWeight: 700, lineHeight: 1 }}>-{fmtShort(total)}</div>}
                     </div>
                     {/* 하단: 메모 (flex 1로 밀어서 아래 붙이기) */}
                     <div style={{ flex: 1 }} />
                     {dayMemos[dateStr] && (
-                        <div style={{ fontSize: "0.48rem", color: "var(--c-purple)", lineHeight: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                          {dayMemos[dateStr].split("\n")[0]}
+                        <div style={{ fontSize: "0.48rem", color: "var(--c-purple)", lineHeight: 1.4, overflow: "hidden" }}>
+                          {dayMemos[dateStr].split("\n").slice(0, 3).map((line, i) => (
+                              <div key={i} style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{line}</div>
+                          ))}
                         </div>
                     )}
                   </div>
