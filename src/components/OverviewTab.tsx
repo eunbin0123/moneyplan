@@ -267,10 +267,10 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                     {/* 중간: 뱃지 + 금액 */}
                     <div style={{ display: "flex", flexDirection: "column", gap: "2px", marginTop: "2px" }}>
                       {isPayday && (
-                          <div style={{ display: "inline-flex", alignItems: "center", fontSize: "0.42rem", background: "var(--c-green)", color: "#fff", borderRadius: "3px", padding: "1px 2px", lineHeight: 1, fontWeight: 700, width: "fit-content" }}>💰월급</div>
+                          <div style={{ display: "inline-flex", alignItems: "center", fontSize: "0.42rem", background: "var(--c-green)", color: "#fff", borderRadius: "3px", padding: "1px 2px", lineHeight: 1, fontWeight: 700 }}>💰월급</div>
                       )}
                       {isCycleStart && (
-                          <div style={{ display: "inline-flex", alignItems: "center", fontSize: "0.42rem", background: "var(--c-tint-green)", color: "var(--c-income)", borderRadius: "3px", padding: "1px 2px", lineHeight: 1, fontWeight: 700, border: "1px solid var(--c-income-border)", width: "fit-content" }}>💸 리필</div>
+                          <div style={{ display: "inline-flex", alignItems: "center", fontSize: "0.42rem", background: "var(--c-tint-green)", color: "var(--c-income)", borderRadius: "3px", padding: "1px 2px", lineHeight: 1, fontWeight: 700, border: "1px solid var(--c-income-border)" }}>💸 리필</div>
                       )}
                       {total > 0 && <div style={{ fontSize: "0.6rem", color: "var(--c-red)", fontWeight: 700, lineHeight: 1 }}>-{fmtShort(total)}</div>}
                     </div>
