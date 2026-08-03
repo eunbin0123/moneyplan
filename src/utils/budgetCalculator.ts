@@ -36,7 +36,9 @@ export function calcInstallmentForMonth(
   const cur = monthIdx(monthKey);
   return allInstallments.reduce((sum, it) => {
     const start = monthIdx(it.startMonth);
-    return sum + (cur >= start && cur < start + it.months ? it.monthlyAmount : 0);
+    if (cur < start || cur >= start + it.months) return sum;
+    const amount = (it.overrides && it.overrides[monthKey] !== undefined) ? it.overrides[monthKey] : it.monthlyAmount;
+    return sum + amount;
   }, 0);
 }
 

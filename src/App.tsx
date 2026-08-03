@@ -979,6 +979,7 @@ export default function App() {
             onSave={handleSaveInstallment}
             initialItem={editingInstallmentId !== null ? allInstallments.find((i) => i.id === editingInstallmentId) || null : null}
             defaultMonthStr={currentMonth}
+            currentMonthStr={currentMonth}
         />
         <DebtModal
             isOpen={isDebtModalOpen}

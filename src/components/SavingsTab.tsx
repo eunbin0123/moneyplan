@@ -70,6 +70,13 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
         return y * 12 + (m - 1);
     };
 
+    const getInstallmentAmount = (it: InstallmentItem): number => {
+        if (activeMonth && it.overrides && it.overrides[activeMonth] !== undefined) {
+            return it.overrides[activeMonth];
+        }
+        return it.monthlyAmount;
+    };
+
     const instStatus = (it: InstallmentItem): { active: boolean; n: number } => {
         if (!activeMonth) return { active: false, n: 0 };
         const start = monthIdx(it.startMonth);
@@ -89,7 +96,7 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
         );
 
     const totalInstallmentThisMonth = installments.reduce(
-        (sum, it) => sum + (instStatus(it).active ? it.monthlyAmount : 0),
+        (sum, it) => sum + (instStatus(it).active ? getInstallmentAmount(it) : 0),
         0
     );
 
@@ -112,7 +119,7 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
     const checkedCount = (data.accounts || []).filter((a) => a.checked).length;
     const checkedInstallmentTotal = sortedInstallments
         .filter((it) => it.checked)
-        .reduce((sum, it) => sum + it.monthlyAmount, 0);
+        .reduce((sum, it) => sum + getInstallmentAmount(it), 0);
     const checkedDebtTotal = (data.debts || [])
         .filter((d) => d.checked)
         .reduce((sum, d) => sum + d.amount, 0);
@@ -528,7 +535,7 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
                                                     {formatCurrency(it.totalAmount)}
                                                 </span>
                                                 <span className={styles.installmentMonthly}>
-                                                    월 -{formatCurrency(it.monthlyAmount)}
+                                                    월 -{formatCurrency(getInstallmentAmount(it))}{getInstallmentAmount(it) !== it.monthlyAmount && <span style={{ fontSize: '0.6rem', color: 'var(--c-text-faint)', marginLeft: '0.3rem' }}>({activeMonth}만)</span>}
                                                 </span>
                                             </div>
                                         </div>

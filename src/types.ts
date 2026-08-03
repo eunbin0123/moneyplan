@@ -52,6 +52,7 @@ export interface InstallmentItem {
   months: number;       // 할부 개월 수
   totalAmount: number;  // 총 결제 금액
   monthlyAmount: number; // 월 납부액 (기본 = 총액/개월, 수정 가능)
+  overrides?: Record<string, number>; // 특정 달만 다른 금액 { "YYYY-MM": amount }
   checked?: boolean;    // 분배 탭 이체 완료 여부
 }
 

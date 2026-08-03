@@ -770,6 +770,7 @@ interface InstallmentModalProps {
   onSave: (item: InstallmentItem) => void;
   initialItem?: InstallmentItem | null;
   defaultMonthStr?: string; // "YYYY-MM"
+  currentMonthStr?: string; // 현재 보고 있는 달 (이번 달만 수정용)
 }
 
 export const InstallmentModal: React.FC<InstallmentModalProps> = ({
@@ -778,6 +779,7 @@ export const InstallmentModal: React.FC<InstallmentModalProps> = ({
                                                                     onSave,
                                                                     initialItem,
                                                                     defaultMonthStr,
+                                                                    currentMonthStr,
                                                                   }) => {
   const [name, setName] = useState("");
   const [startMonth, setStartMonth] = useState("");
@@ -786,6 +788,8 @@ export const InstallmentModal: React.FC<InstallmentModalProps> = ({
   const [monthly, setMonthly] = useState("");
   // 월 납부액을 사용자가 직접 손댔는지 여부 (손대면 자동 계산 멈춤)
   const [monthlyEdited, setMonthlyEdited] = useState(false);
+  const [thisMonthOnly, setThisMonthOnly] = useState(false);
+  const [thisMonthAmount, setThisMonthAmount] = useState("");
 
   useEffect(() => {
     if (!isOpen) return;
@@ -806,6 +810,8 @@ export const InstallmentModal: React.FC<InstallmentModalProps> = ({
       setTotal("");
       setMonthly("");
       setMonthlyEdited(false);
+      setThisMonthOnly(false);
+      setThisMonthAmount("");
     }
   }, [isOpen, initialItem, defaultMonthStr]);
 
@@ -829,6 +835,12 @@ export const InstallmentModal: React.FC<InstallmentModalProps> = ({
     const t = parseInt(total, 10);
     const mo = parseInt(monthly, 10);
     if (!name.trim() || !startMonth || isNaN(m) || m <= 0 || isNaN(t) || t <= 0 || isNaN(mo) || mo <= 0) return;
+    const overrideAmt = parseInt(thisMonthAmount.replace(/,/g, ""), 10);
+    let newOverrides = initialItem?.overrides ? { ...initialItem.overrides } : undefined;
+    if (thisMonthOnly && currentMonthStr && thisMonthAmount.trim() !== "" && !isNaN(overrideAmt)) {
+      newOverrides = { ...(newOverrides || {}), [currentMonthStr]: overrideAmt };
+    }
+
     onSave({
       id: initialItem?.id || Date.now().toString(),
       name: name.trim(),
@@ -836,6 +848,7 @@ export const InstallmentModal: React.FC<InstallmentModalProps> = ({
       months: m,
       totalAmount: t,
       monthlyAmount: mo,
+      overrides: newOverrides,
     });
     onClose();
   };
@@ -944,6 +957,24 @@ export const InstallmentModal: React.FC<InstallmentModalProps> = ({
                   >
                     ↻ 자동 계산으로 되돌리기
                   </button>
+              )}
+              {/* 이번 달만 수정 옵션 */}
+              {initialItem && currentMonthStr && (
+                  <div style={{ marginTop: "0.5rem" }}>
+                    <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "var(--fs-xs)", color: "var(--c-text-muted)", cursor: "pointer" }}>
+                      <input type="checkbox" checked={thisMonthOnly} onChange={e => { setThisMonthOnly(e.target.checked); setThisMonthAmount(""); }} />
+                      이번 달({currentMonthStr})만 다른 금액 적용
+                    </label>
+                    {thisMonthOnly && (
+                        <input
+                            type="number" min="0" placeholder="이번 달 납부액"
+                            value={thisMonthAmount}
+                            onChange={e => setThisMonthAmount(e.target.value)}
+                            className={styles.inputMono}
+                            style={{ marginTop: "0.4rem", fontSize: "16px" }}
+                        />
+                    )}
+                  </div>
               )}
             </div>
 
