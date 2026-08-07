@@ -55,6 +55,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                                                           dayMemos = {}, onUpdateDayMemo,
                                                         }) => {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [showSpentDetail, setShowSpentDetail] = useState(false);
 
   const formatCurrency = (amount: number) => Math.round(amount).toLocaleString("ko-KR") + "원";
   const fmtShort = (n: number) => {
@@ -139,9 +140,44 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               })()}
             </h2>
             <PaydayCountdown />
-            <p className={styles.totalSpent} style={{ fontSize: "var(--fs-xs)", color: "var(--c-text-faint)", marginTop: "0.375rem" }}>
+            <p onClick={() => setShowSpentDetail(true)}
+               style={{ fontSize: "var(--fs-xs)", color: "var(--c-text-faint)", marginTop: "0.375rem", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>
               총 지출&ensp;<span style={{ fontWeight: 700, color: "var(--c-red)", fontVariantNumeric: "tabular-nums" }}>{formatCurrency(totalCombinedSpent)}</span>
+              <span style={{ fontSize: "0.55rem" }}>▾</span>
             </p>
+
+            {showSpentDetail && (
+                <div style={{ position: "fixed", inset: 0, zIndex: 300, background: "var(--c-overlay)", display: "flex", alignItems: "flex-end" }}
+                     onClick={() => setShowSpentDetail(false)}>
+                  <div style={{ width: "100%", maxWidth: "42rem", margin: "0 auto", background: "var(--c-card)", borderRadius: "var(--radius-lg) var(--radius-lg) 0 0", padding: "1.5rem 1.5rem 2.5rem" }}
+                       onClick={e => e.stopPropagation()}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem" }}>
+                      <h3 style={{ fontSize: "var(--fs-base)", fontWeight: 700, color: "var(--c-deepgreen)" }}>이번달 총 지출</h3>
+                      <button onClick={() => setShowSpentDetail(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--c-text-faint)", fontSize: "1.2rem" }}>✕</button>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                      {[
+                        { label: "생활비", amount: totalLivingSpent },
+                        { label: "고정지출", amount: totalFixedSpent },
+                        { label: "경조사비", amount: totalEventSpent },
+                        { label: "할부", amount: installmentChargeThisMonth },
+                        { label: "당겨쓰기", amount: debtChargeThisMonth },
+                      ].map(({ label, amount }) => (
+                          <div key={label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <span style={{ fontSize: "var(--fs-sm)", color: "var(--c-text-muted)" }}>{label}</span>
+                            <span style={{ fontSize: "var(--fs-sm)", fontWeight: amount > 0 ? 600 : 400, color: amount > 0 ? "var(--c-red)" : "var(--c-text-faint)", fontVariantNumeric: "tabular-nums" }}>
+                          {amount > 0 ? `-${formatCurrency(amount)}` : "-"}
+                        </span>
+                          </div>
+                      ))}
+                      <div style={{ borderTop: "var(--hairline)", paddingTop: "0.75rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ fontSize: "var(--fs-sm)", fontWeight: 700, color: "var(--c-deepgreen)" }}>합계</span>
+                        <span style={{ fontSize: "var(--fs-md)", fontWeight: 700, color: "var(--c-red)", fontVariantNumeric: "tabular-nums" }}>-{formatCurrency(totalCombinedSpent)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+            )}
           </div>
         </div>
 
