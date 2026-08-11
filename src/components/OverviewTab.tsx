@@ -141,9 +141,9 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             </h2>
             <PaydayCountdown />
             <p onClick={() => setShowSpentDetail(true)}
-               style={{ fontSize: "var(--fs-xs)", color: "var(--c-text-faint)", marginTop: "0.375rem", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>
+               className={styles.totalSpent}
+               style={{ fontSize: "var(--fs-xs)", color: "var(--c-text-faint)", marginTop: "0.375rem", cursor: "pointer", alignItems: "center", gap: "0.3rem" }}>
               총 지출&ensp;<span style={{ fontWeight: 700, color: "var(--c-red)", fontVariantNumeric: "tabular-nums" }}>{formatCurrency(totalCombinedSpent)}</span>
-              <span style={{ fontSize: "0.55rem" }}>▾</span>
             </p>
 
             {showSpentDetail && (
