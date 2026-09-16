@@ -87,12 +87,17 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
     const getCleanLabel = (label: string) => label.replace(/\s*\(.*?\)\s*/g, "").trim();
     const formatCurrency = (amount: number) => Math.round(amount).toLocaleString("ko-KR") + "원";
 
-    // 미결제(결제대기) 집계: 예산반영(checked)된 항목 중 아직 결제 안 한 것 = 통장에 확보해둬야 할 돈
-    // 미결제: 전체 달 합산 (이전 달 미결제 포함)
+    // 미결제 집계: 예산반영(checked)은 됐고 돈도 통장에 넣어뒀지만, 카드 결제(정산)는 아직 안 된 항목
+    // 전체 달 합산 (이전 달 미결제 포함)
     const unpaidItems = allExpenses.filter((e) => e.checked !== false && e.paid !== true);
     const unpaidTotal = unpaidItems.reduce((sum, e) => sum + e.amount, 0);
     const unpaidCount = unpaidItems.length;
     const unpaidHasSplit = unpaidItems.some((e) => (e.settleAmount || 0) > 0);
+
+    // 이체 필요 집계: 체크를 아예 하지 않아 아직 통장에 돈을 옮겨두지 않은 항목 (전체 달 합산)
+    const unreflectedItems = allExpenses.filter((e) => e.checked === false);
+    const unreflectedTotal = unreflectedItems.reduce((sum, e) => sum + (e.amount - (e.settleAmount || 0)), 0);
+    const unreflectedCount = unreflectedItems.length;
 
     const renderExpenseItem = (e: any) => {
         const originalIdx = e._idx ?? (data.expenses || []).findIndex((item) => item === e);
@@ -196,16 +201,6 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
             <div className={styles.header} style={{ flexDirection: "column", alignItems: "stretch", gap: "0.5rem" }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <h2 className={styles.headerTitle}>지출 내역 기록</h2>
-                    {unpaidCount > 0 ? (
-                        <span className={styles.unpaidText}>
-                            미결제 {unpaidCount}건 · {formatCurrency(unpaidTotal)}
-                            {unpaidHasSplit && <span className={styles.unpaidNote}> (정산분 포함)</span>}
-                        </span>
-                    ) : (
-                        <span className={styles.paidText}>✓ 결제 완료</span>
-                    )}
-                </div>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
                     <div className={styles.headerActions}>
                         <button onClick={onAddIncome} className={`${styles.btnIncome}`}>
                             수입
@@ -214,6 +209,15 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
                             지출
                         </button>
                     </div>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
+                    <span className={styles.unpaidText}>
+                        이체 필요 {unreflectedCount}건 · {formatCurrency(unreflectedTotal)}
+                    </span>
+                    <span className={styles.unpaidText}>
+                        미결제 {unpaidCount}건 · {formatCurrency(unpaidTotal)}
+                        {unpaidHasSplit && <span className={styles.unpaidNote}> (정산분 포함)</span>}
+                    </span>
                 </div>
             </div>
 

@@ -12,7 +12,6 @@
 
 .unpaidText { font-size: 0.6875rem; font-weight: var(--fw-bold); color: var(--c-red); white-space: nowrap; }
 .unpaidNote { font-weight: var(--fw-medium); color: var(--c-text-faint); }
-.paidText { font-size: 0.6875rem; font-weight: var(--fw-medium); color: var(--c-text-faint); white-space: nowrap; }
 
 /* 수입 / 지출 추가 버튼 */
 .btnIncome,
