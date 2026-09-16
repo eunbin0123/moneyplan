@@ -573,11 +573,18 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
                                         <div className={styles.installmentTop}>
                                             <div className={styles.installmentLeft}>
                                                 <span className={styles.installmentName}>{d.name}</span>
+                                                {d.auto && (
+                                                    <span className={styles.installmentBadge} title="생활비 초과분으로 자동 생성됨 · 초과가 해소되면 자동으로 사라집니다">
+                                                        자동
+                                                    </span>
+                                                )}
                                                 {d.memo && <span style={{ fontSize: "var(--fs-xs)", color: "var(--c-text-faint)", display: "block", marginTop: "0.1rem" }}>{d.memo}</span>}
                                             </div>
                                             <div>
                                                 <div className={styles.installmentRight}>
-                                                    <button className={styles.btnEdit} onClick={() => onEditDebt && onEditDebt(d.id)}>수정</button>
+                                                    {!d.auto && (
+                                                        <button className={styles.btnEdit} onClick={() => onEditDebt && onEditDebt(d.id)}>수정</button>
+                                                    )}
                                                     <button className={styles.btnDelete} onClick={() => onDeleteDebt && onDeleteDebt(d.id)}>삭제</button>
                                                 </div>
                                                 <div className={styles.installmentMeta} style={{ justifyContent: "flex-end" }}>

@@ -64,6 +64,7 @@ export interface DebtItem {
   fromMonth: string;   // "YYYY-MM" 발생 월
   targetMonth: string; // "YYYY-MM" 이 달에 차감 적용할 월
   checked?: boolean;   // 분배 탭 이체 완료 여부
+  auto?: boolean;      // true면 생활비 초과분으로 자동 생성/관리되는 항목 (수동 수정 불가, 초과분 해소 시 자동 삭제)
 }
 
 export interface MonthData {

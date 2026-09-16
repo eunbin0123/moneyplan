@@ -75,11 +75,12 @@ export function calculateBudgetWithCarryOver(
     const debtCharge = (rawData.debts || []).reduce((sum, d) => sum + d.amount, 0);
     const baseLivingBudget = salary > 0
         ? Math.max(0, salary - fixedAccountsTotal - installmentCharge - debtCharge)
-        : workingCycles.reduce((sum, c) => sum + (c.budget || 0), 0);
+        : Math.max(0, workingCycles.reduce((sum, c) => sum + (c.budget || 0), 0) - debtCharge);
 
     // 주기 예산 분배: baseLivingBudget을 주기 수로 균등 분배
     // manual=true인 주기는 저장값 유지, 나머지만 균등 분배
-    if (salary > 0 && workingCycles.length > 0) {
+    // salary=0(수동 주기예산) 모드에서도 당겨쓰기(debtCharge)가 있으면 그만큼 차감 분배
+    if (workingCycles.length > 0 && (salary > 0 || debtCharge > 0)) {
       const pinnedSum = workingCycles.reduce((s, c) => s + (c.manual ? (c.budget || 0) : 0), 0);
       const autoCount = workingCycles.filter(c => !c.manual).length;
       const autoTotal = Math.max(0, baseLivingBudget - pinnedSum);

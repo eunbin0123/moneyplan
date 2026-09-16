@@ -210,6 +210,69 @@ export default function App() {
     return `${parseInt(month, 10)}월`;
   };
 
+  // 이번 달 생활비를 초과 지출하면, 그 초과분을 다음 달 "당겨쓰기"에 자동으로 생성/갱신/삭제한다.
+  // - remainingLiving < 0 인 달이 있으면 다음 달 debts에 id="auto-{월}" 항목을 upsert
+  // - 초과가 해소되면(지출 삭제/수정 등) 해당 자동 항목을 자동 제거
+  // - 원본 달이 삭제된 경우 남아있는 자동 항목(고아 항목)도 함께 정리
+  // - 사용자가 직접 추가한 항목(auto 없음)은 건드리지 않음
+  useEffect(() => {
+    setBudgetState((prev) => {
+      let changed = false;
+      const copy = { ...prev };
+      const sortedMonths = [...months].sort();
+
+      for (const m of sortedMonths) {
+        const calc = computedState[m];
+        if (!calc) continue;
+
+        const [y, mo] = m.split("-").map(Number);
+        const nextIdx = y * 12 + (mo - 1) + 1;
+        const nextKey = `${Math.floor(nextIdx / 12)}-${String((nextIdx % 12) + 1).padStart(2, "0")}`;
+        if (!copy[nextKey]) continue; // 다음 달 데이터가 아직 없으면 건너뜀
+
+        const overage = calc.remainingLiving < 0 ? Math.round(-calc.remainingLiving) : 0;
+        const autoId = `auto-${m}`;
+        const nextDebts = copy[nextKey].debts || [];
+        const existingIdx = nextDebts.findIndex((d) => d.id === autoId);
+
+        if (overage > 0) {
+          if (existingIdx < 0) {
+            const newItem: DebtItem = {
+              id: autoId,
+              name: `${getShortMonthLabel(m)} 생활비 초과분`,
+              amount: overage,
+              fromMonth: m,
+              targetMonth: nextKey,
+              auto: true,
+            };
+            copy[nextKey] = { ...copy[nextKey], debts: [...nextDebts, newItem] };
+            changed = true;
+          } else if (nextDebts[existingIdx].amount !== overage) {
+            const updated = [...nextDebts];
+            updated[existingIdx] = { ...updated[existingIdx], amount: overage };
+            copy[nextKey] = { ...copy[nextKey], debts: updated };
+            changed = true;
+          }
+        } else if (existingIdx >= 0) {
+          copy[nextKey] = { ...copy[nextKey], debts: nextDebts.filter((d) => d.id !== autoId) };
+          changed = true;
+        }
+      }
+
+      // 원본 달이 삭제되어 더 이상 존재하지 않는 자동 항목(고아) 정리
+      for (const m of sortedMonths) {
+        const debts = copy[m].debts || [];
+        const filtered = debts.filter((d) => !d.auto || sortedMonths.includes(d.fromMonth));
+        if (filtered.length !== debts.length) {
+          copy[m] = { ...copy[m], debts: filtered };
+          changed = true;
+        }
+      }
+
+      return changed ? copy : prev;
+    });
+  }, [computedState, months]);
+
   const handleToggleAccount = (idx: number) => {
     setBudgetState((prev) => {
       const copy = { ...prev };
