@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { Plus, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Header } from "./components/Header";
@@ -166,7 +166,10 @@ export default function App() {
     return monthList[monthList.length - 1];
   };
 
-  const computedState = calculateBudgetWithCarryOver(months, budgetState);
+  const computedState = useMemo(
+      () => calculateBudgetWithCarryOver(months, budgetState),
+      [months, budgetState]
+  );
   const activeData: MonthData = computedState[currentMonth] || budgetState[currentMonth] || makeDefaultMonth(2025, 5);
 
   const allInstallments: InstallmentItem[] = [];
@@ -261,6 +264,7 @@ export default function App() {
 
       // 원본 달이 삭제되어 더 이상 존재하지 않는 자동 항목(고아) 정리
       for (const m of sortedMonths) {
+        if (!copy[m]) continue; // months 목록에는 있지만 budgetState에는 아직 없는 달
         const debts = copy[m].debts || [];
         const filtered = debts.filter((d) => !d.auto || sortedMonths.includes(d.fromMonth));
         if (filtered.length !== debts.length) {
