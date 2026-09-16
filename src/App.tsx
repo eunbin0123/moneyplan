@@ -903,6 +903,7 @@ export default function App() {
                       onOpenMemo={() => setIsMemoOpen(true)}
                       onOpenSavings={() => setActiveTab("savings")}
                       onOpenDashboard={() => setActiveTab("dashboard")}
+                      onOpenTab={(tab) => setActiveTab(tab)}
                       installments={allInstallments}
                       debts={currentMonthDebts}
                       rawCycles={budgetState[currentMonth]?.cycles || []}

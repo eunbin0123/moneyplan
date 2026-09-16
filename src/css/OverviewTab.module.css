@@ -153,6 +153,29 @@
 .specRowTotalDarkLabel { font-weight: var(--fw-bold); color: var(--c-card); font-size: var(--fs-base); }
 .totalSpentAmount { font-size: var(--fs-md); font-weight: var(--fw-bold); font-variant-numeric: tabular-nums; color: var(--c-red); letter-spacing: -0.01em; }
 
+/* ── 바로가기 리스트 ── */
+.quickList { display: flex; flex-direction: column; }
+.quickRow {
+  display: flex; align-items: center; gap: 0.625rem;
+  width: 100%;
+  background: none; border: none; border-top: var(--hairline);
+  padding: 0.7rem 0.125rem;
+  font-family: inherit; color: inherit;
+  cursor: pointer; text-align: left;
+  transition: var(--t-base);
+}
+.quickList > .quickRow:first-child { border-top: none; }
+.quickRow:hover { background-color: var(--c-tint-purple); }
+.quickRow:active { transform: translateY(1px); }
+.quickIcon {
+  width: 1.875rem; height: 1.875rem; border-radius: var(--radius-md); flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.9375rem; background-color: var(--c-tint-purple);
+}
+.quickLabel { flex: 1; font-size: var(--fs-sm); font-weight: var(--fw-bold); color: var(--c-deepgreen); }
+.quickSub { font-size: var(--fs-xs); color: var(--c-text-faint); flex-shrink: 0; }
+.quickChevron { color: var(--c-text-faint); font-size: 0.875rem; flex-shrink: 0; }
+
 /* ── 프로그레스 바 ── */
 .progressWrap > * + * { margin-top: 0.5rem; }
 .progressLabelRow { display: flex; justify-content: space-between; align-items: center; font-size: var(--fs-xs); font-weight: var(--fw-medium); color: var(--c-text-muted); }
