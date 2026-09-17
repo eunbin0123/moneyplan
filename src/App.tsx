@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { Plus, X } from "lucide-react";
+import { Plus, X, BarChart3, Calendar, CalendarRange, CreditCard, HandCoins, BookOpen, Sun, Moon } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Header } from "./components/Header";
 import { OverviewTab } from "./components/OverviewTab";
@@ -1065,25 +1065,25 @@ export default function App() {
                   <p style={{ fontSize: "var(--fs-xs)", color: "var(--c-text-faint)", fontWeight: 500 }}>메뉴</p>
                 </div>
                 {([
-                  { label: "통계", tab: "dashboard", icon: "📊" },
-                  { label: "고정지출", tab: "fixed", icon: "🛡️" },
-                  { label: "경조사비", tab: "event", icon: "🎁" },
-                  { label: "할부", tab: "installment", icon: "💳" },
-                  { label: "당겨쓰기", tab: "debt", icon: "🏦" },
-                ] as { label: string; tab: TabType; icon: string }[]).map(({ label, tab, icon }) => (
+                  { label: "통계", tab: "dashboard", icon: BarChart3 },
+                  { label: "고정지출", tab: "fixed", icon: Calendar },
+                  { label: "경조사비", tab: "event", icon: CalendarRange },
+                  { label: "할부", tab: "installment", icon: CreditCard },
+                  { label: "당겨쓰기", tab: "debt", icon: HandCoins },
+                ] as { label: string; tab: TabType; icon: typeof BarChart3 }[]).map(({ label, tab, icon: Icon }) => (
                     <button key={tab} onClick={() => { setActiveTab(tab); setIsHamburgerOpen(false); }}
                             style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.875rem 1.5rem", background: "none", border: "none", cursor: "pointer", fontSize: "var(--fs-sm)", color: activeTab === tab ? "var(--c-green)" : "var(--c-deepgreen)", fontWeight: activeTab === tab ? 600 : 400, textAlign: "left" }}>
-                      <span>{icon}</span>{label}
+                      <Icon size={16} />{label}
                     </button>
                 ))}
                 <div style={{ borderTop: "var(--hairline)", margin: "0.5rem 0" }} />
                 <button onClick={() => { setIsMemoOpen(true); setIsHamburgerOpen(false); }}
                         style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.875rem 1.5rem", background: "none", border: "none", cursor: "pointer", fontSize: "var(--fs-sm)", color: "var(--c-deepgreen)", textAlign: "left" }}>
-                  <span>📝</span>이달 메모
+                  <BookOpen size={16} />이달 메모
                 </button>
                 <button onClick={() => setIsDark(d => !d)}
                         style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.875rem 1.5rem", background: "none", border: "none", cursor: "pointer", fontSize: "var(--fs-sm)", color: "var(--c-deepgreen)", textAlign: "left" }}>
-                  <span>{isDark ? "☀️" : "🌙"}</span>{isDark ? "라이트모드" : "다크모드"}
+                  {isDark ? <Sun size={16} /> : <Moon size={16} />}{isDark ? "라이트모드" : "다크모드"}
                 </button>
               </div>
             </div>

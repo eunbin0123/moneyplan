@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { MonthData, InstallmentItem, DebtItem } from "../types";
-import { BookOpen } from "lucide-react";
+import { BookOpen, Calendar, CalendarRange, CreditCard, HandCoins, LucideIcon } from "lucide-react";
 import styles from "../css/OverviewTab.module.css";
 import { getPayday, isSameDay } from "../utils/payday";
 
@@ -92,11 +92,11 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
     const start = monthIdx(it.startMonth), cur = monthIdx(activeMonth);
     return cur >= start && cur < start + it.months;
   }).length;
-  const quickLinks: { key: "fixed" | "event" | "installment" | "debt"; icon: string; label: string; sub: string }[] = [
-    { key: "fixed", icon: "🛡️", label: "고정지출", sub: `${(data.fixed || []).length}건` },
-    { key: "event", icon: "🎁", label: "경조사비", sub: `${(data.events || []).length}건` },
-    { key: "installment", icon: "💳", label: "할부", sub: `진행 중 ${activeInstallmentCount}건` },
-    { key: "debt", icon: "🏦", label: "당겨쓰기", sub: `${(debts || []).length}건` },
+  const quickLinks: { key: "fixed" | "event" | "installment" | "debt"; icon: LucideIcon; label: string; sub: string }[] = [
+    { key: "fixed", icon: Calendar, label: "고정지출", sub: `${(data.fixed || []).length}건` },
+    { key: "event", icon: CalendarRange, label: "경조사비", sub: `${(data.events || []).length}건` },
+    { key: "installment", icon: CreditCard, label: "할부", sub: `진행 중 ${activeInstallmentCount}건` },
+    { key: "debt", icon: HandCoins, label: "당겨쓰기", sub: `${(debts || []).length}건` },
   ];
   const baseLivingBudget = salary > 0
       ? Math.max(0, salary - fixedAccountsTotal - installmentChargeThisMonth - debtChargeThisMonth)
@@ -372,7 +372,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           <div className={styles.quickList}>
             {quickLinks.map((q) => (
                 <button key={q.key} type="button" className={styles.quickRow} onClick={() => onOpenTab && onOpenTab(q.key)}>
-                  <span className={styles.quickIcon}>{q.icon}</span>
+                  <span className={styles.quickIcon}><q.icon size={15} /></span>
                   <span className={styles.quickLabel}>{q.label}</span>
                   <span className={styles.quickSub}>{q.sub}</span>
                   <span className={styles.quickChevron}>›</span>
