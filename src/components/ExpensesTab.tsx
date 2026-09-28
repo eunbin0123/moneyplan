@@ -16,6 +16,7 @@ interface ExpensesTabProps {
     onDeleteIncome: (id: string) => void;
     isMonthNavOpen: boolean;
     allExpenses?: { date: string; amount: number; checked?: boolean; paid?: boolean; settleAmount?: number }[];
+    carriedOverAmount?: number;
     dayMemos?: Record<string, string>;
     onUpdateDayMemo?: (date: string, memo: string) => void;
 }
@@ -33,6 +34,7 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
                                                             onDeleteIncome,
                                                             isMonthNavOpen,
                                                             allExpenses = [],
+                                                            carriedOverAmount = 0,
                                                             dayMemos = {},
                                                             onUpdateDayMemo,
                                                         }) => {
@@ -89,8 +91,10 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
 
     // 미결제 집계: 예산반영(checked)은 됐고 돈도 통장에 넣어뒀지만, 카드 결제(정산)는 아직 안 된 항목
     // 전체 달 합산 (이전 달 미결제 포함)
+    // 생활비 초과분은 다음 달 당겨쓰기로 넘어가 실제로는 통장에 없는 돈이므로 제외한다.
     const unpaidItems = allExpenses.filter((e) => e.checked !== false && e.paid !== true);
-    const unpaidTotal = unpaidItems.reduce((sum, e) => sum + e.amount, 0);
+    const unpaidRawTotal = unpaidItems.reduce((sum, e) => sum + e.amount, 0);
+    const unpaidTotal = Math.max(0, unpaidRawTotal - carriedOverAmount);
     const unpaidCount = unpaidItems.length;
     const unpaidHasSplit = unpaidItems.some((e) => (e.settleAmount || 0) > 0);
 

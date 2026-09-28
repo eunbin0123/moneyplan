@@ -927,6 +927,7 @@ export default function App() {
                       dayMemos={activeData.dayMemos || {}}
                       onUpdateDayMemo={handleUpdateDayMemo}
                       allExpenses={Object.values(budgetState).flatMap(md => md.expenses || [])}
+                      carriedOverAmount={Object.values(budgetState).flatMap(md => md.debts || []).filter(d => d.auto && !d.checked).reduce((sum, d) => sum + d.amount, 0)}
                       onAddIncome={() => { setEditingIncomeId(null); setIsIncomeModalOpen(true); }}
                       onEditIncome={(id) => { setEditingIncomeId(id); setIsIncomeModalOpen(true); }}
                       onDeleteIncome={handleDeleteIncome}
