@@ -86,6 +86,7 @@ export interface MonthData {
   carryFromPrevMonth?: number;      // 이월 금액
   effectiveMonthlyBudget?: number;  // 이월금이 반영된 정산 생활비 예산
   dayMemos?: Record<string, string>; // 날짜별 메모 { "YYYY-MM-DD": "메모" }
+  distributionVersion?: number;      // 기본 분배 규칙 적용 버전 (한 번 적용 후 사용자 수정값 유지)
 }
 
 export type BudgetState = Record<string, MonthData>;

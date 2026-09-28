@@ -1,8 +1,11 @@
 import { BudgetState, MonthData } from "./types";
+import { FIXED_LIVING_BUDGET, isFixedLivingMonth, normalizeFixedLivingAccounts } from "./utils/budgetCalculator";
 
 export const makeDefaultMonth = (year: number, month: number, budget = 600000, totalBudget?: number): MonthData => {
   const ys = String(year);
   const ms = String(month).padStart(2, "0");
+  const fixedLiving = isFixedLivingMonth(`${ys}-${ms}`);
+  if (fixedLiving) budget = FIXED_LIVING_BUDGET;
   const pm = month <= 1 ? 12 : month - 1;
   const py = month <= 1 ? year - 1 : year;
   const pms = String(pm).padStart(2, "0");
@@ -17,7 +20,7 @@ export const makeDefaultMonth = (year: number, month: number, budget = 600000, t
   const cycleStart = `${pys}-${pms}-${String(prevLastDay).padStart(2, "0")}`;
   const cycleEnd3 = String(lastDay - 1).padStart(2, "0");
 
-  return {
+  const md: MonthData = {
     budget,
     totalBudget,
     fixedBudget: 500000,
@@ -47,6 +50,7 @@ export const makeDefaultMonth = (year: number, month: number, budget = 600000, t
     ],
     expenses: [],
   };
+  return normalizeFixedLivingAccounts(`${ys}-${ms}`, md);
 };
 
 export const initialBudgetState: BudgetState = {};

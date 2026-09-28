@@ -3,6 +3,7 @@ import { MonthData, InstallmentItem, DebtItem } from "../types";
 import { BookOpen, Calendar, CalendarRange, CreditCard, HandCoins, LucideIcon } from "lucide-react";
 import styles from "../css/OverviewTab.module.css";
 import { getPayday, isSameDay } from "../utils/payday";
+import { calcFixedLivingBudget, isFixedLivingMonth, CalculatedMonth } from "../utils/budgetCalculator";
 
 function PaydayCountdown() {
   const [now, setNow] = useState(() => new Date());
@@ -98,9 +99,13 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
     { key: "installment", icon: CreditCard, label: "할부", sub: `진행 중 ${activeInstallmentCount}건` },
     { key: "debt", icon: HandCoins, label: "당겨쓰기", sub: `${(debts || []).length}건` },
   ];
-  const baseLivingBudget = salary > 0
-      ? Math.max(0, salary - fixedAccountsTotal - installmentChargeThisMonth - debtChargeThisMonth)
-      : (data.budget ?? 0);
+  const fixedLiving = isFixedLivingMonth(activeMonth);
+  const baseLivingBudget = fixedLiving
+      ? calcFixedLivingBudget(debtChargeThisMonth)
+      : salary > 0
+          ? Math.max(0, salary - fixedAccountsTotal - installmentChargeThisMonth - debtChargeThisMonth)
+          : (data.budget ?? 0);
+  const livingSettled = (data as Partial<CalculatedMonth>).livingSettled ?? false;
   const effectiveMonthlyBudget = data.effectiveMonthlyBudget ?? (baseLivingBudget + carryFromPrevMonth + totalIncome);
   const totalLivingSpent = (data.expenses || [])
       .filter(e => e.checked !== false)
@@ -223,6 +228,12 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               {formatCurrency(remainingLiving)}
             </span>
             </div>
+            {fixedLiving && remainingLiving > 0 && (
+                <div className={styles.specRowCarry}>
+                  <span>{livingSettled ? "비상금으로 전환됨" : "월말 비상금 전환 예정"}</span>
+                  <span className={styles.specValueMono}>+{formatCurrency(remainingLiving)}</span>
+                </div>
+            )}
           </div>
           <div className={styles.progressWrap}>
             <div className={styles.progressLabelRow}>

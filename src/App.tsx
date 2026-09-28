@@ -9,7 +9,7 @@ import { SavingsTab } from "./components/SavingsTab";
 import { FixedExpense, BudgetCycle, ExpenseItem, MonthData, BudgetState, EventExpense, IncomeItem, InstallmentItem, DebtItem } from "./types";
 import { initialBudgetState, makeDefaultMonth } from "./initialData";
 import { ExpenseModal, FixedModal, MonthModal, CycleModal, EventModal, IncomeModal, InstallmentModal, DebtModal } from "./components/Modals";
-import { calculateBudgetWithCarryOver, calcInstallmentForMonth } from "./utils/budgetCalculator";
+import { calculateBudgetWithCarryOver, calcInstallmentForMonth, normalizeBudgetState, normalizeFixedLivingAccounts } from "./utils/budgetCalculator";
 import { saveToFirestore, loadFromFirestore, subscribeToFirestore } from "./utils/firestore";
 // @ts-ignore
 import styles from "./css/App.module.css";
@@ -551,14 +551,14 @@ export default function App() {
     });
   };
 
-  const handleAddAccount = (name: string) => {
+  const handleAddAccount = (name: string, amount = 0) => {
     setBudgetState((prev) => {
       const copy = { ...prev };
       const mD = { ...copy[currentMonth] };
       const accounts = [...(mD.accounts || [])];
-      // 생활비(마지막) 앞에 삽입
-      accounts.splice(accounts.length - 1, 0, { name, amount: 0, checked: false });
-      copy[currentMonth] = { ...mD, accounts };
+      // 자동 계산 항목(마지막: 생활비 또는 비상금) 앞에 삽입, 고정 방식 달은 생활비 앞으로 재정렬
+      accounts.splice(accounts.length - 1, 0, { name, amount, checked: false });
+      copy[currentMonth] = normalizeFixedLivingAccounts(currentMonth, { ...mD, accounts });
       return copy;
     });
   };
@@ -568,7 +568,7 @@ export default function App() {
       const copy = { ...prev };
       const mD = { ...copy[currentMonth] };
       const accounts = (mD.accounts || []).filter((_, i) => i !== idx);
-      copy[currentMonth] = { ...mD, accounts };
+      copy[currentMonth] = normalizeFixedLivingAccounts(currentMonth, { ...mD, accounts });
       return copy;
     });
   };
@@ -579,7 +579,7 @@ export default function App() {
       const mD = { ...copy[currentMonth] };
       const accounts = [...(mD.accounts || [])];
       accounts[idx] = { ...accounts[idx], name };
-      copy[currentMonth] = { ...mD, accounts };
+      copy[currentMonth] = normalizeFixedLivingAccounts(currentMonth, { ...mD, accounts });
       return copy;
     });
   };
@@ -590,7 +590,7 @@ export default function App() {
       const mD = { ...copy[currentMonth] };
       const accounts = [...(mD.accounts || [])];
       accounts[idx] = { ...accounts[idx], amount };
-      copy[currentMonth] = { ...mD, accounts };
+      copy[currentMonth] = normalizeFixedLivingAccounts(currentMonth, { ...mD, accounts });
       return copy;
     });
   };
@@ -655,6 +655,8 @@ export default function App() {
       }
     }
     if (changed) newMonths.sort();
+    // 생활비 고정 방식 달은 분배 통장 구조(생활비 고정 + 비상금 자동)를 맞춘다
+    newBudgetState = normalizeBudgetState(newBudgetState);
     return { newMonths, newBudgetState };
   };
 
@@ -936,7 +938,7 @@ export default function App() {
                   />
               )}
               {activeTab === "dashboard" && (
-                  <DashboardTab budgetState={budgetState} months={months} />
+                  <DashboardTab budgetState={budgetState} months={months} computedState={computedState} />
               )}
               {activeTab === "savings" && (
                   <SavingsTab data={activeData} onToggleAccount={handleToggleAccount}

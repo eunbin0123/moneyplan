@@ -1,12 +1,13 @@
 import React, { useMemo } from "react";
 import { BudgetState } from "../types";
-import { calcInstallmentForMonth } from "../utils/budgetCalculator";
+import { calcInstallmentForMonth, CalculatedMonth } from "../utils/budgetCalculator";
 // @ts-ignore
 import styles from "../css/DashboardTab.module.css";
 
 interface DashboardTabProps {
   budgetState: BudgetState;
   months: string[];
+  computedState: Record<string, CalculatedMonth>;
 }
 
 const fmt = (n: number) => Math.round(n).toLocaleString("ko-KR");
@@ -15,7 +16,7 @@ const fmtM = (key: string) => {
   return `${m}월`;
 };
 
-export const DashboardTab: React.FC<DashboardTabProps> = ({ budgetState, months }) => {
+export const DashboardTab: React.FC<DashboardTabProps> = ({ budgetState, months, computedState }) => {
   const data = useMemo(() => {
     // 전체 할부 목록
     const allInstallments = Object.values(budgetState).flatMap(md => md.installments || []);
@@ -24,10 +25,14 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({ budgetState, months 
       const md = budgetState[m];
       if (!md) return null;
 
-      // 저축액: 생활비/고정지출/경조사비/예비비 제외, 순수 저축 항목만
-      const excludeNames = ["생활비", "고정지출", "경조사비", "예비비"];
+      // 비상금: 기본 배정분 + 월말 이후 전환된 생활비 잔액 (생활비 고정 방식 달만)
+      const calc = computedState[m];
+      const emergency = calc?.fixedLiving ? calc.emergencyTotal : 0;
+
+      // 저축액: 생활비/고정지출/경조사비/예비비/비상금 통장 제외한 저축 항목 + 비상금
+      const excludeNames = ["생활비", "고정지출", "경조사비", "예비비", "비상금"];
       const savingsAccounts = (md.accounts || []).filter(a => !excludeNames.includes(a.name));
-      const savings = savingsAccounts.reduce((s, a) => s + a.amount, 0);
+      const savings = savingsAccounts.reduce((s, a) => s + a.amount, 0) + emergency;
 
       // 지출: 생활비 + 고정비 + 경조사비 + 할부 + 당겨쓰기
       const living = (md.expenses || [])
@@ -44,7 +49,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({ budgetState, months 
 
       return { month: m, savings, totalSpend, salary, savingsRate };
     }).filter(Boolean) as { month: string; savings: number; totalSpend: number; salary: number; savingsRate: number }[];
-  }, [budgetState, months]);
+  }, [budgetState, months, computedState]);
 
   if (data.length === 0) return (
       <div className={styles.empty}>데이터가 없습니다.</div>
