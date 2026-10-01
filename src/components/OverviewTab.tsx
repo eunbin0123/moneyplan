@@ -4,6 +4,7 @@ import { BookOpen, Calendar, CalendarRange, CreditCard, HandCoins, LucideIcon } 
 import styles from "../css/OverviewTab.module.css";
 import { getPayday, isSameDay } from "../utils/payday";
 import { calcFixedLivingBudget, isFixedLivingMonth, CalculatedMonth } from "../utils/budgetCalculator";
+import { localDateStr } from "../utils/date";
 
 function PaydayCountdown() {
   const [now, setNow] = useState(() => new Date());
@@ -123,7 +124,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   const [calYear, calMonth] = activeMonth.split("-").map(Number);
   const firstDay = new Date(calYear, calMonth - 1, 1).getDay();
   const daysInMonth = new Date(calYear, calMonth, 0).getDate();
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = localDateStr();
   const paydayOfMonth = new Date(calYear, calMonth, 0).getDate();
   const paydayStr = `${calYear}-${String(calMonth).padStart(2, "0")}-${String(paydayOfMonth).padStart(2, "0")}`;
   const cycleStartDates = new Set((data.cycles || []).map(c => c.start));

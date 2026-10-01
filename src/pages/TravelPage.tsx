@@ -7,6 +7,7 @@ import { saveTravelData, loadTravelData, subscribeTravelData } from "../utils/tr
 import styles from "../css/TravelPage.module.css";
 // @ts-ignore
 import modalStyles from "../css/Modals.module.css";
+import { localDateStr } from "../utils/date";
 
 interface FixedItem {
   id: string;
@@ -153,7 +154,7 @@ export default function TravelPage() {
 
   const [newSpend, setNewSpend] = useState({
     name: "", amount: "", currency: "LOCAL" as "KRW" | "LOCAL",
-    type: "cash" as "cash" | "card", date: new Date().toISOString().slice(0, 10),
+    type: "cash" as "cash" | "card", date: localDateStr(),
   });
 
   const activeTrip = trips.find((t) => t.id === activeTripId) || null;

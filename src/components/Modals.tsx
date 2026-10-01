@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { X, HelpCircle, Save } from "lucide-react";
 import { ExpenseItem, FixedExpense, BudgetCycle, EventExpense, IncomeItem, InstallmentItem, DebtItem } from "../types";
 import styles from "../css/Modals.module.css";
+import { localMonthStr } from "../utils/date";
 
 // ==========================================
 // 1. EXPENSE ADD / EDIT MODAL
@@ -803,7 +804,7 @@ export const InstallmentModal: React.FC<InstallmentModalProps> = ({
       const auto = initialItem.months > 0 ? Math.round(initialItem.totalAmount / initialItem.months) : 0;
       setMonthlyEdited(initialItem.monthlyAmount !== auto);
     } else {
-      const fallback = defaultMonthStr || new Date().toISOString().slice(0, 7);
+      const fallback = defaultMonthStr || localMonthStr();
       setName("");
       setStartMonth(fallback);
       setMonths("");
@@ -1025,7 +1026,7 @@ export const DebtModal: React.FC<DebtModalProps> = ({
 
   useEffect(() => {
     if (!isOpen) return;
-    const fallback = defaultMonthStr || new Date().toISOString().slice(0, 7);
+    const fallback = defaultMonthStr || localMonthStr();
     if (initialItem) {
       setName(initialItem.name);
       setMemo(initialItem.memo || "");

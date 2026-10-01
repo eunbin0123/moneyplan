@@ -14,13 +14,41 @@ import { saveToFirestore, loadFromFirestore, subscribeToFirestore } from "./util
 // @ts-ignore
 import styles from "./css/App.module.css";
 import { Confetti } from "./components/Confetti";
-import { isPayday } from "./utils/payday";
+import { isPayday, getPayday } from "./utils/payday";
+import { localDateStr, localMonthStr } from "./utils/date";
 
 // 인증 관련 추가 import (경로가 다를 경우 수정해주세요)
 import { signInWithEmailAndPassword, onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "./utils/firebaseAuth";
 
 type TabType = "overview" | "expenses" | "savings" | "dashboard" | "fixed" | "event" | "installment" | "debt";
+
+/** 오늘이 속한 지출월. 지출월 주기는 전달 말일(월급날)부터 시작하므로 주기 날짜 기준으로 찾는다. */
+function findCurrentMonth(monthList: string[], state?: BudgetState) {
+  const now = new Date();
+  const todayStr = localDateStr(now);
+  // 1) 각 달의 주기(1주기 시작 ~ 마지막 주기 끝)에 오늘이 포함되는 달
+  if (state) {
+    const hit = monthList.find((key) => {
+      const cycles = state[key]?.cycles || [];
+      if (cycles.length === 0) return false;
+      const start = cycles.reduce((min, c) => (c.start < min ? c.start : min), cycles[0].start);
+      const end = cycles.reduce((max, c) => (c.end > max ? c.end : max), cycles[0].end);
+      return todayStr >= start && todayStr <= end;
+    });
+    if (hit) return hit;
+  }
+  // 2) 주기 정보가 없으면: 월급날 또는 말일부터는 다음 달
+  const payday = getPayday(now.getFullYear(), now.getMonth());
+  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  if (now >= payday || now.getDate() === lastDay) {
+    const nextKey = localMonthStr(new Date(now.getFullYear(), now.getMonth() + 1, 1));
+    if (monthList.includes(nextKey)) return nextKey;
+  }
+  const thisKey = localMonthStr(now);
+  if (monthList.includes(thisKey)) return thisKey;
+  return monthList[monthList.length - 1];
+}
 
 export default function App() {
   // --- 인증(Auth) 상태 ---
@@ -56,8 +84,9 @@ export default function App() {
       const saved = localStorage.getItem("smart_budget_months_v2");
       if (saved) {
         const arr: string[] = JSON.parse(saved);
-        const today = new Date().toISOString().slice(0, 7);
-        return arr.includes(today) ? today : arr[arr.length - 1] || "2025-05";
+        let state: BudgetState | undefined;
+        try { state = JSON.parse(localStorage.getItem("smart_budget_state_v2") || "null") || undefined; } catch {}
+        return findCurrentMonth(arr, state) || "2025-05";
       }
     } catch {}
     return "2025-05";
@@ -127,11 +156,12 @@ export default function App() {
           if (!monthsChanged) isRemoteUpdate.current = true;
           setMonths(newMonths);
           setBudgetState(newBudgetState);
-          setCurrentMonth(findCurrentMonth(newMonths));
+          setCurrentMonth(findCurrentMonth(newMonths, newBudgetState));
         } else {
           const { newMonths, newBudgetState } = ensureMonthsUpToThreeAhead(months, budgetState);
           setMonths(newMonths);
           setBudgetState(newBudgetState);
+          setCurrentMonth(findCurrentMonth(newMonths, newBudgetState));
         }
       } catch (e) {
         console.error("Firestore 로드 실패:", e);
@@ -152,19 +182,6 @@ export default function App() {
     init();
     return () => { if (firestoreUnsub.current) firestoreUnsub.current(); };
   }, [user]);
-
-  const findCurrentMonth = (monthList: string[]) => {
-    const now = new Date();
-    // 오늘이 월급날이면 다음 달로
-    if (isPayday(now)) {
-      const next = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-      const nextKey = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, "0")}`;
-      if (monthList.includes(nextKey)) return nextKey;
-    }
-    const today = now.toISOString().slice(0, 7);
-    if (monthList.includes(today)) return today;
-    return monthList[monthList.length - 1];
-  };
 
   const computedState = useMemo(
       () => calculateBudgetWithCarryOver(months, budgetState),

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { MonthData, ExpenseItem } from "../types";
 import { Plus, ChevronDown, Archive, Check, TrendingUp, Edit2 } from "lucide-react";
 import styles from "../css/ExpensesTab.module.css";
+import { localDateStr } from "../utils/date";
 
 interface ExpensesTabProps {
     data: MonthData;
@@ -39,7 +40,7 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
                                                             onUpdateDayMemo,
                                                         }) => {
     const getInitialCollapsed = () => {
-        const today = new Date().toISOString().split("T")[0];
+        const today = localDateStr();
         const result: Record<number, boolean> = {};
         (data.cycles || []).forEach((c, i) => {
             result[i] = !(today >= c.start && today <= c.end);
