@@ -5,6 +5,7 @@ import styles from "../css/OverviewTab.module.css";
 import { getPayday, isSameDay } from "../utils/payday";
 import { calcFixedLivingBudget, isFixedLivingMonth, CalculatedMonth } from "../utils/budgetCalculator";
 import { localDateStr } from "../utils/date";
+import { useKoreanHolidays } from "../utils/holidays";
 
 function PaydayCountdown() {
   const [now, setNow] = useState(() => new Date());
@@ -50,12 +51,15 @@ interface OverviewTabProps {
   rawCycles?: import('../types').BudgetCycle[];
   dayMemos?: Record<string, string>;
   onUpdateDayMemo?: (date: string, memo: string) => void;
+  dayHolidays?: string[];
+  onToggleDayHoliday?: (date: string) => void;
 }
 
 export const OverviewTab: React.FC<OverviewTabProps> = ({
                                                           data, activeMonth, onEditCycle, onOpenMemo, onOpenTab,
                                                           installments = [], debts = [],
                                                           dayMemos = {}, onUpdateDayMemo,
+                                                          dayHolidays = [], onToggleDayHoliday,
                                                         }) => {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [showSpentDetail, setShowSpentDetail] = useState(false);
@@ -125,9 +129,13 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   const firstDay = new Date(calYear, calMonth - 1, 1).getDay();
   const daysInMonth = new Date(calYear, calMonth, 0).getDate();
   const todayStr = localDateStr();
-  const paydayOfMonth = new Date(calYear, calMonth, 0).getDate();
+  const paydayOfMonth = getPayday(calYear, calMonth - 1).getDate();
   const paydayStr = `${calYear}-${String(calMonth).padStart(2, "0")}-${String(paydayOfMonth).padStart(2, "0")}`;
   const cycleStartDates = new Set((data.cycles || []).map(c => c.start));
+  const publicHolidays = useKoreanHolidays(calYear);
+  const manualHolidays = new Set(dayHolidays);
+  const isRedDay = (dateStr: string, day: number) =>
+      (firstDay + day - 1) % 7 === 0 || !!publicHolidays[dateStr] || manualHolidays.has(dateStr);
 
   const getDayExps = (day: number) => {
     const dateStr = `${calYear}-${String(calMonth).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
@@ -310,6 +318,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               const isSelected = selectedDate === dateStr;
               const isPayday = dateStr === paydayStr;
               const isCycleStart = cycleStartDates.has(dateStr) && !isPayday;
+              const isRed = isRedDay(dateStr, day);
               return (
                   <div key={day}
                        onClick={() => setSelectedDate(isSelected ? null : dateStr)}
@@ -322,7 +331,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                   >
                     {/* 상단: 날짜 + 건수 */}
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                      <div style={{ fontSize: "0.75rem", fontWeight: isToday ? 700 : 400, color: isToday || isSelected ? "var(--c-green)" : "var(--c-deepgreen)", lineHeight: 1 }}>{day}</div>
+                      <div style={{ fontSize: "0.75rem", fontWeight: isToday ? 700 : 400, color: isRed ? "var(--c-holiday)" : isToday || isSelected ? "var(--c-green)" : "var(--c-deepgreen)", textDecoration: isRed && (isToday || isSelected) ? "underline" : "none", lineHeight: 1 }}>{day}</div>
                       {dayExps.length > 0 && <div style={{ fontSize: "0.48rem", color: "var(--c-text-faint)", lineHeight: 1 }}>{dayExps.length}건</div>}
                     </div>
                     {/* 중간: 뱃지 + 금액 */}
@@ -351,8 +360,28 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
 
           {selectedDate && (
               <div style={{ marginTop: "0.75rem", borderTop: "var(--hairline)", paddingTop: "0.75rem" }}>
-                <div style={{ fontSize: "var(--fs-sm)", fontWeight: 600, color: "var(--c-deepgreen)", marginBottom: "0.5rem" }}>
-                  {selectedDate.slice(5).replace("-", "/")}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+                  <div style={{ fontSize: "var(--fs-sm)", fontWeight: 600, color: isRedDay(selectedDate, parseInt(selectedDate.slice(8))) ? "var(--c-holiday)" : "var(--c-deepgreen)" }}>
+                    {selectedDate.slice(5).replace("-", "/")}
+                    {publicHolidays[selectedDate] && (
+                        <span style={{ marginLeft: "0.4rem", fontSize: "var(--fs-xs)", fontWeight: 500 }}>{publicHolidays[selectedDate]}</span>
+                    )}
+                  </div>
+                  {onToggleDayHoliday && (() => {
+                    const on = manualHolidays.has(selectedDate);
+                    return (
+                        <button
+                            type="button" role="switch" aria-checked={on}
+                            onClick={() => onToggleDayHoliday(selectedDate)}
+                            style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", background: "none", border: "none", padding: 0, cursor: "pointer", fontSize: "var(--fs-xs)", color: on ? "var(--c-holiday)" : "var(--c-text-faint)", fontWeight: 600 }}
+                        >
+                          휴일
+                          <span style={{ position: "relative", width: "28px", height: "16px", borderRadius: "8px", background: on ? "var(--c-holiday)" : "var(--c-bg-muted)", transition: "background 0.15s" }}>
+                            <span style={{ position: "absolute", top: "2px", left: on ? "14px" : "2px", width: "12px", height: "12px", borderRadius: "50%", background: "#fff", transition: "left 0.15s" }} />
+                          </span>
+                        </button>
+                    );
+                  })()}
                 </div>
                 <textarea
                     key={selectedDate} placeholder="날짜 메모... (여러 줄 입력 가능)"

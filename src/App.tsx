@@ -568,6 +568,19 @@ export default function App() {
     });
   };
 
+  const handleToggleDayHoliday = (date: string) => {
+    setBudgetState((prev) => {
+      const copy = { ...prev };
+      const mD = { ...copy[currentMonth] };
+      const holidays = mD.dayHolidays || [];
+      const dayHolidays = holidays.includes(date)
+          ? holidays.filter((d) => d !== date)
+          : [...holidays, date];
+      copy[currentMonth] = { ...mD, dayHolidays };
+      return copy;
+    });
+  };
+
   const handleAddAccount = (name: string, amount = 0) => {
     setBudgetState((prev) => {
       const copy = { ...prev };
@@ -932,6 +945,8 @@ export default function App() {
                       rawCycles={budgetState[currentMonth]?.cycles || []}
                       dayMemos={activeData.dayMemos || {}}
                       onUpdateDayMemo={handleUpdateDayMemo}
+                      dayHolidays={activeData.dayHolidays || []}
+                      onToggleDayHoliday={handleToggleDayHoliday}
                   />
               )}
               {activeTab === "expenses" && (
