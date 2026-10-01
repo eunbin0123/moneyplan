@@ -1,5 +1,6 @@
 import { BudgetState, MonthData } from "./types";
 import { FIXED_LIVING_BUDGET, isFixedLivingMonth, normalizeFixedLivingAccounts } from "./utils/budgetCalculator";
+import { getPayday } from "./utils/payday";
 
 export const makeDefaultMonth = (year: number, month: number, budget = 600000, totalBudget?: number): MonthData => {
   const ys = String(year);
@@ -10,15 +11,16 @@ export const makeDefaultMonth = (year: number, month: number, budget = 600000, t
   const py = month <= 1 ? year - 1 : year;
   const pms = String(pm).padStart(2, "0");
   const pys = String(py);
-  const lastDay = new Date(year, month, 0).getDate();
   const cb = Math.floor(budget / 3);
 
-  // 1주기: 전달 말일 ~ 9일
+  // 1주기: 전달 월급날 ~ 9일
   // 2주기: 10일 ~ 19일
-  // 3주기: 20일 ~ 이번달 말일 전날
-  const prevLastDay = new Date(year, month - 1, 0).getDate();
-  const cycleStart = `${pys}-${pms}-${String(prevLastDay).padStart(2, "0")}`;
-  const cycleEnd3 = String(lastDay - 1).padStart(2, "0");
+  // 3주기: 20일 ~ 이번달 월급날 전날
+  // 월급날은 말일 기준이며 주말이면 직전 금요일로 앞당김
+  const prevPayday = getPayday(py, pm - 1).getDate();
+  const thisPayday = getPayday(year, month - 1).getDate();
+  const cycleStart = `${pys}-${pms}-${String(prevPayday).padStart(2, "0")}`;
+  const cycleEnd3 = String(thisPayday - 1).padStart(2, "0");
 
   const md: MonthData = {
     budget,
