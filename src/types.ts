@@ -88,6 +88,7 @@ export interface MonthData {
   dayMemos?: Record<string, string>; // 날짜별 메모 { "YYYY-MM-DD": "메모" }
   dayHolidays?: string[];            // 직접 지정한 휴일 날짜 ["YYYY-MM-DD"]
   distributionVersion?: number;      // 기본 분배 규칙 적용 버전 (한 번 적용 후 사용자 수정값 유지)
+  cycleVersion?: number;             // 생활비 고정 방식 주기(4주기) 재구성 버전
 }
 
 export type BudgetState = Record<string, MonthData>;

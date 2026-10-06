@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { MonthData, InstallmentItem, DebtItem } from "../types";
-import { calcAutoAccountAmount, calcFixedLivingBudget, isFixedLivingMonth, LIVING_ACCOUNT_NAME, FIXED_LIVING_BUDGET } from "../utils/budgetCalculator";
+import { calcAutoAccountAmount, calcFixedLivingBudget, isFixedLivingMonth, LIVING_ACCOUNT_NAME, FIXED_LIVING_BUDGET, FIXED_LIVING_CYCLES } from "../utils/budgetCalculator";
 import { Check, Calendar, CalendarRange, Sparkles, Plus, CreditCard, HandCoins } from "lucide-react";
 // @ts-ignore
 import styles from "../css/SavingsTab.module.css";
@@ -110,7 +110,7 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
     const fixedLiving = !!activeMonth && isFixedLivingMonth(activeMonth);
     const autoAmount = calcAutoAccountAmount(activeMonth, data, totalInstallmentThisMonth, totalDebtThisMonth);
     const isLockedAccount = (name: string) => fixedLiving && name === LIVING_ACCOUNT_NAME;
-    // 고정 방식: 생활비 390,000원 중 당겨쓰기만큼은 당겨쓰기 이체로 나가고 나머지만 생활비 통장으로
+    // 고정 방식: 생활비 400,000원 중 당겨쓰기만큼은 당겨쓰기 이체로 나가고 나머지만 생활비 통장으로
     const fixedLivingBudget = calcFixedLivingBudget(totalDebtThisMonth);
 
     // 각 account의 실제 표시 금액 (마지막은 자동계산값, 고정 생활비는 당겨쓰기 차감값)
@@ -357,7 +357,7 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
                                                             {isLocked && (
                                                                 <span style={{ fontSize: "0.65rem", color: "var(--c-text-faint)", marginLeft: "0.4rem", fontWeight: 400 }}>{totalDebtThisMonth > 0
                                                                     ? `고정 ${formatCurrency(FIXED_LIVING_BUDGET)} − 당겨쓰기 ${formatCurrency(totalDebtThisMonth)}`
-                                                                    : `고정 · 주 ${formatCurrency(FIXED_LIVING_BUDGET / 3)}`}</span>
+                                                                    : `고정 · 주 ${formatCurrency(FIXED_LIVING_BUDGET / FIXED_LIVING_CYCLES)}`}</span>
                                                             )}
                                                         </p>
                                                         {!isReadOnly && editingAccountIdx === idx ? (

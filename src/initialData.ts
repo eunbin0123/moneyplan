@@ -1,26 +1,12 @@
 import { BudgetState, MonthData } from "./types";
-import { FIXED_LIVING_BUDGET, isFixedLivingMonth, normalizeFixedLivingAccounts } from "./utils/budgetCalculator";
-import { getPayday } from "./utils/payday";
+import { CYCLE_VERSION, FIXED_LIVING_BUDGET, FIXED_LIVING_CYCLES, isFixedLivingMonth, makeCycles, normalizeFixedLivingAccounts } from "./utils/budgetCalculator";
 
 export const makeDefaultMonth = (year: number, month: number, budget = 600000, totalBudget?: number): MonthData => {
   const ys = String(year);
   const ms = String(month).padStart(2, "0");
   const fixedLiving = isFixedLivingMonth(`${ys}-${ms}`);
   if (fixedLiving) budget = FIXED_LIVING_BUDGET;
-  const pm = month <= 1 ? 12 : month - 1;
-  const py = month <= 1 ? year - 1 : year;
-  const pms = String(pm).padStart(2, "0");
-  const pys = String(py);
-  const cb = Math.floor(budget / 3);
-
-  // 1주기: 전달 월급날 ~ 9일
-  // 2주기: 10일 ~ 19일
-  // 3주기: 20일 ~ 이번달 월급날 전날
-  // 월급날은 말일 기준이며 주말이면 직전 금요일로 앞당김
-  const prevPayday = getPayday(py, pm - 1).getDate();
-  const thisPayday = getPayday(year, month - 1).getDate();
-  const cycleStart = `${pys}-${pms}-${String(prevPayday).padStart(2, "0")}`;
-  const cycleEnd3 = String(thisPayday - 1).padStart(2, "0");
+  const monthKey = `${ys}-${ms}`;
 
   const md: MonthData = {
     budget,
@@ -45,14 +31,12 @@ export const makeDefaultMonth = (year: number, month: number, budget = 600000, t
       { name: "유튜브프리미엄", amount: 13900, day: "매달 27" },
     ],
     events: [],
-    cycles: [
-      { label: "1주기", start: cycleStart, end: `${ys}-${ms}-09`, budget: cb },
-      { label: "2주기", start: `${ys}-${ms}-10`, end: `${ys}-${ms}-19`, budget: cb },
-      { label: "3주기", start: `${ys}-${ms}-20`, end: `${ys}-${ms}-${cycleEnd3}`, budget: budget - cb * 2 },
-    ],
+    // 생활비 고정 방식 달은 4주기, 그 전은 3주기
+    cycles: makeCycles(monthKey, budget, fixedLiving ? FIXED_LIVING_CYCLES : 3),
     expenses: [],
+    ...(fixedLiving ? { cycleVersion: CYCLE_VERSION } : {}),
   };
-  return normalizeFixedLivingAccounts(`${ys}-${ms}`, md);
+  return normalizeFixedLivingAccounts(monthKey, md);
 };
 
 export const initialBudgetState: BudgetState = {};

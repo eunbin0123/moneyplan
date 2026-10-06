@@ -1,4 +1,5 @@
 import { BudgetState, MonthData, BudgetCycle, ExpenseItem, InstallmentItem, DebtItem } from "../types";
+import { getPayday } from "./payday";
 
 export interface CalculatedCycle extends BudgetCycle {
   baseBudget: number;
@@ -34,7 +35,8 @@ export interface CalculatedMonth extends MonthData {
 
 // 이 달부터 생활비를 고정 금액으로 잡고, 월급의 남은 금액은 비상금으로 자동 배정한다.
 export const FIXED_LIVING_FROM = "2026-10";
-export const FIXED_LIVING_BUDGET = 390000; // 3주기 × 130,000원
+export const FIXED_LIVING_CYCLES = 4;
+export const FIXED_LIVING_BUDGET = 400000; // 4주기 × 100,000원
 export const LIVING_ACCOUNT_NAME = "생활비";
 export const EMERGENCY_ACCOUNT_NAME = "비상금";
 export const FIXED_ACCOUNT_NAME = "고정지출";
@@ -55,7 +57,7 @@ export const DEFAULT_FIXED_LIVING_ACCOUNTS: { name: string; amount: number }[] =
 
 export const isFixedLivingMonth = (monthKey: string) => monthKey >= FIXED_LIVING_FROM;
 
-// 고정 방식 달의 분배 통장 구조를 [...기타, 생활비(390,000 고정), 비상금(자동, 마지막)]으로 맞춘다.
+// 고정 방식 달의 분배 통장 구조를 [...기타, 생활비(400,000 고정), 비상금(자동, 마지막)]으로 맞춘다.
 export function normalizeFixedLivingAccounts(monthKey: string, md: MonthData): MonthData {
   if (!isFixedLivingMonth(monthKey)) return md;
   // 기본 분배 규칙을 아직 적용하지 않은 달은 한 번 덮어쓴다 (이체 완료 체크는 이름 기준으로 유지)
@@ -90,22 +92,86 @@ export function normalizeFixedLivingAccounts(monthKey: string, md: MonthData): M
   };
 }
 
+// 지출월 주기 생성: 전달 월급날 ~ 이번달 월급날 전날을 count개 주기로 나눈다
+// - 3주기: ~9일 / 10~19일 / 20일~
+// - 4주기: 전체 일수를 균등 분할, 나머지 일수는 뒤 주기부터 하루씩 (예: 31일 → 7·8·8·8일)
+// 월급날은 말일 기준이며 주말이면 직전 금요일로 앞당김
+export function makeCycles(monthKey: string, budget: number, count: number): BudgetCycle[] {
+  const [year, month] = monthKey.split("-").map(Number);
+  const prevPayday = getPayday(year, month - 2);
+  const lastDay = getPayday(year, month - 1);
+  lastDay.setDate(lastDay.getDate() - 1);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const fmt = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const addDays = (d: Date, n: number) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+
+  let ranges: { start: string; end: string }[];
+  if (count === 4) {
+    const totalDays = Math.round((lastDay.getTime() - prevPayday.getTime()) / 86400000) + 1;
+    const base = Math.floor(totalDays / count);
+    const extra = totalDays % count;
+    ranges = [];
+    let cursor = prevPayday;
+    for (let i = 0; i < count; i++) {
+      const len = base + (i >= count - extra ? 1 : 0);
+      ranges.push({ start: fmt(cursor), end: fmt(addDays(cursor, len - 1)) });
+      cursor = addDays(cursor, len);
+    }
+  } else {
+    const day = (d: number) => `${monthKey}-${pad(d)}`;
+    ranges = [
+      { start: fmt(prevPayday), end: day(9) },
+      { start: day(10), end: day(19) },
+      { start: day(20), end: fmt(lastDay) },
+    ];
+  }
+  const cb = Math.floor(budget / ranges.length);
+  return ranges.map((r, i) => ({
+    label: `${i + 1}주기`,
+    ...r,
+    budget: i === ranges.length - 1 ? budget - cb * (ranges.length - 1) : cb,
+  }));
+}
+
+// 고정 방식 달의 주기를 4주기로 한 번 재구성한다 (지출은 날짜 기준이라 그대로, 수입은 시작일 기준으로 주기 재배정)
+export const CYCLE_VERSION = 2; // 2: 일수 균등 분할 (앞 주기가 짧게)
+export function normalizeFixedLivingCycles(monthKey: string, md: MonthData): MonthData {
+  if (!isFixedLivingMonth(monthKey) || (md.cycleVersion ?? 0) >= CYCLE_VERSION) return md;
+  const oldCycles = md.cycles || [];
+  const cycles = makeCycles(monthKey, FIXED_LIVING_BUDGET, FIXED_LIVING_CYCLES);
+  const remapIdx = (idx: number) => {
+    const start = oldCycles[idx]?.start;
+    const hit = start ? cycles.findIndex(c => start >= c.start && start <= c.end) : -1;
+    return hit >= 0 ? hit : Math.min(idx, cycles.length - 1);
+  };
+  return {
+    ...md,
+    budget: FIXED_LIVING_BUDGET,
+    cycleVersion: CYCLE_VERSION,
+    cycles,
+    incomes: md.incomes?.map(inc => ({ ...inc, cycleIdx: remapIdx(inc.cycleIdx) })),
+  };
+}
+
+export const normalizeFixedLivingMonth = (monthKey: string, md: MonthData) =>
+    normalizeFixedLivingAccounts(monthKey, normalizeFixedLivingCycles(monthKey, md));
+
 export function normalizeBudgetState(state: BudgetState): BudgetState {
   let changed = false;
   const copy: BudgetState = { ...state };
   for (const m of Object.keys(copy)) {
-    const next = normalizeFixedLivingAccounts(m, copy[m]);
+    const next = normalizeFixedLivingMonth(m, copy[m]);
     if (next !== copy[m]) { copy[m] = next; changed = true; }
   }
   return changed ? copy : state;
 }
 
-// 고정 방식 달의 실사용 생활비: 당겨쓰기는 생활비 390,000원 안에서 갚는다
+// 고정 방식 달의 실사용 생활비: 당겨쓰기는 생활비 400,000원 안에서 갚는다
 export const calcFixedLivingBudget = (debtCharge: number) => Math.max(0, FIXED_LIVING_BUDGET - debtCharge);
 
 // 월급 분배에서 자동 계산되는 마지막 통장 금액
 // - 기존 방식: 생활비 = 월급 - 나머지 항목 - 할부 - 당겨쓰기
-// - 고정 방식: 비상금 = 월급 - 생활비(390,000, 당겨쓰기 포함) - 나머지 항목 - 할부
+// - 고정 방식: 비상금 = 월급 - 생활비(400,000, 당겨쓰기 포함) - 나머지 항목 - 할부
 export function calcAutoAccountAmount(monthKey: string, md: MonthData, installmentCharge: number, debtCharge: number): number {
   const accounts = md.accounts || [];
   const salary = md.salary ?? 0;
