@@ -13,6 +13,7 @@
   --c-purple:     #4A5C8C;   /* 보조 글씨(제목·라벨) — 슬레이트 인디고 */
   --c-red:        #5B5EA6;   /* 강조 / 지출 — 인디고 바이올렛 */
   --c-holiday:    #E03131;   /* 달력 일요일·공휴일 — 실제 빨강 */
+  --c-today-bg:   #D6E2F3;   /* 달력 오늘 날짜 배경 — 옅은 스틸 블루 */
   --c-yellow:     #7C93B0;   /* 버튼 면 — 스틸 블루 */
   --c-green:      #0E7C86;   /* 수입 / 긍정 — 틸 블루 */
   --c-blue:       #64748B;   /* 보조 텍스트 — 슬레이트 블루그레이 */
@@ -123,6 +124,7 @@
   --c-purple:     #A9B8DD;
   --c-red:        #9092D6;
   --c-holiday:    #FF6B6B;
+  --c-today-bg:   #2A3B5C;
   --c-yellow:     #9DB2CE;
   --c-green:      #4FC2C9;
   --c-blue:       #94A3B8;

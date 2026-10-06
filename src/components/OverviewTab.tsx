@@ -324,7 +324,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                        onClick={() => setSelectedDate(isSelected ? null : dateStr)}
                        style={{
                          height: "96px", padding: "5px 4px", cursor: "pointer",
-                         background: isSelected ? "var(--c-income-bg)" : "transparent",
+                         background: isSelected ? "var(--c-income-bg)" : isToday ? "var(--c-today-bg)" : "transparent",
                          borderBottom: "1px solid var(--c-bg-muted)",
                          display: "flex", flexDirection: "column", overflow: "hidden",
                        }}
