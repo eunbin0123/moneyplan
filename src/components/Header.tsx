@@ -20,6 +20,7 @@ interface HeaderProps {
     isDark: boolean;
     onToggleDark: () => void;
     onToggleHamburger: () => void;
+    onGoToCurrentMonth: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -39,6 +40,7 @@ export const Header: React.FC<HeaderProps> = ({
                                                   isDark,
                                                   onToggleDark,
                                                   onToggleHamburger,
+                                                  onGoToCurrentMonth,
                                               }) => {
     const [isPickerOpen, setIsPickerOpen] = useState(false);
     // 달 이동 네비게이션 표시 여부 (기본 숨김, 로고 클릭으로 토글)
@@ -85,7 +87,11 @@ export const Header: React.FC<HeaderProps> = ({
                             </button>
 
                         </div>
-                        <h1 className={styles.title}>EB's MONEY</h1>
+                        <h1 className={styles.title}>
+                            <button type="button" className={styles.titleBtn} onClick={onGoToCurrentMonth} title="이번 달로 이동">
+                                EB's MONEY
+                            </button>
+                        </h1>
                         <div className={styles.topActions}>
                             <button
                                 onClick={onToggleDark}

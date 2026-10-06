@@ -920,6 +920,7 @@ export default function App() {
             onToggleMemo={() => setIsMemoOpen(prev => !prev)}
             isMonthNavOpen={isMonthNavOpen}
             onToggleMonthNav={() => setIsMonthNavOpen(prev => !prev)}
+            onGoToCurrentMonth={() => setCurrentMonth(findCurrentMonth(months, budgetState))}
         />
 
         <main className={styles.main}>
