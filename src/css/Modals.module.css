@@ -161,3 +161,10 @@
 .btnIcon { height: 1rem; width: 1rem; }
 
 .incomeActions { display: flex; gap: 0.5rem; padding-top: 0.25rem; }
+/* ── 리필 알림 ── */
+.refillMessage { font-size: var(--fs-base); color: var(--c-deepgreen); line-height: 1.5; }
+.refillAmount { font-weight: var(--fw-bold); color: var(--c-green); font-variant-numeric: tabular-nums; }
+.refillOverage { font-size: 0.85rem; color: var(--c-deepgreen); }
+.refillOverageAmount { font-weight: var(--fw-bold); color: var(--c-red); font-variant-numeric: tabular-nums; }
+.refillCheck { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--c-text-faint); cursor: pointer; user-select: none; }
+.refillCheck input { width: 1rem; height: 1rem; accent-color: var(--c-deepgreen); cursor: pointer; }

@@ -8,7 +8,7 @@ import { ExpensesTab } from "./components/ExpensesTab";
 import { SavingsTab } from "./components/SavingsTab";
 import { FixedExpense, BudgetCycle, ExpenseItem, MonthData, BudgetState, EventExpense, IncomeItem, InstallmentItem, DebtItem } from "./types";
 import { initialBudgetState, makeDefaultMonth } from "./initialData";
-import { ExpenseModal, FixedModal, MonthModal, CycleModal, EventModal, IncomeModal, InstallmentModal, DebtModal } from "./components/Modals";
+import { ExpenseModal, FixedModal, MonthModal, CycleModal, EventModal, IncomeModal, InstallmentModal, DebtModal, RefillModal } from "./components/Modals";
 import { calculateBudgetWithCarryOver, calcInstallmentForMonth, normalizeBudgetState, normalizeFixedLivingAccounts } from "./utils/budgetCalculator";
 import { saveToFirestore, loadFromFirestore, subscribeToFirestore } from "./utils/firestore";
 // @ts-ignore
@@ -188,6 +188,40 @@ export default function App() {
       [months, budgetState]
   );
   const activeData: MonthData = computedState[currentMonth] || budgetState[currentMonth] || makeDefaultMonth(2025, 5);
+
+  // 리필 날(월급날이 아닌 주기 시작일)이면 그 주기 예산만큼 입금하라는 알림을 띄운다.
+  // 그 주기에 이미 결제완료(paid)까지 된 지출은 입금액에서 뺀다. 미결제 지출은 빼지 않는다.
+  // 이전 주기 초과분(carryIn < 0)이 있으면 함께 알려준다.
+  // "다시 보지 않기"를 체크하고 닫으면 그 날짜에는 더 이상 띄우지 않는다.
+  const todayStr = localDateStr();
+  const refill = useMemo(() => {
+    if (isPayday()) return { amount: 0, overage: 0 };
+    for (const m of months) {
+      const cycles = computedState[m]?.cycles || [];
+      const idx = cycles.findIndex((c) => c.start === todayStr);
+      if (idx > 0) {
+        const c = cycles[idx];
+        const paidSpent = (computedState[m]?.expenses || [])
+            .filter((e) => e.date >= c.start && e.date <= c.end && e.checked !== false && e.paid === true)
+            .reduce((sum, e) => sum + (e.amount - (e.settleAmount || 0)), 0);
+        return {
+          amount: Math.max(0, (c.budget || 0) - paidSpent),
+          overage: Math.max(0, -(c.carryIn ?? 0)),
+        };
+      }
+    }
+    return { amount: 0, overage: 0 };
+  }, [computedState, months, todayStr]);
+  const refillDismissKey = `refill_dismissed_${todayStr}`;
+  const [isRefillClosed, setIsRefillClosed] = useState(() => {
+    try { return localStorage.getItem(refillDismissKey) === "1"; } catch { return false; }
+  });
+  const handleCloseRefill = (dontShowAgain: boolean) => {
+    if (dontShowAgain) {
+      try { localStorage.setItem(refillDismissKey, "1"); } catch {}
+    }
+    setIsRefillClosed(true);
+  };
 
   const allInstallments: InstallmentItem[] = [];
   Object.values(budgetState).forEach((md) => {
@@ -903,6 +937,7 @@ export default function App() {
   return (
       <div className={styles.root}>
         {isPayday() && <Confetti />}
+        <RefillModal isOpen={refill.amount > 0 && !isRefillClosed} amount={refill.amount} overage={refill.overage} onClose={handleCloseRefill} />
         <Header
             months={months}
             currentMonth={currentMonth}

@@ -1167,3 +1167,56 @@ export const DebtModal: React.FC<DebtModalProps> = ({
       </div>
   );
 };
+// ===================== REFILL NOTICE MODAL =====================
+interface RefillModalProps {
+  isOpen: boolean;
+  amount: number;
+  overage: number;   // 이전 주기 초과금
+  onClose: (dontShowAgain: boolean) => void;
+}
+
+export const RefillModal: React.FC<RefillModalProps> = ({ isOpen, amount, overage, onClose }) => {
+  const [dontShowAgain, setDontShowAgain] = useState(false);
+
+  if (!isOpen) return null;
+
+  return (
+      <div className={styles.overlay}>
+        <div className={`${styles.panel} `}>
+          <div className={styles.modalHeader}>
+            <h3 className={styles.modalTitle}>💸 리필 날 입니다</h3>
+            <button onClick={() => onClose(dontShowAgain)} className={styles.closeBtn}>
+              <X className={styles.closeIcon} />
+            </button>
+          </div>
+
+          <div className={styles.form}>
+            <p className={styles.refillMessage}>
+              <span className={styles.refillAmount}>{amount.toLocaleString("ko-KR")}원</span>을 입금해주세요.
+            </p>
+            {overage > 0 && (
+                <p className={styles.refillOverage}>
+                  초과금 <span className={styles.refillOverageAmount}>{overage.toLocaleString("ko-KR")}원</span> 제외{" "}
+                  <span className={styles.refillAmount}>{Math.max(0, amount - overage).toLocaleString("ko-KR")}원</span>
+                </p>
+            )}
+
+            <label className={styles.refillCheck}>
+              <input
+                  type="checkbox"
+                  checked={dontShowAgain}
+                  onChange={(e) => setDontShowAgain(e.target.checked)}
+              />
+              다시 보지 않기
+            </label>
+
+            <div className={styles.actions}>
+              <button type="button" onClick={() => onClose(dontShowAgain)} className={`${styles.btnSave} `}>
+                닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+  );
+};
