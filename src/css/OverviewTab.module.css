@@ -267,6 +267,7 @@
 .cycleStatCarry  { font-weight: var(--fw-bold); }
 .cycleStatCarry[data-positive="true"]  { color: var(--c-green); }
 .cycleStatCarry[data-positive="false"] { color: var(--c-text-faint); }
+.cycleStatCarry[data-negative="true"] { color: var(--c-red); }
 
 /* ── 메모 프리뷰 카드 ── */
 .memoCard {

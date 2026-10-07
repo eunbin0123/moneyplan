@@ -279,13 +279,14 @@ export function calculateBudgetWithCarryOver(
       };
     });
 
-    // 주기간 이월 계산
+    // 주기간 이월 계산: 남은 돈은 물론, 초과분(음수)도 다음 주기 예산에서 차감되도록 그대로 넘긴다.
+    // 마지막 주기의 초과분은 월 단위 remainingLiving으로 다음 달 당겨쓰기에 반영된다.
     for (let i = 0; i < calculatedCycles.length; i++) {
       const cycle = calculatedCycles[i];
       cycle.carryIn = i === 0 ? carryFromPrevMonth : calculatedCycles[i - 1].carryOut;
       cycle.effectiveBudget = cycle.baseBudget + cycle.incomeAmount + cycle.carryIn;
       cycle.remaining = cycle.effectiveBudget - cycle.spent;
-      cycle.carryOut = Math.max(0, cycle.remaining);
+      cycle.carryOut = i < calculatedCycles.length - 1 ? cycle.remaining : Math.max(0, cycle.remaining);
     }
 
     const updatedCyclesForCompat = calculatedCycles.map((cc) => ({

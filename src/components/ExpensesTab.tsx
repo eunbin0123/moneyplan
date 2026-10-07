@@ -252,7 +252,7 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
                                         <div className={styles.cycleStatsRow}>
                                             <span className={styles.cycleStat}>내 예산 <span className={styles.cycleStatValue}>{formatCurrency(baseBudget)}</span></span>
                                             {(c as any).incomeAmount > 0 && <span className={styles.cycleStatIncome}>수입 <span className={styles.cycleStatIncomeValue}>+{formatCurrency((c as any).incomeAmount)}</span></span>}
-                                            <span className={styles.cycleStat}> <span className={styles.carryInValue} data-positive={carryIn > 0}>+{formatCurrency(carryIn)}</span></span>
+                                            <span className={styles.cycleStat}> <span className={styles.carryInValue} data-sign={carryIn > 0 ? "positive" : carryIn < 0 ? "negative" : "zero"}>{carryIn < 0 ? "-" : "+"}{formatCurrency(Math.abs(carryIn))}</span></span>
                                             <span className={styles.cycleStat}>사용예산 <span className={styles.cycleStatValue}>{formatCurrency(effectiveBudget)}</span></span>
                                         </div>
                                     </div>

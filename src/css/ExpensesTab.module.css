@@ -101,8 +101,9 @@
 .cycleStatIncome { font-size: var(--fs-xs); font-weight: var(--fw-medium); }
 .cycleStatIncomeValue { font-weight: var(--fw-bold); color: var(--c-green); }
 .carryInValue { font-weight: var(--fw-bold); }
-.carryInValue[data-positive="true"] { color: var(--c-green); }
-.carryInValue[data-positive="false"] { color: var(--c-text-faint); }
+.carryInValue[data-sign="positive"] { color: var(--c-green); }
+.carryInValue[data-sign="negative"] { color: var(--c-red); }
+.carryInValue[data-sign="zero"] { color: var(--c-text-faint); }
 .cycleBalance { font-size: var(--fs-base); font-weight: var(--fw-bold); font-variant-numeric: tabular-nums; flex-shrink: 0; }
 .cycleBalance[data-negative="true"] { color: var(--c-red); }
 .cycleBalance[data-negative="false"] { color: var(--c-deepgreen); }

@@ -289,6 +289,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                       <span>내 예산 <span className={styles.cycleStatStrong}>{formatCurrency(c.budget)}</span></span>
                       {incomeAmount > 0 && <span>수입 <span className={styles.cycleStatIncome}>+{formatCurrency(incomeAmount)}</span></span>}
                       {carryIn > 0 && <span>잔액 <span className={styles.cycleStatCarry} data-positive={true}>+{formatCurrency(carryIn)}</span></span>}
+                      {carryIn < 0 && <span>초과 <span className={styles.cycleStatCarry} data-negative={true}>-{formatCurrency(-carryIn)}</span></span>}
                       <span>지출 <span className={styles.cycleStatStrong}>-{formatCurrency(spent)}</span></span>
                     </div>
                   </div>
