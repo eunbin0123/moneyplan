@@ -240,20 +240,30 @@ export function calculateBudgetWithCarryOver(
     const baseEmergency = fixedLiving && salary > 0 ? autoAccountAmount : 0;
 
     // 주기 예산 분배: baseLivingBudget을 주기 수로 균등 분배
-    // manual=true인 주기는 저장값 유지, 나머지만 균등 분배
+    // manual=true인 주기는 저장값 유지, 균등 몫과의 차액은 그 뒤 자동 주기들이 나눠서 메운다
+    // (뒤에 자동 주기가 없으면 앞 자동 주기들이 메움) → 이미 지난 앞 주기 예산은 바뀌지 않는다
     // salary=0(수동 주기예산) 모드에서도 당겨쓰기(debtCharge)가 있으면 그만큼 차감 분배
     if (workingCycles.length > 0 && (fixedLiving || salary > 0 || debtCharge > 0)) {
-      const pinnedSum = workingCycles.reduce((s, c) => s + (c.manual ? (c.budget || 0) : 0), 0);
-      const autoCount = workingCycles.filter(c => !c.manual).length;
-      const autoTotal = Math.max(0, baseLivingBudget - pinnedSum);
-      const base = autoCount > 0 ? Math.floor(autoTotal / autoCount) : 0;
-      const rem = autoCount > 0 ? autoTotal - base * autoCount : 0;
-      let autoSeen = 0;
-      workingCycles = workingCycles.map(c => {
-        if (c.manual) return { ...c };
-        autoSeen += 1;
-        return { ...c, budget: autoSeen === autoCount ? base + rem : base };
+      const n = workingCycles.length;
+      const eqBase = Math.floor(baseLivingBudget / n);
+      const eqRem = baseLivingBudget - eqBase * n;
+      const budgets = workingCycles.map((c, i) => (c.manual ? (c.budget || 0) : i === n - 1 ? eqBase + eqRem : eqBase));
+      const splitInto = (idxs: number[], amount: number) => {
+        const share = Math.floor(amount / idxs.length);
+        idxs.forEach((j, k) => { budgets[j] += k === idxs.length - 1 ? amount - share * (idxs.length - 1) : share; });
+      };
+      workingCycles.forEach((c, i) => {
+        if (!c.manual) return;
+        const eqShare = i === n - 1 ? eqBase + eqRem : eqBase;
+        const diff = eqShare - (c.budget || 0);
+        if (diff === 0) return;
+        const autoIdx = (pred: (j: number) => boolean) =>
+            workingCycles.map((_, j) => j).filter(j => !workingCycles[j].manual && pred(j));
+        const after = autoIdx(j => j > i);
+        const targets = after.length > 0 ? after : autoIdx(j => j < i);
+        if (targets.length > 0) splitInto(targets, diff);
       });
+      workingCycles = workingCycles.map((c, i) => (c.manual ? { ...c } : { ...c, budget: Math.max(0, budgets[i]) }));
     }
 
     const baseMonthlyBudget = workingCycles.reduce((sum, c) => sum + (c.budget || 0), 0);

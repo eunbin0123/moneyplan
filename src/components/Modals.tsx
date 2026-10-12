@@ -467,6 +467,7 @@ interface CycleModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (cycle: BudgetCycle) => void;
+  onResetAuto: () => void;
   initialCycle: BudgetCycle | null;
 }
 
@@ -474,6 +475,7 @@ export const CycleModal: React.FC<CycleModalProps> = ({
                                                         isOpen,
                                                         onClose,
                                                         onSave,
+                                                        onResetAuto,
                                                         initialCycle,
                                                       }) => {
   const [label, setLabel] = useState("");
@@ -565,6 +567,14 @@ export const CycleModal: React.FC<CycleModalProps> = ({
                   onChange={(e) => setBudget(e.target.value)}
                   className={styles.inputMono}
               />
+              {initialCycle?.manual && (
+                  <>
+                    <span className={styles.hintSlate}>직접 수정한 금액으로 고정되어 있어요.</span>
+                    <button type="button" onClick={() => { onResetAuto(); onClose(); }} className={styles.revertBtn}>
+                      자동 배분으로 되돌리기
+                    </button>
+                  </>
+              )}
             </div>
 
             <div className={styles.actions}>

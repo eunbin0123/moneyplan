@@ -787,6 +787,20 @@ export default function App() {
     setEditingCycleIdx(null);
   };
 
+  // 직접 수정해 고정된 주기를 다시 자동 배분 대상으로 돌린다
+  const handleResetCycleAuto = () => {
+    if (editingCycleIdx === null) return;
+    const idx = editingCycleIdx;
+    setBudgetState((prev) => {
+      const copy = { ...prev };
+      const mD = { ...copy[currentMonth] };
+      mD.cycles = mD.cycles.map((c, i) => (i === idx ? { ...c, manual: false } : c));
+      copy[currentMonth] = mD;
+      return copy;
+    });
+    setEditingCycleIdx(null);
+  };
+
   /* ── 렌더 ── */
 
   // 1. 인증 정보 로드 중 화면
@@ -1102,6 +1116,7 @@ export default function App() {
             isOpen={isCycleModalOpen}
             onClose={() => { setIsCycleModalOpen(false); setEditingCycleIdx(null); }}
             onSave={handleSaveCycle}
+            onResetAuto={handleResetCycleAuto}
             initialCycle={editingCycleIdx !== null ? (activeData?.cycles?.[editingCycleIdx] ?? null) : null}
         />
         <EventModal isOpen={isEventModalOpen} onClose={() => setIsEventModalOpen(false)} onSave={handleSaveEvent} />
