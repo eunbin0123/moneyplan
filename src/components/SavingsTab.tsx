@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { MonthData, InstallmentItem, DebtItem } from "../types";
-import { calcAutoAccountAmount, calcFixedLivingBudget, isFixedLivingMonth, LIVING_ACCOUNT_NAME, FIXED_LIVING_BUDGET, FIXED_LIVING_CYCLES } from "../utils/budgetCalculator";
+import { calcAutoAccountAmount, calcDebtCharge, isDebtExemptMonth, calcFixedLivingBudget, isFixedLivingMonth, LIVING_ACCOUNT_NAME, FIXED_LIVING_BUDGET, FIXED_LIVING_CYCLES } from "../utils/budgetCalculator";
 import { Check, Calendar, CalendarRange, Sparkles, Plus, CreditCard, HandCoins } from "lucide-react";
 // @ts-ignore
 import styles from "../css/SavingsTab.module.css";
@@ -101,7 +101,7 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
         0
     );
 
-    const totalDebtThisMonth = (data.debts || []).reduce((sum, d) => sum + d.amount, 0);
+    const totalDebtThisMonth = calcDebtCharge(activeMonth, data.debts);
 
     const salary = data.salary ?? 0;
 
@@ -125,7 +125,7 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
     const checkedInstallmentTotal = sortedInstallments
         .filter((it) => it.checked)
         .reduce((sum, it) => sum + getInstallmentAmount(it), 0);
-    const checkedDebtTotal = (data.debts || [])
+    const checkedDebtTotal = isDebtExemptMonth(activeMonth) ? 0 : (data.debts || [])
         .filter((d) => d.checked)
         .reduce((sum, d) => sum + d.amount, 0);
     const totalTransfer =
@@ -586,6 +586,9 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
                                 <Plus className={styles.iconXs} /> 추가
                             </button>
                         </div>
+                        {isDebtExemptMonth(activeMonth) && debts.length > 0 && (
+                            <div className={styles.empty}>이번 달은 당겨쓰기를 예산에서 차감하지 않습니다.</div>
+                        )}
                         {debts.length === 0 ? (
                             <div className={styles.empty}>이번 달 차감할 당겨쓰기 내역이 없습니다.</div>
                         ) : (

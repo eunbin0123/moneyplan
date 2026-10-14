@@ -3,7 +3,7 @@ import { MonthData, InstallmentItem, DebtItem } from "../types";
 import { BookOpen, Calendar, CalendarRange, CreditCard, HandCoins, LucideIcon } from "lucide-react";
 import styles from "../css/OverviewTab.module.css";
 import { getPayday, isSameDay } from "../utils/payday";
-import { calcFixedLivingBudget, isFixedLivingMonth, CalculatedMonth } from "../utils/budgetCalculator";
+import { calcDebtCharge, calcFixedLivingBudget, isFixedLivingMonth, CalculatedMonth } from "../utils/budgetCalculator";
 import { localDateStr } from "../utils/date";
 import { useKoreanHolidays } from "../utils/holidays";
 
@@ -93,7 +93,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
     const amount = (it.overrides && it.overrides[activeMonth] !== undefined) ? it.overrides[activeMonth] : it.monthlyAmount;
     return s + amount;
   }, 0);
-  const debtChargeThisMonth = (debts || []).reduce((s, d) => s + d.amount, 0);
+  const debtChargeThisMonth = calcDebtCharge(activeMonth, debts);
   const activeInstallmentCount = (installments || []).filter((it) => {
     const start = monthIdx(it.startMonth), cur = monthIdx(activeMonth);
     return cur >= start && cur < start + it.months;

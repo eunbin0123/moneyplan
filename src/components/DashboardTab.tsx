@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { BudgetState } from "../types";
-import { calcInstallmentForMonth, CalculatedMonth } from "../utils/budgetCalculator";
+import { calcDebtCharge, calcInstallmentForMonth, CalculatedMonth } from "../utils/budgetCalculator";
 // @ts-ignore
 import styles from "../css/DashboardTab.module.css";
 
@@ -41,7 +41,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({ budgetState, months,
       const fixed = (md.fixed || []).reduce((s, f) => s + f.amount, 0);
       const events = (md.events || []).reduce((s, e) => s + e.amount, 0);
       const installment = calcInstallmentForMonth(m, allInstallments);
-      const debt = (md.debts || []).reduce((s, d) => s + d.amount, 0);
+      const debt = calcDebtCharge(m, md.debts);
       const totalSpend = living + fixed + events + installment + debt;
 
       const salary = md.salary ?? 0;

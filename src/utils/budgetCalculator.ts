@@ -166,6 +166,13 @@ export function normalizeBudgetState(state: BudgetState): BudgetState {
   return changed ? copy : state;
 }
 
+// 당겨쓰기를 차감하지 않는 달: 이 달은 당겨쓰기 항목이 있어도 예산·이체·지출 계산에 반영하지 않는다.
+// 값 = 앞에서부터 기존 배분(당겨쓰기 차감 기준)을 그대로 유지할 주기 수. 면제된 금액은 그 뒤 주기들에만 나눈다.
+export const DEBT_EXEMPT_MONTHS: Record<string, number> = { "2026-10": 2 };
+export const isDebtExemptMonth = (monthKey: string) => monthKey in DEBT_EXEMPT_MONTHS;
+export const calcDebtCharge = (monthKey: string, debts?: DebtItem[]) =>
+    isDebtExemptMonth(monthKey) ? 0 : (debts || []).reduce((sum, d) => sum + d.amount, 0);
+
 // 고정 방식 달의 실사용 생활비: 당겨쓰기는 생활비 400,000원 안에서 갚는다
 export const calcFixedLivingBudget = (debtCharge: number) => Math.max(0, FIXED_LIVING_BUDGET - debtCharge);
 
@@ -230,7 +237,9 @@ export function calculateBudgetWithCarryOver(
     // salary 기반 순수 생활비 계산
     const salary = rawData.salary ?? 0;
     const installmentCharge = calcInstallmentForMonth(m, installmentList);
-    const debtCharge = (rawData.debts || []).reduce((sum, d) => sum + d.amount, 0);
+    const debtCharge = calcDebtCharge(m, rawData.debts);
+    const debtRefund = (rawData.debts || []).reduce((sum, d) => sum + d.amount, 0) - debtCharge;
+    const debtRefundKeep = DEBT_EXEMPT_MONTHS[m] ?? 0;
     const autoAccountAmount = calcAutoAccountAmount(m, rawData, installmentCharge, debtCharge);
     const baseLivingBudget = fixedLiving
         ? calcFixedLivingBudget(debtCharge)
@@ -245,8 +254,10 @@ export function calculateBudgetWithCarryOver(
     // salary=0(수동 주기예산) 모드에서도 당겨쓰기(debtCharge)가 있으면 그만큼 차감 분배
     if (workingCycles.length > 0 && (fixedLiving || salary > 0 || debtCharge > 0)) {
       const n = workingCycles.length;
-      const eqBase = Math.floor(baseLivingBudget / n);
-      const eqRem = baseLivingBudget - eqBase * n;
+      // 면제된 당겨쓰기 금액은 균등 분배에서 빼두었다가 아래에서 유지 주기 뒤의 자동 주기들에만 더한다.
+      const distributable = Math.max(0, baseLivingBudget - debtRefund);
+      const eqBase = Math.floor(distributable / n);
+      const eqRem = distributable - eqBase * n;
       const budgets = workingCycles.map((c, i) => (c.manual ? (c.budget || 0) : i === n - 1 ? eqBase + eqRem : eqBase));
       const splitInto = (idxs: number[], amount: number) => {
         const share = Math.floor(amount / idxs.length);
@@ -263,6 +274,12 @@ export function calculateBudgetWithCarryOver(
         const targets = after.length > 0 ? after : autoIdx(j => j < i);
         if (targets.length > 0) splitInto(targets, diff);
       });
+      if (debtRefund > 0) {
+        const autoAll = workingCycles.map((_, j) => j).filter(j => !workingCycles[j].manual);
+        const afterKeep = autoAll.filter(j => j >= debtRefundKeep);
+        const targets = afterKeep.length > 0 ? afterKeep : autoAll;
+        if (targets.length > 0) splitInto(targets, debtRefund);
+      }
       workingCycles = workingCycles.map((c, i) => (c.manual ? { ...c } : { ...c, budget: Math.max(0, budgets[i]) }));
     }
 
