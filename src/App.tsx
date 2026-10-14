@@ -190,7 +190,7 @@ export default function App() {
   const activeData: MonthData = computedState[currentMonth] || budgetState[currentMonth] || makeDefaultMonth(2025, 5);
 
   // 리필 날(월급날이 아닌 주기 시작일)이면 그 주기 예산만큼 입금하라는 알림을 띄운다.
-  // 그 주기에 이미 결제완료(paid)까지 된 지출은 입금액에서 뺀다. 미결제 지출은 빼지 않는다.
+  // 그 주기에 이미 이체완료(checked) 된 지출은 결제완료 여부와 상관없이 입금액에서 뺀다. 이체 필요(미체크) 지출은 빼지 않는다.
   // 이전 주기 초과분(carryIn < 0)이 있으면 함께 알려준다.
   // "다시 보지 않기"를 체크하고 닫으면 그 날짜에는 더 이상 띄우지 않는다.
   const todayStr = localDateStr();
@@ -201,11 +201,11 @@ export default function App() {
       const idx = cycles.findIndex((c) => c.start === todayStr);
       if (idx > 0) {
         const c = cycles[idx];
-        const paidSpent = (computedState[m]?.expenses || [])
-            .filter((e) => e.date >= c.start && e.date <= c.end && e.checked !== false && e.paid === true)
+        const transferredSpent = (computedState[m]?.expenses || [])
+            .filter((e) => e.date >= c.start && e.date <= c.end && e.checked !== false)
             .reduce((sum, e) => sum + (e.amount - (e.settleAmount || 0)), 0);
         return {
-          amount: Math.max(0, (c.budget || 0) - paidSpent),
+          amount: Math.max(0, (c.budget || 0) - transferredSpent),
           overage: Math.max(0, -(c.carryIn ?? 0)),
         };
       }
