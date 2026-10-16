@@ -304,6 +304,8 @@
   border-left: 3px solid var(--c-purplegrey);
 }
 
+.memoDone { text-decoration: line-through; color: var(--c-text-faint); }
+
 /* ── 예산 조정 모달 ── */
 .overlay {
   position: fixed; inset: 0; z-index: 50;

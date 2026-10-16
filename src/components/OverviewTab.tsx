@@ -432,7 +432,11 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 </h3>
                 <button onClick={onOpenMemo} className={styles.memoEditBtn}>상세 편집 →</button>
               </div>
-              <div className={styles.memoBody}>{data.memo}</div>
+              <div className={styles.memoBody}>
+                {data.memo.split("\n").map((line, i) => line.startsWith("✓ ")
+                    ? <div key={i} className={styles.memoDone}>{line.slice(2)}</div>
+                    : <div key={i}>{line || "\u00a0"}</div>)}
+              </div>
             </div>
         )}
 
