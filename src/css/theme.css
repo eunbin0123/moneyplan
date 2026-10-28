@@ -48,6 +48,11 @@
   --c-income-border:        #B9DEDD;
   --c-income-border-strong: #8FC7C5;
 
+  /* 예상 지출 — 흐린 회색 글씨 + 점선 테두리 (색 대신 모양으로 실제 지출과 구분) */
+  --c-plan:        var(--c-font-2);
+  --c-plan-bg:     transparent;
+  --c-plan-border: var(--c-font-2);
+
   /* ───────── 4. 오버레이 / 그림자 토큰 ───────── */
   --c-overlay:   rgba(22, 35, 59, 0.45);   /* 모달 딤(네이비 베이스) */
   --c-shadow:    rgba(22, 35, 59, 0.06);
@@ -155,6 +160,10 @@
   --c-income-bg:            #16302E;
   --c-income-border:        #295552;
   --c-income-border-strong: #3D7873;
+
+  --c-plan:        #8A93B5;
+  --c-plan-bg:     transparent;
+  --c-plan-border: #6B7299;
 
   --c-overlay:   rgba(0, 0, 0, 0.60);
   --c-shadow:    rgba(0, 0, 0, 0.30);

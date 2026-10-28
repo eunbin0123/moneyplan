@@ -38,6 +38,13 @@ export interface ExpenseItem {
   settleAmount?: number;  // 정산받을(친구 몫) 금액 — 예산엔 (amount-settleAmount)만, 미결제(통장확보)엔 amount 전액
 }
 
+export interface PlannedExpense {
+  id: string;
+  date: string;   // "YYYY-MM-DD"
+  name: string;
+  amount: number;
+}
+
 export interface IncomeItem {
   id: string;
   name: string;
@@ -87,6 +94,7 @@ export interface MonthData {
   effectiveMonthlyBudget?: number;  // 이월금이 반영된 정산 생활비 예산
   dayMemos?: Record<string, string>; // 날짜별 메모 { "YYYY-MM-DD": "메모" }
   dayHolidays?: string[];            // 직접 지정한 휴일 날짜 ["YYYY-MM-DD"]
+  plans?: PlannedExpense[];          // 예상 지출 — 달력 표시용, 예산 계산에는 반영하지 않음
   distributionVersion?: number;      // 기본 분배 규칙 적용 버전 (한 번 적용 후 사용자 수정값 유지)
   cycleVersion?: number;             // 생활비 고정 방식 주기(4주기) 재구성 버전
 }

@@ -6,7 +6,7 @@ import { OverviewTab } from "./components/OverviewTab";
 import { DashboardTab } from "./components/DashboardTab";
 import { ExpensesTab } from "./components/ExpensesTab";
 import { SavingsTab } from "./components/SavingsTab";
-import { FixedExpense, BudgetCycle, ExpenseItem, MonthData, BudgetState, EventExpense, IncomeItem, InstallmentItem, DebtItem } from "./types";
+import { FixedExpense, PlannedExpense, BudgetCycle, ExpenseItem, MonthData, BudgetState, EventExpense, IncomeItem, InstallmentItem, DebtItem } from "./types";
 import { initialBudgetState, makeDefaultMonth, DEFAULT_FIXED } from "./initialData";
 import { ExpenseModal, FixedModal, FixedDefaultsModal, MonthModal, CycleModal, EventModal, IncomeModal, InstallmentModal, DebtModal, RefillModal } from "./components/Modals";
 import { calculateBudgetWithCarryOver, calcInstallmentForMonth, normalizeBudgetState, normalizeFixedLivingAccounts } from "./utils/budgetCalculator";
@@ -657,6 +657,34 @@ export default function App() {
     });
   };
 
+  const handleAddPlan = (date: string, name: string, amount: number) => {
+    setBudgetState((prev) => {
+      const copy = { ...prev };
+      const mD = copy[currentMonth];
+      const plan: PlannedExpense = { id: Date.now().toString(), date, name, amount };
+      copy[currentMonth] = { ...mD, plans: [...(mD.plans || []), plan] };
+      return copy;
+    });
+  };
+
+  // 1주기는 전달 말일부터 시작하므로, 주기 합계를 위해 모든 달의 예상 지출을 모아서 넘긴다
+  // 날짜가 어느 달 몇 주기인지 찾기 위한 전체 주기 목록 (월말 날짜는 다음 달 1주기일 수 있다)
+  const allCycles = months.flatMap((m) =>
+      (budgetState[m]?.cycles || []).map((c) => ({ month: m, start: c.start, end: c.end, label: c.label })));
+  const allPlans: PlannedExpense[] = (Object.values(budgetState) as MonthData[]).flatMap((md) => md.plans || []);
+
+  const handleDeletePlan = (id: string) => {
+    setBudgetState((prev) => {
+      const copy = { ...prev };
+      for (const [key, md] of Object.entries(copy) as [string, MonthData][]) {
+        if ((md.plans || []).some((p) => p.id === id)) {
+          copy[key] = { ...md, plans: (md.plans || []).filter((p) => p.id !== id) };
+        }
+      }
+      return copy;
+    });
+  };
+
   const handleToggleDayHoliday = (date: string) => {
     setBudgetState((prev) => {
       const copy = { ...prev };
@@ -1053,6 +1081,10 @@ export default function App() {
                       onUpdateDayMemo={handleUpdateDayMemo}
                       dayHolidays={activeData.dayHolidays || []}
                       onToggleDayHoliday={handleToggleDayHoliday}
+                      plans={allPlans}
+                      allCycles={allCycles}
+                      onAddPlan={handleAddPlan}
+                      onDeletePlan={handleDeletePlan}
                   />
               )}
               {activeTab === "expenses" && (

@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
-import { MonthData, InstallmentItem, DebtItem } from "../types";
-import { BookOpen, Calendar, CalendarRange, CreditCard, HandCoins, LucideIcon } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { MonthData, InstallmentItem, DebtItem, PlannedExpense } from "../types";
+import { BookOpen, Calendar, CalendarRange, CreditCard, HandCoins, LucideIcon, Plus, X } from "lucide-react";
 import styles from "../css/OverviewTab.module.css";
 import { getPayday, isSameDay } from "../utils/payday";
 import { calcDebtCharge, calcFixedLivingBudget, isFixedLivingMonth, CalculatedMonth } from "../utils/budgetCalculator";
@@ -53,15 +53,37 @@ interface OverviewTabProps {
   onUpdateDayMemo?: (date: string, memo: string) => void;
   dayHolidays?: string[];
   onToggleDayHoliday?: (date: string) => void;
+  plans?: PlannedExpense[];
+  allCycles?: { month: string; start: string; end: string; label: string }[];
+  onAddPlan?: (date: string, name: string, amount: number) => void;
+  onDeletePlan?: (id: string) => void;
 }
+
+// 예상 지출 표시 여부 — 기기별 보기 설정이라 localStorage에만 둔다
+const PLANS_VISIBLE_KEY = "smart_budget_show_plans";
+const readPlansVisible = () => {
+  try { return localStorage.getItem(PLANS_VISIBLE_KEY) !== "off"; } catch { return true; }
+};
 
 export const OverviewTab: React.FC<OverviewTabProps> = ({
                                                           data, activeMonth, onEditCycle, onOpenMemo, onOpenTab,
                                                           installments = [], debts = [],
                                                           dayMemos = {}, onUpdateDayMemo,
                                                           dayHolidays = [], onToggleDayHoliday,
+                                                          plans = [], allCycles = [], onAddPlan, onDeletePlan,
                                                         }) => {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [showPlans, setShowPlans] = useState(readPlansVisible);
+  const [planName, setPlanName] = useState("");
+  const [planAmount, setPlanAmount] = useState("");
+  const planNameRef = useRef<HTMLInputElement>(null);
+  const planAmountRef = useRef<HTMLInputElement>(null);
+  const togglePlans = () => {
+    setShowPlans((prev) => {
+      try { localStorage.setItem(PLANS_VISIBLE_KEY, prev ? "off" : "on"); } catch {}
+      return !prev;
+    });
+  };
   const [showSpentDetail, setShowSpentDetail] = useState(false);
 
   const formatCurrency = (amount: number) => Math.round(amount).toLocaleString("ko-KR") + "원";
@@ -142,6 +164,28 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
     return (data.expenses || []).filter(e => e.date === dateStr && e.checked !== false);
   };
   const getDayTotal = (day: number) => getDayExps(day).reduce((s, e) => s + (e.amount - (e.settleAmount || 0)), 0);
+  const getDayPlans = (dateStr: string) => plans.filter(p => p.date === dateStr);
+  // 토글 옆 합계: 선택한 날짜(없으면 오늘)가 속한 "몇 월 몇 주기"의 예상 지출만.
+  // 그 날짜가 어느 주기에도 없으면 보고 있는 달 전체 합계.
+  const sumBaseDate = selectedDate ?? todayStr;
+  const sumCycle = allCycles.find(c => c.start <= sumBaseDate && sumBaseDate <= c.end);
+  const monthPrefix = `${calYear}-${String(calMonth).padStart(2, "0")}-`;
+  // 짧게 "1 | 99,600원" — 주기 번호만. 주기 밖이면 "10월 | …"
+  const planSumLabel = sumCycle
+      ? (getCleanLabel(sumCycle.label).match(/\d+/)?.[0] ?? getCleanLabel(sumCycle.label))
+      : `${calMonth}월`;
+  const planSum = plans
+      .filter(p => sumCycle ? p.date >= sumCycle.start && p.date <= sumCycle.end : p.date.startsWith(monthPrefix))
+      .reduce((s, p) => s + p.amount, 0);
+
+  const submitPlan = () => {
+    const amount = parseInt(planAmount, 10);
+    if (!selectedDate || !planName.trim() || isNaN(amount) || amount <= 0) return;
+    onAddPlan?.(selectedDate, planName.trim(), amount);
+    setPlanName("");
+    setPlanAmount("");
+    planNameRef.current?.focus(); // 바로 다음 항목을 적을 수 있게
+  };
 
   return (
       <div className={styles.container} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
@@ -303,6 +347,12 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           <div className={styles.cardHeadRow}>
             <span className={styles.dotBlack} />
             <h3 className={styles.cardTitleBlack}>{calYear}년 {calMonth}월</h3>
+            {onAddPlan && (
+                <button type="button" role="switch" aria-checked={showPlans} onClick={togglePlans} className={styles.planToggle} data-on={showPlans}>
+                  예상 지출{showPlans && planSum > 0 && <span className={styles.planToggleSum} title={sumCycle ? `${parseInt(sumCycle.month.split("-")[1], 10)}월 ${getCleanLabel(sumCycle.label)} 예상 지출` : undefined}>{planSumLabel} | {planSum.toLocaleString("ko-KR")}원</span>}
+                  <span className={styles.planSwitch}><span className={styles.planSwitchKnob} /></span>
+                </button>
+            )}
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", marginTop: "0.75rem" }}>
             {["일","월","화","수","목","금","토"].map(d => (
@@ -320,6 +370,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               const isPayday = dateStr === paydayStr;
               const isCycleStart = cycleStartDates.has(dateStr) && !isPayday;
               const isRed = isRedDay(dateStr, day);
+              const planTotal = showPlans ? getDayPlans(dateStr).reduce((s, p) => s + p.amount, 0) : 0;
               return (
                   <div key={day}
                        onClick={() => setSelectedDate(isSelected ? null : dateStr)}
@@ -344,6 +395,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                           <div style={{ display: "inline-flex", alignItems: "center", fontSize: "0.42rem", background: "var(--c-tint-green)", color: "var(--c-income)", borderRadius: "3px", padding: "1px 2px", lineHeight: 1, fontWeight: 700, border: "1px solid var(--c-income-border)" }}>💸 리필</div>
                       )}
                       {total > 0 && <div style={{ fontSize: "0.6rem", color: "var(--c-red)", fontWeight: 700, lineHeight: 1 }}>-{fmtShort(total)}</div>}
+                      {planTotal > 0 && <div className={styles.planCellAmount} title="예상 지출">{planTotal.toLocaleString("ko-KR")}</div>}
                     </div>
                     {/* 하단: 메모 (flex 1로 밀어서 아래 붙이기) */}
                     <div style={{ flex: 1 }} />
@@ -399,6 +451,32 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                             <span style={{ color: "var(--c-red)", fontWeight: 600 }}>-{formatCurrency(e.amount - (e.settleAmount || 0))}</span>
                           </div>
                       ))}
+                    </div>
+                )}
+                {showPlans && onAddPlan && (
+                    <div className={styles.planSection}>
+                      <div className={styles.planSectionTitle}>예상 지출</div>
+                      {getDayPlans(selectedDate).map(p => (
+                          <div key={p.id} className={styles.planRow}>
+                            <span>{p.name}</span>
+                            <span className={styles.planRowRight}>
+                              ~{formatCurrency(p.amount)}
+                              <button type="button" onClick={() => onDeletePlan?.(p.id)} className={styles.planDelete} aria-label="예상 지출 삭제">
+                                <X size={12} />
+                              </button>
+                            </span>
+                          </div>
+                      ))}
+                      <form className={styles.planForm} onSubmit={e => { e.preventDefault(); submitPlan(); }}>
+                        <input ref={planNameRef} value={planName} onChange={e => setPlanName(e.target.value)} placeholder="예: 친구 생일 저녁" className={styles.planInput}
+                               enterKeyHint="next"
+                               onKeyDown={e => {
+                                 // 내용 칸에서 엔터 → 금액이 비어 있으면 금액 칸으로 이동
+                                 if (e.key === "Enter" && !e.nativeEvent.isComposing && !planAmount) { e.preventDefault(); planAmountRef.current?.focus(); }
+                               }} />
+                        <input ref={planAmountRef} value={planAmount} onChange={e => setPlanAmount(e.target.value)} placeholder="금액" type="number" min="1" inputMode="numeric" className={styles.planInputAmount} enterKeyHint="done" />
+                        <button type="submit" className={styles.planAddBtn} aria-label="예상 지출 추가"><Plus size={14} /></button>
+                      </form>
                     </div>
                 )}
               </div>
