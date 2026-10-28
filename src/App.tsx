@@ -7,8 +7,8 @@ import { DashboardTab } from "./components/DashboardTab";
 import { ExpensesTab } from "./components/ExpensesTab";
 import { SavingsTab } from "./components/SavingsTab";
 import { FixedExpense, BudgetCycle, ExpenseItem, MonthData, BudgetState, EventExpense, IncomeItem, InstallmentItem, DebtItem } from "./types";
-import { initialBudgetState, makeDefaultMonth } from "./initialData";
-import { ExpenseModal, FixedModal, MonthModal, CycleModal, EventModal, IncomeModal, InstallmentModal, DebtModal, RefillModal } from "./components/Modals";
+import { initialBudgetState, makeDefaultMonth, DEFAULT_FIXED } from "./initialData";
+import { ExpenseModal, FixedModal, FixedDefaultsModal, MonthModal, CycleModal, EventModal, IncomeModal, InstallmentModal, DebtModal, RefillModal } from "./components/Modals";
 import { calculateBudgetWithCarryOver, calcInstallmentForMonth, normalizeBudgetState, normalizeFixedLivingAccounts } from "./utils/budgetCalculator";
 import { saveToFirestore, loadFromFirestore, subscribeToFirestore } from "./utils/firestore";
 // @ts-ignore
@@ -71,6 +71,16 @@ export default function App() {
     } catch { return initialBudgetState; }
   });
 
+  // 새 달을 만들 때 들어가는 고정지출 기본 목록
+  const [fixedDefaults, setFixedDefaults] = useState<FixedExpense[]>(() => {
+    try {
+      const saved = localStorage.getItem("smart_budget_fixed_defaults_v1");
+      return saved ? JSON.parse(saved) : DEFAULT_FIXED;
+    } catch { return DEFAULT_FIXED; }
+  });
+  const fixedDefaultsRef = useRef(fixedDefaults);
+  fixedDefaultsRef.current = fixedDefaults;
+
   const [months, setMonths] = useState<string[]>(() => {
     try {
       const saved = localStorage.getItem("smart_budget_months_v2");
@@ -132,16 +142,20 @@ export default function App() {
   }, [months]);
 
   useEffect(() => {
+    localStorage.setItem("smart_budget_fixed_defaults_v1", JSON.stringify(fixedDefaults));
+  }, [fixedDefaults]);
+
+  useEffect(() => {
     // 로그인되지 않았으면 Firestore 저장 안 함
     if (!user) return;
 
     if (isRemoteUpdate.current) { isRemoteUpdate.current = false; return; }
     if (isLoading) return;
     const timer = setTimeout(() => {
-      saveToFirestore(months, budgetState).catch(console.error);
+      saveToFirestore(months, budgetState, fixedDefaults).catch(console.error);
     }, 1000);
     return () => clearTimeout(timer);
-  }, [budgetState, months, isLoading, user]);
+  }, [budgetState, months, fixedDefaults, isLoading, user]);
 
   useEffect(() => {
     // 로그인되지 않았으면 데이터를 불러오지 않음
@@ -151,7 +165,8 @@ export default function App() {
       try {
         const remote = await loadFromFirestore();
         if (remote && remote.months.length > 0) {
-          const { newMonths, newBudgetState } = ensureMonthsUpToThreeAhead(remote.months, remote.budgetState);
+          if (remote.fixedDefaults) setFixedDefaults(remote.fixedDefaults);
+          const { newMonths, newBudgetState } = ensureMonthsUpToThreeAhead(remote.months, remote.budgetState, remote.fixedDefaults);
           const monthsChanged = newMonths.length !== remote.months.length;
           if (!monthsChanged) isRemoteUpdate.current = true;
           setMonths(newMonths);
@@ -171,8 +186,9 @@ export default function App() {
       } finally {
         setIsLoading(false);
       }
-      firestoreUnsub.current = subscribeToFirestore((remoteMonths, remoteBudget) => {
-        const { newMonths, newBudgetState } = ensureMonthsUpToThreeAhead(remoteMonths, remoteBudget);
+      firestoreUnsub.current = subscribeToFirestore((remoteMonths, remoteBudget, remoteFixedDefaults) => {
+        if (remoteFixedDefaults) setFixedDefaults(remoteFixedDefaults);
+        const { newMonths, newBudgetState } = ensureMonthsUpToThreeAhead(remoteMonths, remoteBudget, remoteFixedDefaults);
         const monthsChanged = newMonths.length !== remoteMonths.length;
         if (!monthsChanged) isRemoteUpdate.current = true;
         setMonths(newMonths);
@@ -240,6 +256,7 @@ export default function App() {
   const [editingExpenseIdx, setEditingExpenseIdx] = useState<number | null>(null);
   const [isFixedModalOpen, setIsFixedModalOpen] = useState(false);
   const [editingFixedIdx, setEditingFixedIdx] = useState<number | null>(null);
+  const [isFixedDefaultsOpen, setIsFixedDefaultsOpen] = useState(false);
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const [isMonthModalOpen, setIsMonthModalOpen] = useState(false);
   const [isCycleModalOpen, setIsCycleModalOpen] = useState(false);
@@ -427,6 +444,22 @@ export default function App() {
       return copy;
     });
     setEditingFixedIdx(null);
+  };
+
+  // 오늘이 속한 달 다음으로 이미 만들어져 있는 달들 (기본값 일괄 적용 대상)
+  const todayMonth = findCurrentMonth(months, budgetState);
+  const futureMonths = months.filter(m => m > todayMonth);
+
+  const handleSaveFixedDefaults = (items: FixedExpense[], applyToFuture: boolean) => {
+    setFixedDefaults(items);
+    if (!applyToFuture || futureMonths.length === 0) return;
+    setBudgetState((prev) => {
+      const copy = { ...prev };
+      for (const m of futureMonths) {
+        if (copy[m]) copy[m] = { ...copy[m], fixed: items.map(f => ({ ...f })) };
+      }
+      return copy;
+    });
   };
 
   const handleDeleteFixed = (idx: number) => {
@@ -699,7 +732,8 @@ export default function App() {
 
   const ensureMonthsUpToThreeAhead = (
       currentMonths: string[],
-      currentBudgetState: BudgetState
+      currentBudgetState: BudgetState,
+      defaults: FixedExpense[] = fixedDefaultsRef.current
   ): { newMonths: string[]; newBudgetState: BudgetState } => {
     const today = new Date();
     const requiredKeys: string[] = [];
@@ -714,7 +748,7 @@ export default function App() {
       if (!newMonths.includes(key)) {
         const [y, m] = key.split("-").map(Number);
         newMonths.push(key);
-        newBudgetState[key] = makeDefaultMonth(y, m);
+        newBudgetState[key] = makeDefaultMonth(y, m, undefined, undefined, defaults);
         changed = true;
       }
     }
@@ -727,7 +761,7 @@ export default function App() {
   const handleSaveMonth = (year: number, month: number, budget: number) => {
     const key = `${year}-${String(month).padStart(2, "0")}`;
     if (budgetState[key]) { alert("이미 동일한 지출월 데이터가 존재합니다."); return; }
-    setBudgetState((prev) => ({ ...prev, [key]: makeDefaultMonth(year, month, budget) }));
+    setBudgetState((prev) => ({ ...prev, [key]: makeDefaultMonth(year, month, budget, undefined, fixedDefaults) }));
     setMonths((prev) => { const next = [...prev, key]; next.sort(); return next; });
     setCurrentMonth(key);
     setActiveTab("overview");
@@ -1043,6 +1077,7 @@ export default function App() {
                               onDeleteFixed={handleDeleteFixed} onAddEvent={() => setIsEventModalOpen(true)}
                               onDeleteEvent={handleDeleteEvent} onUpdateSalary={handleUpdateSalary}
                               activeSubTab="fixed" installments={allInstallments}
+                              onEditFixedDefaults={() => setIsFixedDefaultsOpen(true)}
                               activeMonth={currentMonth} debts={currentMonthDebts}
                               onToggleInstallment={handleToggleInstallment} onToggleDebt={handleToggleDebt}
                               onUpdateAccount={handleUpdateAccount} />
@@ -1110,6 +1145,14 @@ export default function App() {
             onSave={handleSaveFixed}
             initialItem={editingFixedIdx !== null ? activeData.fixed[editingFixedIdx] : null}
             editingIdx={editingFixedIdx}
+        />
+        <FixedDefaultsModal
+            isOpen={isFixedDefaultsOpen}
+            onClose={() => setIsFixedDefaultsOpen(false)}
+            onSave={handleSaveFixedDefaults}
+            defaults={fixedDefaults}
+            currentFixed={activeData.fixed || []}
+            futureMonthLabels={futureMonths.map(getShortMonthLabel)}
         />
         <MonthModal isOpen={isMonthModalOpen} onClose={() => setIsMonthModalOpen(false)} onSave={handleSaveMonth} />
         <CycleModal

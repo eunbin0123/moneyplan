@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { X, HelpCircle, Save } from "lucide-react";
+import { X, HelpCircle, Save, Plus, Trash2 } from "lucide-react";
 import { ExpenseItem, FixedExpense, BudgetCycle, EventExpense, IncomeItem, InstallmentItem, DebtItem } from "../types";
 import styles from "../css/Modals.module.css";
 import { localMonthStr } from "../utils/date";
@@ -358,6 +358,122 @@ export const FixedModal: React.FC<FixedModalProps> = ({ isOpen, onClose, onSave,
   );
 };
 
+
+// ==========================================
+// 2-1. FIXED DEFAULTS MODAL — 새 달에 들어갈 고정지출 기본 목록 편집
+// ==========================================
+interface FixedDefaultsModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (items: FixedExpense[], applyToFuture: boolean) => void;
+  defaults: FixedExpense[];
+  currentFixed: FixedExpense[];   // "이번 달 목록 불러오기"용
+  futureMonthLabels: string[];    // 이미 만들어진 다음 달들 (예: ["11월", "12월"])
+}
+
+type FixedDraft = { name: string; amount: string; day: string };
+
+const toDraft = (items: FixedExpense[]): FixedDraft[] =>
+    items.map(f => ({ name: f.name, amount: String(f.amount), day: f.day ? f.day.replace(/[^0-9]/g, "") : "" }));
+
+export const FixedDefaultsModal: React.FC<FixedDefaultsModalProps> = ({ isOpen, onClose, onSave, defaults, currentFixed, futureMonthLabels }) => {
+  const [rows, setRows] = useState<FixedDraft[]>([]);
+  const [applyToFuture, setApplyToFuture] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setRows(toDraft(defaults));
+      setApplyToFuture(false);
+    }
+  }, [isOpen, defaults]);
+
+  if (!isOpen) return null;
+
+  const updateRow = (idx: number, patch: Partial<FixedDraft>) =>
+      setRows(prev => prev.map((r, i) => (i === idx ? { ...r, ...patch } : r)));
+
+  const total = rows.reduce((sum, r) => sum + (parseInt(r.amount, 10) || 0), 0);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const items: FixedExpense[] = rows
+        .map(r => ({ name: r.name.trim(), amount: parseInt(r.amount, 10), day: r.day }))
+        .filter(r => r.name && !isNaN(r.amount) && r.amount > 0)
+        .map(r => ({ name: r.name, amount: r.amount, day: r.day ? `매달 ${r.day}일` : "날짜 미정" }));
+    onSave(items, applyToFuture);
+    onClose();
+  };
+
+  return (
+      <div className={styles.overlay}>
+        <div className={styles.panel}>
+          <div className={styles.modalHeader}>
+            <h3 className={styles.modalTitle}>고정 지출 기본값</h3>
+            <button onClick={onClose} className={styles.closeBtn}>
+              <X className={styles.closeIcon} />
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className={styles.form}>
+            <p className={styles.debtNotice}>새 달을 만들 때 이 목록이 고정 지출로 들어가요.</p>
+
+            <div>
+              <div className={styles.defaultsHead}>
+                <span>명칭</span><span>금액</span><span>출금일</span><span />
+              </div>
+              <div className={styles.defaultsList}>
+                {rows.map((r, idx) => (
+                    <div key={idx} className={styles.defaultsRow}>
+                      <input type="text" placeholder="예: 통신비" value={r.name}
+                             onChange={e => updateRow(idx, { name: e.target.value })}
+                             className={styles.inputMonoTight} />
+                      <input type="number" min="1" placeholder="금액" value={r.amount}
+                             onChange={e => updateRow(idx, { amount: e.target.value })}
+                             className={styles.inputMonoTight} />
+                      <input type="number" min="1" max="31" placeholder="일" value={r.day}
+                             onChange={e => updateRow(idx, { day: e.target.value })}
+                             className={styles.inputMonoTight} />
+                      <button type="button" className={styles.defaultsDelete}
+                              onClick={() => setRows(prev => prev.filter((_, i) => i !== idx))}
+                              aria-label="삭제">
+                        <Trash2 className={styles.btnIcon} />
+                      </button>
+                    </div>
+                ))}
+                {rows.length === 0 && <p className={styles.hintSlate}>기본 고정 지출이 없어요.</p>}
+              </div>
+
+              <div className={styles.defaultsTools}>
+                <button type="button" className={styles.defaultsAdd}
+                        onClick={() => setRows(prev => [...prev, { name: "", amount: "", day: "" }])}>
+                  <Plus className={styles.btnIcon} /> 항목 추가
+                </button>
+                <button type="button" className={styles.revertBtn}
+                        onClick={() => setRows(toDraft(currentFixed))}>
+                  이번 달 목록 불러오기
+                </button>
+              </div>
+              <p className={styles.settlePreview}>
+                합계 <span className={styles.settlePreviewHighlight}>{total.toLocaleString()}원</span>
+              </p>
+            </div>
+
+            {futureMonthLabels.length > 0 && (
+                <label className={styles.refillCheck}>
+                  <input type="checkbox" checked={applyToFuture} onChange={e => setApplyToFuture(e.target.checked)} />
+                  이미 만들어진 {futureMonthLabels.join("·")}에도 적용
+                </label>
+            )}
+
+            <div className={styles.actions}>
+              <button type="button" onClick={onClose} className={styles.btnCancel}>취소</button>
+              <button type="submit" className={styles.btnSave}>저장</button>
+            </div>
+          </form>
+        </div>
+      </div>
+  );
+};
 
 // ==========================================
 // 3. MONTH ADD MODAL

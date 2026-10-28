@@ -1,7 +1,14 @@
-import { BudgetState, MonthData } from "./types";
+import { BudgetState, FixedExpense, MonthData } from "./types";
 import { CYCLE_VERSION, FIXED_LIVING_BUDGET, FIXED_LIVING_CYCLES, isFixedLivingMonth, makeCycles, normalizeFixedLivingAccounts } from "./utils/budgetCalculator";
 
-export const makeDefaultMonth = (year: number, month: number, budget = 600000, totalBudget?: number): MonthData => {
+// 고정지출 기본값 — 앱에서 따로 저장한 값이 없을 때 쓰는 초기 목록
+export const DEFAULT_FIXED: FixedExpense[] = [
+  { name: "교통비", amount: 56770, day: "매달 15" },
+  { name: "통신비", amount: 82410, day: "매달 25" },
+  { name: "유튜브프리미엄", amount: 13900, day: "매달 27" },
+];
+
+export const makeDefaultMonth = (year: number, month: number, budget = 600000, totalBudget?: number, fixedDefaults: FixedExpense[] = DEFAULT_FIXED): MonthData => {
   const ys = String(year);
   const ms = String(month).padStart(2, "0");
   const fixedLiving = isFixedLivingMonth(`${ys}-${ms}`);
@@ -25,11 +32,7 @@ export const makeDefaultMonth = (year: number, month: number, budget = 600000, t
       { name: "경조사비", amount: 200000, checked: false },
       { name: "생활비", amount: 0, checked: false },
     ],
-    fixed: [
-      { name: "교통비", amount: 56770, day: "매달 15" },
-      { name: "통신비", amount: 82410, day: "매달 25" },
-      { name: "유튜브프리미엄", amount: 13900, day: "매달 27" },
-    ],
+    fixed: fixedDefaults.map(f => ({ ...f })),
     events: [],
     // 생활비 고정 방식 달은 4주기, 그 전은 3주기
     cycles: makeCycles(monthKey, budget, fixedLiving ? FIXED_LIVING_CYCLES : 3),

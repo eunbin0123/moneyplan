@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { MonthData, InstallmentItem, DebtItem } from "../types";
 import { calcAutoAccountAmount, calcDebtCharge, isDebtExemptMonth, calcFixedLivingBudget, isFixedLivingMonth, LIVING_ACCOUNT_NAME, FIXED_LIVING_BUDGET, FIXED_LIVING_CYCLES } from "../utils/budgetCalculator";
-import { Check, Calendar, CalendarRange, Sparkles, Plus, CreditCard, HandCoins } from "lucide-react";
+import { Check, Calendar, CalendarRange, Sparkles, Plus, CreditCard, HandCoins, Settings2 } from "lucide-react";
 // @ts-ignore
 import styles from "../css/SavingsTab.module.css";
 
@@ -12,6 +12,7 @@ interface SavingsTabProps {
     onAddFixed: () => void;
     onEditFixed: (idx: number) => void;
     onDeleteFixed: (idx: number) => void;
+    onEditFixedDefaults?: () => void;
     onAddEvent: () => void;
     onDeleteEvent: (idx: number) => void;
     onUpdateSalary: (amount: number) => void;
@@ -40,6 +41,7 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
                                                           onAddFixed,
                                                           onEditFixed,
                                                           onDeleteFixed,
+                                                          onEditFixedDefaults,
                                                           onAddEvent,
                                                           onDeleteEvent,
                                                           onUpdateSalary,
@@ -467,9 +469,16 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
                             <h3 className={styles.cardTitle}>
                                 <Calendar className={styles.iconSm} /> 고정 지출
                             </h3>
-                            <button className={styles.btnAdd} onClick={onAddFixed}>
-                                <Plus className={styles.iconXs} /> 추가
-                            </button>
+                            <div className={styles.cardHeaderActions}>
+                                {onEditFixedDefaults && (
+                                    <button className={styles.btnGhost} onClick={onEditFixedDefaults}>
+                                        <Settings2 className={styles.iconXs} /> 기본값
+                                    </button>
+                                )}
+                                <button className={styles.btnAdd} onClick={onAddFixed}>
+                                    <Plus className={styles.iconXs} /> 추가
+                                </button>
+                            </div>
                         </div>
 
                         {(data.fixed || []).length === 0 ? (
@@ -480,11 +489,11 @@ export const SavingsTab: React.FC<SavingsTabProps> = ({
                                     <div key={idx} className={styles.fixedRow}>
                                         <div className={styles.fixedLeft}>
                                             <div className={styles.fixedDay}>
-                                                {f.day
+                                                {f.day && /\d/.test(f.day)
                                                     ? f.day.includes("일")
                                                         ? f.day
                                                         : `${f.day}일`
-                                                    : "N/A"}
+                                                    : "날짜 미정"}
                                             </div>
                                             <span className={styles.fixedName}>{f.name}</span>
                                         </div>

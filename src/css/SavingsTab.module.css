@@ -51,6 +51,9 @@
 .btnAdd { display: inline-flex; align-items: center; gap: 0.375rem; font-size: var(--fs-xs); font-weight: var(--fw-bold); letter-spacing: 0; background-color: var(--c-deepgreen); color: var(--c-card); border: none; border-radius: var(--radius-pill); padding: 0.4375rem 0.875rem; cursor: pointer; transition: var(--t-base); }
 .btnAdd:hover { background-color: var(--c-red); }
 .btnAdd:active { transform: translateY(1px); }
+.cardHeaderActions { display: flex; align-items: center; gap: 0.375rem; }
+.btnGhost { display: inline-flex; align-items: center; gap: 0.375rem; font-size: var(--fs-xs); font-weight: var(--fw-bold); letter-spacing: 0; background-color: var(--c-bg-soft); color: var(--c-deepgreen); border: none; border-radius: var(--radius-pill); padding: 0.4375rem 0.875rem; cursor: pointer; transition: var(--t-base); }
+.btnGhost:hover { background-color: var(--c-purplegrey); }
 
 .btnEdit { padding: 0.3125rem 0.75rem; background-color: var(--c-card); color: var(--c-deepgreen); font-size: var(--fs-xs); font-weight: var(--fw-medium); border: var(--hairline); border-radius: var(--radius-pill); cursor: pointer; transition: var(--t-base); user-select: none; }
 .btnEdit:hover { background-color: var(--c-green); color: var(--c-card); border-color: transparent; }
