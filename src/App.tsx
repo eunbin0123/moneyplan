@@ -10,7 +10,8 @@ import { FixedExpense, BudgetCycle, ExpenseItem, MonthData, BudgetState, EventEx
 import { initialBudgetState, makeDefaultMonth, DEFAULT_FIXED } from "./initialData";
 import { ExpenseModal, FixedModal, FixedDefaultsModal, MonthModal, CycleModal, EventModal, IncomeModal, InstallmentModal, DebtModal, RefillModal } from "./components/Modals";
 import { calculateBudgetWithCarryOver, calcInstallmentForMonth, normalizeBudgetState, normalizeFixedLivingAccounts } from "./utils/budgetCalculator";
-import { saveToFirestore, loadFromFirestore, subscribeToFirestore } from "./utils/firestore";
+import { saveChanges, loadFromFirestore, subscribeToFirestore } from "./utils/firestore";
+import { SyncSnapshot, diffState, isEmptyDiff, applyDiff, mergeRemote } from "./utils/sync";
 // @ts-ignore
 import styles from "./css/App.module.css";
 import { Confetti } from "./components/Confetti";
@@ -20,6 +21,8 @@ import { localDateStr, localMonthStr } from "./utils/date";
 // 인증 관련 추가 import (경로가 다를 경우 수정해주세요)
 import { signInWithEmailAndPassword, onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "./utils/firebaseAuth";
+
+const EMPTY_SNAPSHOT: SyncSnapshot = { months: [], budgetState: {} };
 
 type TabType = "overview" | "expenses" | "savings" | "dashboard" | "fixed" | "event" | "installment" | "debt";
 
@@ -110,7 +113,6 @@ export default function App() {
   const [isSavingsModalOpen, setIsSavingsModalOpen] = useState(false);
 
   const firestoreUnsub = useRef<(() => void) | null>(null);
-  const isRemoteUpdate = useRef(false);
 
   // 인증 상태 감지
   useEffect(() => {
@@ -145,15 +147,43 @@ export default function App() {
     localStorage.setItem("smart_budget_fixed_defaults_v1", JSON.stringify(fixedDefaults));
   }, [fixedDefaults]);
 
+  // Firestore에 마지막으로 반영된 상태(서버 기준). 저장할 때는 이것과 비교해 바뀐 달만 보낸다.
+  // undefined = 아직 서버 상태를 모름(저장 보류), null = 문서가 없음(첫 저장 때 전체 생성)
+  const syncedRef = useRef<SyncSnapshot | null | undefined>(undefined);
+  // 비동기 콜백(구독·저장 타이머)에서 최신 로컬 상태를 읽기 위한 ref
+  const localRef = useRef<SyncSnapshot>({ months, budgetState, fixedDefaults });
+  localRef.current = { months, budgetState, fixedDefaults };
+
+  // 상태 세 개를 한 번에 바꾸고, 렌더 전에 오는 콜백도 새 값을 보도록 ref도 즉시 맞춘다
+  const applyLocal = (next: SyncSnapshot) => {
+    const { newMonths, newBudgetState } = ensureMonthsUpToThreeAhead(next.months, next.budgetState, next.fixedDefaults);
+    const nextFixed = next.fixedDefaults ?? localRef.current.fixedDefaults ?? DEFAULT_FIXED;
+    localRef.current = { months: newMonths, budgetState: newBudgetState, fixedDefaults: nextFixed };
+    setFixedDefaults(nextFixed);
+    setMonths(newMonths);
+    setBudgetState(newBudgetState);
+    return { newMonths, newBudgetState };
+  };
+
+  const flushToFirestore = () => {
+    const base = syncedRef.current;
+    if (base === undefined) return; // 서버 상태를 모르는 채로 쓰면 덮어쓸 수 있으니 보류
+    const local = localRef.current;
+    const diff = diffState(base ?? EMPTY_SNAPSHOT, local);
+    if (isEmptyDiff(diff)) return;
+    const next = applyDiff(base ?? EMPTY_SNAPSHOT, diff);
+    syncedRef.current = next;
+    saveChanges(diff, base === null, local).catch((e) => {
+      console.error("Firestore 저장 실패:", e);
+      // 그 사이 새 서버 상태를 받지 않았다면 되돌려서 다음 변경 때 다시 보낸다
+      if (syncedRef.current === next) syncedRef.current = base;
+    });
+  };
+
   useEffect(() => {
     // 로그인되지 않았으면 Firestore 저장 안 함
-    if (!user) return;
-
-    if (isRemoteUpdate.current) { isRemoteUpdate.current = false; return; }
-    if (isLoading) return;
-    const timer = setTimeout(() => {
-      saveToFirestore(months, budgetState, fixedDefaults).catch(console.error);
-    }, 1000);
+    if (!user || isLoading) return;
+    const timer = setTimeout(flushToFirestore, 1000);
     return () => clearTimeout(timer);
   }, [budgetState, months, fixedDefaults, isLoading, user]);
 
@@ -164,35 +194,27 @@ export default function App() {
     const init = async () => {
       try {
         const remote = await loadFromFirestore();
-        if (remote && remote.months.length > 0) {
-          if (remote.fixedDefaults) setFixedDefaults(remote.fixedDefaults);
-          const { newMonths, newBudgetState } = ensureMonthsUpToThreeAhead(remote.months, remote.budgetState, remote.fixedDefaults);
-          const monthsChanged = newMonths.length !== remote.months.length;
-          if (!monthsChanged) isRemoteUpdate.current = true;
-          setMonths(newMonths);
-          setBudgetState(newBudgetState);
-          setCurrentMonth(findCurrentMonth(newMonths, newBudgetState));
-        } else {
-          const { newMonths, newBudgetState } = ensureMonthsUpToThreeAhead(months, budgetState);
-          setMonths(newMonths);
-          setBudgetState(newBudgetState);
-          setCurrentMonth(findCurrentMonth(newMonths, newBudgetState));
-        }
+        syncedRef.current = remote;
+        // 처음 열 때는 서버 데이터가 기준. 서버가 비어 있으면 이 기기의 데이터로 시작한다.
+        const start = remote && remote.months.length > 0 ? remote : localRef.current;
+        const { newMonths, newBudgetState } = applyLocal(start);
+        setCurrentMonth(findCurrentMonth(newMonths, newBudgetState));
       } catch (e) {
         console.error("Firestore 로드 실패:", e);
-        const { newMonths, newBudgetState } = ensureMonthsUpToThreeAhead(months, budgetState);
-        setMonths(newMonths);
-        setBudgetState(newBudgetState);
+        applyLocal(localRef.current);
       } finally {
         setIsLoading(false);
       }
-      firestoreUnsub.current = subscribeToFirestore((remoteMonths, remoteBudget, remoteFixedDefaults) => {
-        if (remoteFixedDefaults) setFixedDefaults(remoteFixedDefaults);
-        const { newMonths, newBudgetState } = ensureMonthsUpToThreeAhead(remoteMonths, remoteBudget, remoteFixedDefaults);
-        const monthsChanged = newMonths.length !== remoteMonths.length;
-        if (!monthsChanged) isRemoteUpdate.current = true;
-        setMonths(newMonths);
-        setBudgetState(newBudgetState);
+      firestoreUnsub.current = subscribeToFirestore((remote) => {
+        const base = syncedRef.current;
+        if (remote === null) {
+          if (base === undefined) syncedRef.current = null;
+          return;
+        }
+        // 서버 상태를 몰랐다면(로드 실패) 서버 기준, 알았다면 아직 저장 안 된 내 변경을 지키며 병합
+        const merged = base === undefined ? remote : mergeRemote(base ?? EMPTY_SNAPSHOT, localRef.current, remote);
+        syncedRef.current = remote;
+        applyLocal(merged);
       });
     };
     init();

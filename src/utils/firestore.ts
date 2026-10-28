@@ -1,7 +1,7 @@
-import { getFirestore, doc, setDoc, onSnapshot, getDoc } from "firebase/firestore";
+import { getFirestore, doc, setDoc, updateDoc, onSnapshot, getDoc, deleteField, FieldPath, DocumentData } from "firebase/firestore";
 import { initializeApp } from "firebase/app";
 import firebaseConfig from "../../firebase-applet-config.json";
-import { BudgetState, FixedExpense } from "../types";
+import { SyncDiff, SyncSnapshot } from "./sync";
 
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
@@ -13,42 +13,42 @@ const DOC_REF = doc(db, "budgets", "eunbin");
 // 직렬화 한 번으로 undefined 필드를 안전하게 제거한다.
 const stripUndefined = <T,>(value: T): T => JSON.parse(JSON.stringify(value));
 
-export const saveToFirestore = async (
-    months: string[],
-    budgetState: BudgetState,
-    fixedDefaults: FixedExpense[]
-): Promise<void> => {
-  await setDoc(DOC_REF, {
-    months,
-    budgetState: stripUndefined(budgetState),
-    fixedDefaults: stripUndefined(fixedDefaults),
-    updatedAt: new Date().toISOString(),
-  });
+const toSnapshot = (data: DocumentData): SyncSnapshot => ({
+  months: data.months || [],
+  budgetState: data.budgetState || {},
+  fixedDefaults: data.fixedDefaults,
+});
+
+/**
+ * 바뀐 부분만 저장한다. 다른 달은 건드리지 않으므로, 다른 기기에서 고친 달을 덮어쓰지 않는다.
+ * 문서가 아직 없으면(isNewDoc) 전체를 처음 한 번 만든다.
+ */
+export const saveChanges = async (diff: SyncDiff, isNewDoc: boolean, full: SyncSnapshot): Promise<void> => {
+  const updatedAt = new Date().toISOString();
+  if (isNewDoc) {
+    await setDoc(DOC_REF, { ...stripUndefined(full), updatedAt });
+    return;
+  }
+  // 달 키("2026-10")에 '-'가 있어 점 표기 대신 FieldPath로 지정한다. 한 번의 updateDoc이라 전부 저장되거나 전부 실패한다.
+  const fields: unknown[] = [];
+  for (const [key, md] of Object.entries(diff.changedMonths)) fields.push(new FieldPath("budgetState", key), stripUndefined(md));
+  for (const key of diff.deletedMonths) fields.push(new FieldPath("budgetState", key), deleteField());
+  if (diff.months) fields.push("months", diff.months);
+  if (diff.fixedDefaults) fields.push("fixedDefaults", stripUndefined(diff.fixedDefaults));
+  // @ts-ignore — updateDoc(ref, field, value, ...moreFieldsAndValues) 가변 인자 형태
+  await updateDoc(DOC_REF, "updatedAt", updatedAt, ...fields);
 };
 
-export const loadFromFirestore = async (): Promise<{
-  months: string[];
-  budgetState: BudgetState;
-  fixedDefaults?: FixedExpense[];
-} | null> => {
+/** 문서가 없으면 null */
+export const loadFromFirestore = async (): Promise<SyncSnapshot | null> => {
   const snap = await getDoc(DOC_REF);
-  if (!snap.exists()) return null;
-  const data = snap.data();
-  return {
-    months: data.months || [],
-    budgetState: data.budgetState || {},
-    fixedDefaults: data.fixedDefaults,
-  };
+  return snap.exists() ? toSnapshot(snap.data()) : null;
 };
 
 export const subscribeToFirestore = (
-    onData: (months: string[], budgetState: BudgetState, fixedDefaults?: FixedExpense[]) => void
+    onData: (snapshot: SyncSnapshot | null) => void
 ): (() => void) => {
   return onSnapshot(DOC_REF, (snap) => {
-    if (!snap.exists()) return;
-    const data = snap.data();
-    if (data.months && data.budgetState) {
-      onData(data.months, data.budgetState, data.fixedDefaults);
-    }
+    onData(snap.exists() ? toSnapshot(snap.data()) : null);
   });
 };
