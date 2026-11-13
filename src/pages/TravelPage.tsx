@@ -22,6 +22,7 @@ interface SpendItem {
   currency: "KRW" | "LOCAL";
   type: "cash" | "card";
   date: string;
+  split?: { total: number; people: number }; // N빵한 항목 — amount는 내 몫(total ÷ people)
 }
 
 interface Trip {
@@ -34,6 +35,7 @@ interface Trip {
   cardBudget: number;
   startDate: string;
   endDate: string;
+  people?: number;        // 여행 인원 (N빵 기준). 없으면 1명
   fixedItems: FixedItem[];
   spendItems: SpendItem[];
 }
@@ -47,6 +49,7 @@ interface TripDraft {
   cardBudget: string;
   startDate: string;
   endDate: string;
+  people: string;
 }
 
 const makeTrip = (overrides: Partial<Trip> = {}): Trip => ({
@@ -103,13 +106,13 @@ const DEFAULT_TOKYO_TRIP = makeTrip({
 
 const blankDraft = (): TripDraft => ({
   name: "", currencyCode: "JPY", currencySymbol: "¥",
-  exchangeRate: "9.5", cashBudget: "", cardBudget: "", startDate: "", endDate: "",
+  exchangeRate: "9.5", cashBudget: "", cardBudget: "", startDate: "", endDate: "", people: "1",
 });
 
 const draftFromTrip = (t: Trip): TripDraft => ({
   name: t.name, currencyCode: t.currencyCode, currencySymbol: t.currencySymbol,
   exchangeRate: String(t.exchangeRate), cashBudget: String(t.cashBudget), cardBudget: String(t.cardBudget),
-  startDate: t.startDate, endDate: t.endDate,
+  startDate: t.startDate, endDate: t.endDate, people: String(t.people ?? 1),
 });
 
 function getDates(start: string, end: string): string[] {
@@ -156,6 +159,10 @@ export default function TravelPage() {
     name: "", amount: "", currency: "LOCAL" as "KRW" | "LOCAL",
     type: "cash" as "cash" | "card", date: localDateStr(),
   });
+  // N빵: 켜면 입력한 금액을 총액으로 보고 인원수로 나눈 내 몫을 저장
+  const [splitOn, setSplitOn] = useState(false);
+  // N빵 계산 결과와 실제 내 몫이 다를 때 직접 고친 값 (null이면 자동 계산값 사용)
+  const [shareOverride, setShareOverride] = useState<string | null>(null);
 
   const activeTrip = trips.find((t) => t.id === activeTripId) || null;
 
@@ -276,14 +283,25 @@ export default function TravelPage() {
   const cashRemaining = (activeTrip?.cashBudget ?? 0) - cashSpentLocal;
   const cardRemaining = (activeTrip?.cardBudget ?? 0) - cardSpentLocal;
 
+  const tripPeople = Math.max(1, activeTrip?.people ?? 1);
+  const splitShare = (total: number) => Math.round((total / tripPeople) * 100) / 100;
+
   const addSpend = () => {
     if (!activeTrip) return;
     const amt = parseFloat(newSpend.amount.replace(/,/g, ""));
     if (!newSpend.name || isNaN(amt) || amt <= 0) return;
-    updateTrip(activeTrip.id, (t) => ({
-      ...t, spendItems: [...t.spendItems, { id: Date.now().toString(), ...newSpend, amount: amt }],
-    }));
+    const doSplit = splitOn && tripPeople >= 2;
+    const overridden = shareOverride !== null ? parseFloat(shareOverride) : NaN;
+    const myShare = !isNaN(overridden) && overridden > 0 ? overridden : splitShare(amt);
+    const item: SpendItem = {
+      id: Date.now().toString(), ...newSpend,
+      amount: doSplit ? myShare : amt,
+      ...(doSplit ? { split: { total: amt, people: tripPeople } } : {}),
+    };
+    updateTrip(activeTrip.id, (t) => ({ ...t, spendItems: [...t.spendItems, item] }));
     setNewSpend((p) => ({ ...p, name: "", amount: "" }));
+    setSplitOn(false);
+    setShareOverride(null);
     setIsModalOpen(false);
   };
 
@@ -318,12 +336,13 @@ export default function TravelPage() {
     const card = parseInt(tripDraft.cardBudget, 10) || 0;
     const currencyCode = tripDraft.currencyCode.trim() || "JPY";
     const currencySymbol = tripDraft.currencySymbol.trim() || "¥";
+    const people = Math.max(1, parseInt(tripDraft.people, 10) || 1);
 
     if (tripModalMode === "create") {
       const trip = makeTrip({
         name, currencyCode, currencySymbol, exchangeRate: rate,
         cashBudget: cash, cardBudget: card,
-        startDate: tripDraft.startDate, endDate: tripDraft.endDate,
+        startDate: tripDraft.startDate, endDate: tripDraft.endDate, people,
       });
       setTrips((prev) => [...prev, trip]);
       setActiveTripId(trip.id);
@@ -333,7 +352,7 @@ export default function TravelPage() {
       updateTrip(activeTrip.id, (t) => ({
         ...t, name, currencyCode, currencySymbol, exchangeRate: rate,
         cashBudget: cash, cardBudget: card,
-        startDate: tripDraft.startDate, endDate: tripDraft.endDate,
+        startDate: tripDraft.startDate, endDate: tripDraft.endDate, people,
       }));
     }
     setIsTripModalOpen(false);
@@ -599,7 +618,11 @@ export default function TravelPage() {
                                               if (!isNaN(amt) && amt > 0) {
                                                 updateTrip(activeTrip.id, (t) => ({
                                                   ...t,
-                                                  spendItems: t.spendItems.map((i) => i.id === item.id ? { ...i, name: editingSpendData.name, amount: amt, currency: editingSpendData.currency, type: editingSpendData.type } : i),
+                                                  spendItems: t.spendItems.map((i) => {
+                                                    if (i.id !== item.id) return i;
+                                                    // N빵 항목이면 여기서 고치는 금액은 '내 몫' — 총액·인원 정보는 그대로 둔다
+                                                    return { ...i, name: editingSpendData.name, amount: amt, currency: editingSpendData.currency, type: editingSpendData.type };
+                                                  }),
                                                 }));
                                               }
                                               setEditingSpendId(null); setEditingSpendData(null);
@@ -614,8 +637,21 @@ export default function TravelPage() {
                                         <div className={styles.itemLeft}>
                                           <span className={styles.itemBadge} data-type={item.type}>{item.type === "cash" ? "현금" : "카드"}</span>
                                           <div className={styles.itemInfo}>
-                                            <p className={styles.itemName}>{item.name}</p>
-                                            {activeDate === "all" && <p className={styles.itemSub}>{getDayLabel(item.date)}</p>}
+                                            <p className={styles.itemName}>
+                                              {item.name}
+                                              {item.split && (
+                                                  <span className={styles.splitBadge}>
+                                                    {Math.abs(item.amount - Math.round((item.split.total / item.split.people) * 100) / 100) < 0.01 ? `1/${item.split.people}` : "N빵"}
+                                                  </span>
+                                              )}
+                                            </p>
+                                            {(activeDate === "all" || item.split) && (
+                                                <p className={styles.itemSub}>
+                                                  {activeDate === "all" && getDayLabel(item.date)}
+                                                  {activeDate === "all" && item.split && " · "}
+                                                  {item.split && `총 ${item.currency === "LOCAL" ? `${activeTrip.currencySymbol}${fmtLocal(item.split.total)}` : `${fmt(item.split.total)}원`}`}
+                                                </p>
+                                            )}
                                           </div>
                                         </div>
                                         <div className={styles.itemRight}>
@@ -739,7 +775,7 @@ export default function TravelPage() {
 
         {/* 플로팅 추가 버튼 */}
         {!showList && activeTrip && (
-            <button onClick={() => setIsModalOpen(true)} className={styles.fab} title="지출 추가">
+            <button onClick={() => { setSplitOn(false); setShareOverride(null); setIsModalOpen(true); }} className={styles.fab} title="지출 추가">
               <Plus size={24} />
             </button>
         )}
@@ -789,13 +825,51 @@ export default function TravelPage() {
                   </div>
 
                   <div>
-                    <label className={modalStyles.label}>금액 ({newSpend.currency === "LOCAL" ? activeTrip.currencyCode : "원"})</label>
-                    <input type="number" inputMode="numeric" pattern="[0-9]*" required value={newSpend.amount} onChange={(e) => setNewSpend((p) => ({ ...p, amount: e.target.value }))}
+                    <div className={modalStyles.labelBetween}>
+                      <span>{splitOn && tripPeople >= 2 ? "총 금액" : "금액"} ({newSpend.currency === "LOCAL" ? activeTrip.currencyCode : "원"})</span>
+                      {tripPeople >= 2 ? (
+                          <button type="button" onClick={() => { setSplitOn((v) => !v); setShareOverride(null); }} className={styles.pillBtn} data-active={splitOn}>
+                            N빵 ÷{tripPeople}
+                          </button>
+                      ) : (
+                          <span className={modalStyles.labelHintInline}>여행 설정에서 인원을 넣으면 N빵 가능</span>
+                      )}
+                    </div>
+                    <input type="number" inputMode="numeric" pattern="[0-9]*" required value={newSpend.amount} onChange={(e) => { setNewSpend((p) => ({ ...p, amount: e.target.value })); setShareOverride(null); }}
                            placeholder={newSpend.currency === "LOCAL" ? `${activeTrip.currencySymbol} 입력` : "₩ 입력"}
                            className={modalStyles.inputMonoNative} style={{ fontSize: "16px" }} />
-                    {newSpend.currency === "LOCAL" && newSpend.amount && (
-                        <p className={modalStyles.hintSlate}>≈ {fmt(parseFloat(newSpend.amount) * activeTrip.exchangeRate)}원</p>
-                    )}
+                    {(() => {
+                      const total = parseFloat(newSpend.amount);
+                      if (!newSpend.amount || isNaN(total)) return null;
+                      const splitting = splitOn && tripPeople >= 2;
+                      const auto = splitShare(total);
+                      const overridden = shareOverride !== null ? parseFloat(shareOverride) : NaN;
+                      const mine = splitting ? (!isNaN(overridden) && overridden > 0 ? overridden : auto) : total;
+                      const sym = newSpend.currency === "LOCAL" ? activeTrip.currencySymbol : "₩";
+                      return (
+                          <>
+                            {splitting && (
+                                <div className={styles.shareRow}>
+                                  <span className={styles.shareLabel}>내 몫</span>
+                                  <input type="number" inputMode="decimal" min="0" step="any"
+                                         value={shareOverride ?? String(auto)}
+                                         onChange={(e) => setShareOverride(e.target.value)}
+                                         className={modalStyles.inputMonoNative} style={{ fontSize: "16px" }} />
+                                  {shareOverride !== null && (
+                                      <button type="button" onClick={() => setShareOverride(null)} className={modalStyles.revertBtn} style={{ marginTop: 0, whiteSpace: "nowrap" }}>
+                                        ÷{tripPeople} 값으로
+                                      </button>
+                                  )}
+                                </div>
+                            )}
+                            <p className={modalStyles.hintSlate}>
+                              {splitting && <>{shareOverride !== null ? "직접 입력한 내 몫" : `${tripPeople}명이 나눠서 내 몫`} <b className={styles.splitShare}>{sym}{fmtLocal(mine)}</b></>}
+                              {splitting && newSpend.currency === "LOCAL" && " · "}
+                              {newSpend.currency === "LOCAL" && <>≈ {fmt(mine * activeTrip.exchangeRate)}원</>}
+                            </p>
+                          </>
+                      );
+                    })()}
                   </div>
 
                   {newSpend.currency === "LOCAL" && (
@@ -884,6 +958,12 @@ export default function TravelPage() {
                              onChange={(e) => setTripDraft((p) => ({ ...p, endDate: e.target.value }))}
                              className={modalStyles.inputMonoNative} style={{ fontSize: "16px" }} />
                     </div>
+                  </div>
+                  <div>
+                    <label className={modalStyles.label}>인원 <span className={modalStyles.labelOptional}>(나 포함, N빵 기준)</span></label>
+                    <input type="number" inputMode="numeric" pattern="[0-9]*" min="1" value={tripDraft.people}
+                           onChange={(e) => setTripDraft((p) => ({ ...p, people: e.target.value }))}
+                           className={modalStyles.inputMonoNative} style={{ fontSize: "16px" }} />
                   </div>
                   <div>
                     <label className={modalStyles.label}>환율 ({tripDraft.currencySymbol || "¥"}1 = ?원)</label>
