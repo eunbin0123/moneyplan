@@ -266,7 +266,8 @@ export default function TravelPage() {
   }, [isAuthReady, user]);
 
   const fmt = (n: number) => Math.round(n).toLocaleString("ko-KR");
-  const fmtLocal = (n: number) => Math.round(n).toLocaleString("ko-KR");
+  // 현지 통화는 소수점(예: ¥12.5)까지 보여준다 — 원화는 정수
+  const fmtLocal = (n: number) => n.toLocaleString("ko-KR", { maximumFractionDigits: 2 });
   const toKRW = (item: SpendItem) => !activeTrip ? 0 : (item.currency === "KRW" ? item.amount : item.amount * activeTrip.exchangeRate);
 
   const dates = activeTrip ? getDates(activeTrip.startDate, activeTrip.endDate) : [];
@@ -332,8 +333,8 @@ export default function TravelPage() {
     const name = tripDraft.name.trim();
     if (!name) return;
     const rate = parseFloat(tripDraft.exchangeRate) || 0;
-    const cash = parseInt(tripDraft.cashBudget, 10) || 0;
-    const card = parseInt(tripDraft.cardBudget, 10) || 0;
+    const cash = parseFloat(tripDraft.cashBudget) || 0;
+    const card = parseFloat(tripDraft.cardBudget) || 0;
     const currencyCode = tripDraft.currencyCode.trim() || "JPY";
     const currencySymbol = tripDraft.currencySymbol.trim() || "¥";
     const people = Math.max(1, parseInt(tripDraft.people, 10) || 1);
@@ -591,7 +592,7 @@ export default function TravelPage() {
                                           <input type="text" value={editingSpendData.name}
                                                  onChange={(e) => setEditingSpendData((p) => p && ({ ...p, name: e.target.value }))}
                                                  className={styles.inlineInput} style={{ fontSize: "16px" }} />
-                                          <input type="number" inputMode="numeric" pattern="[0-9]*"
+                                          <input type="number" inputMode="decimal" step="any"
                                                  value={editingSpendData.amount}
                                                  onChange={(e) => setEditingSpendData((p) => p && ({ ...p, amount: e.target.value }))}
                                                  className={`${styles.inlineInput} ${styles.inlineAmount}`} style={{ fontSize: "16px" }} />
@@ -835,7 +836,7 @@ export default function TravelPage() {
                           <span className={modalStyles.labelHintInline}>여행 설정에서 인원을 넣으면 N빵 가능</span>
                       )}
                     </div>
-                    <input type="number" inputMode="numeric" pattern="[0-9]*" required value={newSpend.amount} onChange={(e) => { setNewSpend((p) => ({ ...p, amount: e.target.value })); setShareOverride(null); }}
+                    <input type="number" inputMode="decimal" step="any" required value={newSpend.amount} onChange={(e) => { setNewSpend((p) => ({ ...p, amount: e.target.value })); setShareOverride(null); }}
                            placeholder={newSpend.currency === "LOCAL" ? `${activeTrip.currencySymbol} 입력` : "₩ 입력"}
                            className={modalStyles.inputMonoNative} style={{ fontSize: "16px" }} />
                     {(() => {
@@ -967,20 +968,20 @@ export default function TravelPage() {
                   </div>
                   <div>
                     <label className={modalStyles.label}>환율 ({tripDraft.currencySymbol || "¥"}1 = ?원)</label>
-                    <input type="number" inputMode="numeric" pattern="[0-9]*" step="0.1" value={tripDraft.exchangeRate}
+                    <input type="number" inputMode="decimal" step="any" value={tripDraft.exchangeRate}
                            onChange={(e) => setTripDraft((p) => ({ ...p, exchangeRate: e.target.value }))}
                            className={modalStyles.inputMonoNative} style={{ fontSize: "16px" }} />
                   </div>
                   <div className={modalStyles.grid2}>
                     <div>
                       <label className={modalStyles.label}>현금 예산 ({tripDraft.currencyCode || "JPY"})</label>
-                      <input type="number" inputMode="numeric" pattern="[0-9]*" value={tripDraft.cashBudget}
+                      <input type="number" inputMode="decimal" step="any" value={tripDraft.cashBudget}
                              onChange={(e) => setTripDraft((p) => ({ ...p, cashBudget: e.target.value }))}
                              className={modalStyles.inputMonoNative} style={{ fontSize: "16px" }} />
                     </div>
                     <div>
                       <label className={modalStyles.label}>카드 예산 ({tripDraft.currencyCode || "JPY"})</label>
-                      <input type="number" inputMode="numeric" pattern="[0-9]*" value={tripDraft.cardBudget}
+                      <input type="number" inputMode="decimal" step="any" value={tripDraft.cardBudget}
                              onChange={(e) => setTripDraft((p) => ({ ...p, cardBudget: e.target.value }))}
                              className={modalStyles.inputMonoNative} style={{ fontSize: "16px" }} />
                     </div>
