@@ -636,7 +636,7 @@ export default function TravelPage() {
                                   ) : (
                                       <>
                                         <div className={styles.itemLeft}>
-                                          <span className={styles.itemBadge} data-type={item.type}>{item.type === "cash" ? "현금" : "카드"}</span>
+                                          {item.currency === "LOCAL" && <span className={styles.itemBadge} data-type={item.type}>{item.type === "cash" ? "현금" : "카드"}</span>}
                                           <div className={styles.itemInfo}>
                                             <p className={styles.itemName}>
                                               {item.name}
